@@ -41,7 +41,7 @@ function top_posts_list() {
 
     foreach ($filtered_posts as $p) {
         if ($count < 5) {
-            $output .= '<li style="margin-bottom: 10px;"><a href="' . $p['permalink'] . '?utm_source=recirculatie" style="text-decoration: none; color: #333;">' . $p['title'] . '</a></li>';
+            $output .= '<li style="margin-bottom: 10px;"><a href="' . $p['permalink'] . '?utm_source=recirculatie" style="text-decoration: none;">' . $p['title'] . '</a></li>';
             $count++;
         }
     }
