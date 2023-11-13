@@ -51,7 +51,7 @@ function top_posts_list() {
 }
 
 add_filter('the_content', function($content) {
-    if (is_single()) {
+    if (is_single() && get_post_type() === 'post') {
         $content .= top_posts_list();
     }
     return $content;
