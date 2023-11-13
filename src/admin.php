@@ -1,11 +1,13 @@
 <?php
+
 // Prevent direct file access
 defined('ABSPATH') or die('No script kiddies please!');
 
 /**
  * Activation hook function: Schedules the event to fetch top posts.
  */
-function zwr_activate() {
+function zwr_activate()
+{
     if (!wp_next_scheduled('zwr_event_hook')) {
         wp_schedule_event(time(), 'twicedaily', 'zwr_event_hook');
     }
@@ -14,7 +16,8 @@ function zwr_activate() {
 /**
  * Deactivation hook function: Clears the scheduled event.
  */
-function zwr_deactivate() {
+function zwr_deactivate()
+{
     $timestamp = wp_next_scheduled('zwr_event_hook');
     wp_unschedule_event($timestamp, 'zwr_event_hook');
 }
@@ -27,7 +30,8 @@ add_action('zwr_event_hook', 'zwr_get_top_posts');
 /**
  * Fetches the top posts data from an external API.
  */
-function zwr_get_top_posts() {
+function zwr_get_top_posts()
+{
     $baseUrl = 'https://stats.zuidwesttv.nl';
     $siteId = 'zuidwestupdate.nl';
     $token = 'your_token_here'; // Replace with your actual token
@@ -68,6 +72,7 @@ function zwr_get_top_posts() {
  *
  * @param array $topPostsDetails Array of top post details to be saved.
  */
-function zwr_save_top_posts($topPostsDetails) {
+function zwr_save_top_posts($topPostsDetails)
+{
     update_option('zwr_top_posts', $topPostsDetails);
 }

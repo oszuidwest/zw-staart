@@ -7,7 +7,8 @@ defined('ABSPATH') or die('No script kiddies please!');
  *
  * @return array An array of top posts or an empty array if not set.
  */
-function fetch_top_posts() {
+function fetch_top_posts()
+{
     // Get the top posts stored in the wp_options table
     $topPosts = get_option('zwr_top_posts');
     // Ensure the returned value is an array
@@ -19,12 +20,13 @@ function fetch_top_posts() {
  *
  * @return string The HTML output for the top posts list.
  */
-function top_posts_list() {
+function top_posts_list()
+{
     // Fetch the top posts
     $posts = fetch_top_posts();
     global $post;
     // Filter out the current post to avoid self-reference in the list
-    $filtered_posts = array_filter($posts, fn($p) => $p['id'] != $post->ID);
+    $filtered_posts = array_filter($posts, fn ($p) => $p['id'] != $post->ID);
 
     // Start output buffering to capture HTML output
     ob_start();
