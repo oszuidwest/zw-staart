@@ -1,0 +1,25 @@
+## [0.1] - 2023-11-14
+### Toegevoegd
+- De plugin opgesplitst in meerdere bestanden:
+  - `zwr.php`: Het hoofdbestand.
+  - `src/admin.php`: Bevat backend logica voor het ophalen en opslaan van de gegevens.
+  - `src/front-end.php`: Voor de weergave van de meest gelezen berichten op de frond-end.
+- Logging van fouten geïmplementeerd in `admin.php`.
+- Code in `admin.php` en `front-end.php` wat gedocumenteerd met comments.
+
+### Veranderd
+- In plaats van `curl` nu de `wp_remote_get` functie gebruikt voor externe calls, conform de WordPress-standaarden.
+- Transiënte caching verwijderd uit `front-end.php` gezien de data toch direct uit de `wp_options` tabel komt.
+
+## [0.0.2] - 2023-11-13
+### Veranderd
+- Hernoemd naar "ZuidWest Recirculatie" (zwr).
+- Meest gelezen berichten alleen tonen op post_type `post`.
+- Haalt meest gelzen berichten op van de Plausible Analytics API en sla ze op in de WordPress-optietabel.
+- Doe niets wanneer een post via de WP REST API opgevraagd wordt.
+- Compatibel met dark mode.
+
+## [0.0.1] - 2023-11-13
+### Toegevoegd
+- Eerste prototype.
+- Weergave van meest gelezen berichten uit een JSON-bestand toegevoegd aan `post_content`.
