@@ -52,7 +52,7 @@ function top_posts_list()
 }
 
 add_filter('the_content', function ($content) {
-    if (is_single() && get_post_type() === 'post') {
+    if (is_single() && get_post_type() === 'post' && (!defined('REST_REQUEST') || !REST_REQUEST)) {
         $content .= top_posts_list();
     }
     return $content;
