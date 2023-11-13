@@ -6,7 +6,8 @@ Version: 1.0
 Author: Raymon Mens
 */
 
-function top_posts_list() {
+function top_posts_list()
+{
     // Check if the transient already exists
     $cached_posts = get_transient('top_posts_list_cache');
 
@@ -30,7 +31,7 @@ function top_posts_list() {
     global $post;
 
     // Filter out the current post's ID
-    $filtered_posts = array_filter($posts, function($p) use ($post) {
+    $filtered_posts = array_filter($posts, function ($p) use ($post) {
         return $p['id'] != $post->ID;
     });
 
@@ -50,11 +51,9 @@ function top_posts_list() {
     return $output;
 }
 
-add_filter('the_content', function($content) {
+add_filter('the_content', function ($content) {
     if (is_single() && get_post_type() === 'post') {
         $content .= top_posts_list();
     }
     return $content;
 });
-
-?>
