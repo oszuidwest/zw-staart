@@ -33,32 +33,36 @@ function top_posts_list()
 
     global $post;
 
+    // Filter out the current post
+    $filtered_posts = array_filter($posts, function ($p) use ($post) {
+        $post_id = url_to_postid(home_url($p['page']));
+        return $post_id != 0 && $post_id != $post->ID;
+    });
+
+    // Check if there are at least 5 posts after filtering
+    if (count($filtered_posts) < 5) {
+        error_log('Not enough top posts to display after excluding the current post.');
+        return '';
+    }
+
     // Start output buffering to capture HTML output
     ob_start();
     ?>
     <aside style="margin-top: 20px; font-family: Arial, sans-serif;">
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Meest gelezen</h3>
         <ol style="margin: 0; padding-left: 20px;">
-            <?php 
-            $count = 0;
-            foreach ($posts as $p) {
-                $post_id = url_to_postid(home_url($p['page']));
-                // Skip the current post and continue with the next iteration
-                if ($post_id == 0 || $post_id == $post->ID) continue;
-
-                $post_permalink = get_permalink($post_id);
-                $post_title = get_the_title($post_id);
+            <?php foreach (array_slice($filtered_posts, 0, 5) as $p): ?>
+                <?php
+                    $post_id = url_to_postid(home_url($p['page']));
+                    $post_permalink = get_permalink($post_id);
+                    $post_title = get_the_title($post_id);
                 ?>
                 <li style="margin-bottom: 10px;">
                     <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
                         <?php echo esc_html($post_title); ?>
                     </a>
                 </li>
-                <?php
-                $count++;
-                if ($count >= 5) break; // Break the loop after 5 posts
-            }
-            ?>
+            <?php endforeach; ?>
         </ol>
     </aside>
     <?php
