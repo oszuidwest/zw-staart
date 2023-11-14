@@ -24,6 +24,13 @@ function top_posts_list()
 {
     // Fetch the top posts
     $posts = fetch_top_posts();
+
+    // Check if there are no posts and log an error
+    if (empty($posts)) {
+        error_log('No top post data available in zwr_top_posts option.');
+        return '';
+    }
+
     global $post;
 
     // Start output buffering to capture HTML output
@@ -32,20 +39,26 @@ function top_posts_list()
     <aside style="margin-top: 20px; font-family: Arial, sans-serif;">
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Meest gelezen</h3>
         <ol style="margin: 0; padding-left: 20px;">
-            <?php foreach (array_slice($posts, 0, 5) as $p): ?>
-                <?php
-                    $post_id = url_to_postid(home_url($p['page']));
-                    if ($post_id != 0 && $post_id != $post->ID) {
-                        $post_permalink = get_permalink($post_id);
-                        $post_title = get_the_title($post_id);
+            <?php 
+            $count = 0;
+            foreach ($posts as $p) {
+                $post_id = url_to_postid(home_url($p['page']));
+                // Skip the current post and continue with the next iteration
+                if ($post_id == 0 || $post_id == $post->ID) continue;
+
+                $post_permalink = get_permalink($post_id);
+                $post_title = get_the_title($post_id);
                 ?>
-                    <li style="margin-bottom: 10px;">
-                        <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
-                            <?php echo esc_html($post_title); ?>
-                        </a>
-                    </li>
-                <?php } ?>
-            <?php endforeach; ?>
+                <li style="margin-bottom: 10px;">
+                    <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
+                        <?php echo esc_html($post_title); ?>
+                    </a>
+                </li>
+                <?php
+                $count++;
+                if ($count >= 5) break; // Break the loop after 5 posts
+            }
+            ?>
         </ol>
     </aside>
     <?php
