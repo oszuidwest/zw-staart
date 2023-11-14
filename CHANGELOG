@@ -1,3 +1,9 @@
+## [0.1.2] - 2023-11-15
+### Veranderd
+- Output robuuster gemaakt: als er geen posts geselecteerd kunnen worden, toon dan niets.
+- Huidige post excluden voordat de top 5 gemaakt wordt. Anders krijg je soms een top 4.
+- Inmiddels overbodige debug logging verwijderd.
+
 ## [0.1.1] - 2023-11-15
 ### Veranderd
 - Probleem met scheduled events die niet werkten opgelost.

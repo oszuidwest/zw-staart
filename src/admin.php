@@ -16,7 +16,6 @@ function zwr_activate()
 
     // Schedule the new event
     wp_schedule_event(time(), 'twicedaily', 'zwr_event_hook');
-    error_log('zwr_activate: Event scheduled.');
 }
 
 /**
@@ -27,7 +26,6 @@ function zwr_deactivate()
     $timestamp = wp_next_scheduled('zwr_event_hook');
     if ($timestamp) {
         wp_unschedule_event($timestamp, 'zwr_event_hook');
-        error_log('zwr_deactivate: Event unscheduled.');
     }
 }
 
