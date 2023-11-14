@@ -31,8 +31,6 @@ function zwr_deactivate()
     }
 }
 
-register_activation_hook(__FILE__, 'zwr_activate');
-register_deactivation_hook(__FILE__, 'zwr_deactivate');
 
 add_action('zwr_event_hook', 'zwr_get_top_posts');
 
