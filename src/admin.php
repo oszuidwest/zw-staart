@@ -8,9 +8,15 @@ defined('ABSPATH') or die('No script kiddies please!');
  */
 function zwr_activate()
 {
-    if (!wp_next_scheduled('zwr_event_hook')) {
-        wp_schedule_event(time(), 'twicedaily', 'zwr_event_hook');
+    // Clear any existing event to ensure clean scheduling
+    $timestamp = wp_next_scheduled('zwr_event_hook');
+    if ($timestamp) {
+        wp_unschedule_event($timestamp, 'zwr_event_hook');
     }
+
+    // Schedule the new event
+    wp_schedule_event(time(), 'twicedaily', 'zwr_event_hook');
+    error_log('zwr_activate: Event scheduled.');
 }
 
 /**
@@ -19,7 +25,10 @@ function zwr_activate()
 function zwr_deactivate()
 {
     $timestamp = wp_next_scheduled('zwr_event_hook');
-    wp_unschedule_event($timestamp, 'zwr_event_hook');
+    if ($timestamp) {
+        wp_unschedule_event($timestamp, 'zwr_event_hook');
+        error_log('zwr_deactivate: Event unscheduled.');
+    }
 }
 
 register_activation_hook(__FILE__, 'zwr_activate');
