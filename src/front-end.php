@@ -24,7 +24,26 @@ function top_posts_list()
 {
     // Fetch the top posts
     $posts = fetch_top_posts();
+
+    // Check if there are no posts and log an error
+    if (empty($posts)) {
+        error_log('No top post data available in zwr_top_posts option.');
+        return '';
+    }
+
     global $post;
+
+    // Filter out the current post
+    $filtered_posts = array_filter($posts, function ($p) use ($post) {
+        $post_id = url_to_postid(home_url($p['page']));
+        return $post_id != 0 && $post_id != $post->ID;
+    });
+
+    // Check if there are at least 5 posts after filtering
+    if (count($filtered_posts) < 5) {
+        error_log('Not enough top posts to display after excluding the current post.');
+        return '';
+    }
 
     // Start output buffering to capture HTML output
     ob_start();
@@ -32,19 +51,17 @@ function top_posts_list()
     <aside style="margin-top: 20px; font-family: Arial, sans-serif;">
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Meest gelezen</h3>
         <ol style="margin: 0; padding-left: 20px;">
-            <?php foreach (array_slice($posts, 0, 5) as $p): ?>
+            <?php foreach (array_slice($filtered_posts, 0, 5) as $p): ?>
                 <?php
                     $post_id = url_to_postid(home_url($p['page']));
-                    if ($post_id != 0 && $post_id != $post->ID) {
-                        $post_permalink = get_permalink($post_id);
-                        $post_title = get_the_title($post_id);
+                    $post_permalink = get_permalink($post_id);
+                    $post_title = get_the_title($post_id);
                 ?>
-                    <li style="margin-bottom: 10px;">
-                        <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
-                            <?php echo esc_html($post_title); ?>
-                        </a>
-                    </li>
-                <?php } ?>
+                <li style="margin-bottom: 10px;">
+                    <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
+                        <?php echo esc_html($post_title); ?>
+                    </a>
+                </li>
             <?php endforeach; ?>
         </ol>
     </aside>
