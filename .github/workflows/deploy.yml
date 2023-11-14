@@ -12,7 +12,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-       - name: Replace token in file
+      - name: Replace token in file
         env:
           PLAUSIBLE_TOKEN: ${{ secrets.PLAUSIBLE_TOKEN }}
         run: |
