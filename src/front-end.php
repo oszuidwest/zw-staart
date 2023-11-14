@@ -25,8 +25,6 @@ function top_posts_list()
     // Fetch the top posts
     $posts = fetch_top_posts();
     global $post;
-    // Filter out the current post to avoid self-reference in the list
-    $filtered_posts = array_filter($posts, fn ($p) => $p['id'] != $post->ID);
 
     // Start output buffering to capture HTML output
     ob_start();
@@ -34,12 +32,19 @@ function top_posts_list()
     <aside style="margin-top: 20px; font-family: Arial, sans-serif;">
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Meest gelezen</h3>
         <ol style="margin: 0; padding-left: 20px;">
-            <?php foreach (array_slice($filtered_posts, 0, 5) as $p): ?>
-                <li style="margin-bottom: 10px;">
-                    <a href="<?php echo esc_url($p['permalink'] . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
-                        <?php echo esc_html($p['title']); ?>
-                    </a>
-                </li>
+            <?php foreach (array_slice($posts, 0, 5) as $p): ?>
+                <?php
+                    $post_id = url_to_postid(home_url($p['page']));
+                    if ($post_id != 0 && $post_id != $post->ID) {
+                        $post_permalink = get_permalink($post_id);
+                        $post_title = get_the_title($post_id);
+                ?>
+                    <li style="margin-bottom: 10px;">
+                        <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
+                            <?php echo esc_html($post_title); ?>
+                        </a>
+                    </li>
+                <?php } ?>
             <?php endforeach; ?>
         </ol>
     </aside>
