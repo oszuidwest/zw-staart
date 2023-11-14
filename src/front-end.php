@@ -54,8 +54,8 @@ function top_posts_list()
             <?php foreach (array_slice($filtered_posts, 0, 5) as $p): ?>
                 <?php
                     $post_id = url_to_postid(home_url($p['page']));
-                    $post_permalink = get_permalink($post_id);
-                    $post_title = get_the_title($post_id);
+                $post_permalink = get_permalink($post_id);
+                $post_title = get_the_title($post_id);
                 ?>
                 <li style="margin-bottom: 10px;">
                     <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
