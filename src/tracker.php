@@ -7,12 +7,12 @@ function add_postid_tracker_script() {
     if (is_single() && isset($post->ID)) {
         ?>
         <script type="text/javascript">
-            jQuery(document).ready(function($) {
-                let postId = '<?php echo $post->ID; ?>';
+            document.addEventListener('DOMContentLoaded', function() {
+                var postId = '<?php echo $post->ID; ?>';
                 updatePostIdCookie(postId);
 
                 function updatePostIdCookie(postId) {
-                    let postIds = getCookie('visitedPostIds');
+                    var postIds = getCookie('visitedPostIds');
                     postIds = postIds ? postIds.split(',') : [];
                     if (postIds.indexOf(postId) === -1) {
                         postIds.push(postId);
@@ -21,22 +21,22 @@ function add_postid_tracker_script() {
                 }
 
                 function setCookie(name, value, days) {
-                    let expires = "";
+                    var expires = "";
                     if (days) {
-                        let date = new Date();
+                        var date = new Date();
                         date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                        expires = "; expires=" + date.toUTCString();
+                        expires = ";expires=" + date.toUTCString();
                     }
-                    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+                    document.cookie = name + "=" + (value || "") + expires + ";path=/";
                 }
 
                 function getCookie(name) {
-                    let nameEQ = name + "=";
-                    let ca = document.cookie.split(';');
-                    for(let i=0;i < ca.length;i++) {
-                        let c = ca[i];
-                        while (c.charAt(0) === ' ') c = c.substring(1,c.length);
-                        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length,c.length);
+                    var nameEQ = name + "=";
+                    var ca = document.cookie.split(';');
+                    for (var i = 0; i < ca.length; i++) {
+                        var c = ca[i];
+                        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
                     }
                     return null;
                 }
