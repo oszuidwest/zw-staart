@@ -33,31 +33,25 @@ function top_posts_list()
 
     global $post;
 
-    // Filter out the current post
-    $filtered_posts = array_filter($posts, function ($p) use ($post) {
+    // Output all posts, excluding the current post
+    $output_posts = array_filter($posts, function ($p) use ($post) {
         $post_id = url_to_postid(home_url($p['page']));
         return $post_id != 0 && $post_id != $post->ID;
     });
 
-    // Check if there are at least 5 posts after filtering
-    if (count($filtered_posts) < 5) {
-        error_log('Not enough top posts to display after excluding the current post.');
-        return '';
-    }
-
     // Start output buffering to capture HTML output
     ob_start();
     ?>
-    <aside style="margin-top: 20px; font-family: Arial, sans-serif;">
+    <aside id="top-posts-list" style="margin-top: 20px; font-family: Arial, sans-serif;">
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Meest gelezen</h3>
         <ol style="margin: 0; padding-left: 20px;">
-            <?php foreach (array_slice($filtered_posts, 0, 5) as $p): ?>
+            <?php foreach ($output_posts as $p): ?>
                 <?php
                     $post_id = url_to_postid(home_url($p['page']));
                     $post_permalink = get_permalink($post_id);
                     $post_title = get_the_title($post_id);
                 ?>
-                <li style="margin-bottom: 10px;" data-post-id="<?php echo esc_attr($post_id); ?>">
+                <li class="top-post-item" data-post-id="<?php echo esc_attr($post_id); ?>" style="margin-bottom: 10px;">
                     <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
                         <?php echo esc_html($post_title); ?>
                     </a>
@@ -65,6 +59,25 @@ function top_posts_list()
             <?php endforeach; ?>
         </ol>
     </aside>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var visitedPostIds = (document.cookie.match(/(^|; )visitedPostIds=([^;]*)/) || 0)[2];
+        visitedPostIds = visitedPostIds ? visitedPostIds.split(',') : [];
+        var topPostItems = document.querySelectorAll('#top-posts-list .top-post-item');
+        var displayedCount = 0;
+        topPostItems.forEach(function (item) {
+            if (visitedPostIds.includes(item.dataset.postId) || displayedCount >= 5) {
+                item.style.display = 'none';
+            } else {
+                displayedCount++;
+            }
+        });
+        // Remove the entire aside element if less than 5 posts are displayed
+        if (displayedCount < 5) {
+            document.getElementById('top-posts-list').remove();
+        }
+    });
+    </script>
     <?php
     // Return the buffered content
     return ob_get_clean();
