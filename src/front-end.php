@@ -50,7 +50,7 @@ function top_posts_list()
     ob_start();
     ?>
     <aside id="top-posts-list" style="margin-top: 20px; font-family: Arial, sans-serif;">
-        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Leestips voor jou ⬇️</h3>
+        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Meest gelezen</h3>
         <ol style="margin: 0; padding-left: 20px;">
             <?php foreach ($output_posts as $p): ?>
                 <?php
@@ -70,34 +70,28 @@ function top_posts_list()
     document.addEventListener('DOMContentLoaded', function () {
         var postIdToUrlMapping = <?php echo json_encode($postIdToUrlMapping); ?>;
         var topPostItems = document.querySelectorAll('#top-posts-list .top-post-item');
-        var displayedCount = 0;
-        var topPostUrls = [];
+        var displayedTopPostUrls = [];
 
-        // Hide top posts if they exceed the display limit
-        topPostItems.forEach(function (item) {
+        // Keep track of the displayed top posts (up to 5)
+        for (var i = 0; i < topPostItems.length && i < 5; i++) {
+            var item = topPostItems[i];
             var url = new URL(item.querySelector('a').getAttribute('href'));
             var baseUrl = url.origin + url.pathname;
-            topPostUrls.push(baseUrl);
-
-            if (displayedCount >= 5) {
-                item.style.display = 'none';
-            } else {
-                displayedCount++;
-            }
-        });
+            displayedTopPostUrls.push(baseUrl);
+        }
 
         // Remove the entire aside element if less than 5 posts are displayed
-        if (displayedCount < 5) {
+        if (displayedTopPostUrls.length < 5) {
             document.getElementById('top-posts-list').remove();
         }
 
-        // Remove "Read this too" blocks if they match top posts
+        // Remove "Read this too" blocks if they match any of the displayed top posts
         document.querySelectorAll('a.block').forEach(function (block) {
             if (block.querySelector('span').textContent.includes('Lees ook:')) {
                 var blockUrl = new URL(block.getAttribute('href'));
                 var blockBaseUrl = blockUrl.origin + blockUrl.pathname;
 
-                if (topPostUrls.includes(blockBaseUrl)) {
+                if (displayedTopPostUrls.includes(blockBaseUrl)) {
                     block.remove();
                 }
             }
