@@ -1,3 +1,7 @@
+## [0.2] - 2023-11-15
+### Toegevoegd
+- Switch naar 'most read not read' model waarbij tracker bijhoudt welke artikelen gelezen zijn en de top 5 filtert.
+
 ## [0.1.2] - 2023-11-15
 ### Veranderd
 - Output robuuster gemaakt: als er geen posts geselecteerd kunnen worden, toon dan niets.
