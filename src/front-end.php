@@ -72,13 +72,16 @@ function top_posts_list()
         var topPostItems = document.querySelectorAll('#top-posts-list .top-post-item');
         var displayedTopPostUrls = [];
 
-        // Keep track of the displayed top posts (up to 5)
-        for (var i = 0; i < topPostItems.length && i < 5; i++) {
-            var item = topPostItems[i];
-            var url = new URL(item.querySelector('a').getAttribute('href'));
-            var baseUrl = url.origin + url.pathname;
-            displayedTopPostUrls.push(baseUrl);
-        }
+        // Display only the first 5 top posts and hide the rest
+        topPostItems.forEach(function (item, index) {
+            if (index < 5) {
+                var url = new URL(item.querySelector('a').getAttribute('href'));
+                var baseUrl = url.origin + url.pathname;
+                displayedTopPostUrls.push(baseUrl);
+            } else {
+                item.style.display = 'none';
+            }
+        });
 
         // Remove the entire aside element if less than 5 posts are displayed
         if (displayedTopPostUrls.length < 5) {
