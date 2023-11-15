@@ -75,8 +75,9 @@ function top_posts_list()
 
         // Hide top posts if they exceed the display limit
         topPostItems.forEach(function (item) {
-            var url = item.querySelector('a').getAttribute('href');
-            topPostUrls.push(url);
+            var url = new URL(item.querySelector('a').getAttribute('href'));
+            var baseUrl = url.origin + url.pathname;
+            topPostUrls.push(baseUrl);
 
             if (displayedCount >= 5) {
                 item.style.display = 'none';
@@ -93,8 +94,10 @@ function top_posts_list()
         // Remove "Read this too" blocks if they match top posts
         document.querySelectorAll('a.block').forEach(function (block) {
             if (block.querySelector('span').textContent.includes('Lees ook:')) {
-                var blockUrl = block.getAttribute('href');
-                if (topPostUrls.includes(blockUrl)) {
+                var blockUrl = new URL(block.getAttribute('href'));
+                var blockBaseUrl = blockUrl.origin + blockUrl.pathname;
+
+                if (topPostUrls.includes(blockBaseUrl)) {
                     block.remove();
                 }
             }
