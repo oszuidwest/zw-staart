@@ -57,7 +57,6 @@ function top_posts_list()
                     $post_permalink = get_permalink($post_id);
                     $post_title = get_the_title($post_id);
                 ?>
-                <!-- List item with data-post-id attribute -->
                 <li style="margin-bottom: 10px;" data-post-id="<?php echo esc_attr($post_id); ?>">
                     <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
                         <?php echo esc_html($post_title); ?>
