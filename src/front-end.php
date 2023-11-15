@@ -39,11 +39,18 @@ function top_posts_list()
         return $post_id != 0 && $post_id != $post->ID;
     });
 
+    // Generate a mapping of post IDs to URLs
+    $postIdToUrlMapping = [];
+    foreach ($output_posts as $p) {
+        $post_id = url_to_postid(home_url($p['page']));
+        $postIdToUrlMapping[$post_id] = get_permalink($post_id);
+    }
+
     // Start output buffering to capture HTML output
     ob_start();
     ?>
     <aside id="top-posts-list" style="margin-top: 20px; font-family: Arial, sans-serif;">
-        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Leestips voor jou</h3>
+        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Leestips voor jou ⬇️</h3>
         <ol style="margin: 0; padding-left: 20px;">
             <?php foreach ($output_posts as $p): ?>
                 <?php
@@ -61,21 +68,37 @@ function top_posts_list()
     </aside>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var visitedPostIds = (document.cookie.match(/(^|; )visitedPostIds=([^;]*)/) || 0)[2];
-        visitedPostIds = visitedPostIds ? visitedPostIds.split(',') : [];
+        var postIdToUrlMapping = <?php echo json_encode($postIdToUrlMapping); ?>;
         var topPostItems = document.querySelectorAll('#top-posts-list .top-post-item');
         var displayedCount = 0;
+        var topPostUrls = [];
+
+        // Hide top posts if they exceed the display limit
         topPostItems.forEach(function (item) {
-            if (visitedPostIds.includes(item.dataset.postId) || displayedCount >= 5) {
+            var url = item.querySelector('a').getAttribute('href');
+            topPostUrls.push(url);
+
+            if (displayedCount >= 5) {
                 item.style.display = 'none';
             } else {
                 displayedCount++;
             }
         });
+
         // Remove the entire aside element if less than 5 posts are displayed
         if (displayedCount < 5) {
             document.getElementById('top-posts-list').remove();
         }
+
+        // Remove "Read this too" blocks if they match top posts
+        document.querySelectorAll('a.block').forEach(function (block) {
+            if (block.querySelector('span').textContent.includes('Lees ook:')) {
+                var blockUrl = block.getAttribute('href');
+                if (topPostUrls.includes(blockUrl)) {
+                    block.remove();
+                }
+            }
+        });
     });
     </script>
     <?php
@@ -96,3 +119,4 @@ add_filter('the_content', function ($content) {
     }
     return $content;
 });
+?>
