@@ -41,7 +41,15 @@ function zwr_get_top_posts()
     $siteId = 'zuidwestupdate.nl';
     $token = 'your_token_here'; // Replace with your actual token
 
-    $url = "{$baseUrl}/api/v1/stats/breakdown?site_id={$siteId}&period=7d&metrics=pageviews&property=event:page";
+    // Calculate date range for the last 5 days
+    $endDate = new DateTime(); // Today's date
+    $startDate = new DateTime(); // Today's date
+    $startDate->modify('-4 days'); // Subtract 4 days to include today in the 5-day period
+
+    $formattedStartDate = $startDate->format('Y-m-d');
+    $formattedEndDate = $endDate->format('Y-m-d');
+
+    $url = "{$baseUrl}/api/v1/stats/breakdown?site_id={$siteId}&period=custom&date={$formattedStartDate},{$formattedEndDate}&metrics=pageviews&property=event:page";
     $response = wp_remote_get($url, array(
         'headers' => array(
             'Authorization' => 'Bearer ' . $token

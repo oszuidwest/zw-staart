@@ -1,3 +1,8 @@
+## [0.2.6] - 2023-11-16
+### Veranderd
+- Haalt elk uur artikelen op in plaats van elke 12 uur.
+- Kijkt naar pageviews van de laatste 5 in plaats van 7 dagen.
+
 ## [0.2.5] - 2023-11-16
 ### Veranderd
 - Filtert lees ook'jes die ook in de lijst met top 5 artikelen voorkomen uit artikelen.
