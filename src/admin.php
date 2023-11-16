@@ -55,7 +55,6 @@ function zwr_get_top_posts()
             'Authorization' => 'Bearer ' . $token
         )
     ));
-}
 
     // Check for WP_Error or a non-200 response code
     if (is_wp_error($response) || wp_remote_retrieve_response_code($response) != 200) {
