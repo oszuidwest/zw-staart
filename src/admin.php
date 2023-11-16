@@ -15,7 +15,7 @@ function zwr_activate()
     }
 
     // Schedule the new event
-    wp_schedule_event(time(), 'twicedaily', 'zwr_event_hook');
+    wp_schedule_event(time(), 'hourly', 'zwr_event_hook');
 }
 
 /**
