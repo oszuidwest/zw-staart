@@ -67,26 +67,36 @@ function top_posts_list()
         </ol>
     </aside>
     <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var postIdToUrlMapping = <?php echo json_encode($postIdToUrlMapping); ?>;
-        var topPostItems = document.querySelectorAll('#top-posts-list .top-post-item');
-        var displayedTopPostUrls = [];
+	    document.addEventListener('DOMContentLoaded', function () {
+	        var postIdToUrlMapping = <?php echo json_encode($postIdToUrlMapping); ?>;
+	        var visitedPostIds = getVisitedPostIds();
+	        var topPostItems = document.querySelectorAll('#top-posts-list .top-post-item');
+	        var displayedTopPostUrls = [];
 
-        // Display only the first 5 top posts and hide the rest
-        topPostItems.forEach(function (item, index) {
-            if (index < 5) {
-                var url = new URL(item.querySelector('a').getAttribute('href'));
-                var baseUrl = url.origin + url.pathname;
-                displayedTopPostUrls.push(baseUrl);
-            } else {
-                item.style.display = 'none';
-            }
-        });
+	        // Function to parse the 'visitedPostIds' cookie
+	        function getVisitedPostIds() {
+	            var cookieValue = document.cookie.split('; ').find(row => row.startsWith('visitedPostIds='));
+	            return cookieValue ? cookieValue.split('=')[1].split(',').map(Number) : [];
+	        }
 
-        // Remove the entire aside element if less than 5 posts are displayed
-        if (displayedTopPostUrls.length < 5) {
-            document.getElementById('top-posts-list').remove();
-        }
+	        // Display only the top posts not visited, up to 5
+	        var displayedCount = 0;
+	        topPostItems.forEach(function (item) {
+	            var postId = parseInt(item.getAttribute('data-post-id'));
+	            if (!visitedPostIds.includes(postId) && displayedCount < 5) {
+	                var url = new URL(item.querySelector('a').getAttribute('href'));
+	                var baseUrl = url.origin + url.pathname;
+	                displayedTopPostUrls.push(baseUrl);
+	                displayedCount++;
+	            } else {
+	                item.style.display = 'none';
+	            }
+	        });
+
+	        // Remove the entire aside element if less than 5 posts are displayed
+	        if (displayedTopPostUrls.length < 5) {
+	            document.getElementById('top-posts-list').remove();
+	        }
 
         // Remove "Read this too" blocks if they match any of the displayed top posts
         document.querySelectorAll('a.block').forEach(function (block) {
