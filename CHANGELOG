@@ -1,3 +1,8 @@
+## [0.2.5] - 2023-11-16
+### Veranderd
+- Filtert lees ook'jes die ook in de lijst met top 5 artikelen voorkomen uit artikelen.
+- Toon blok niet op artikelen die onderdeel zijn van een dossier.
+
 ## [0.2] - 2023-11-15
 ### Toegevoegd
 - Switch naar 'most read not read' model waarbij tracker bijhoudt welke artikelen gelezen zijn en de top 5 filtert.
