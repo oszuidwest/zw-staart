@@ -113,10 +113,14 @@ function top_posts_list()
  * @return string The modified content with the top posts list appended.
  */
 add_filter('the_content', function ($content) {
-    // Append the top posts list only for single post pages
-    if (is_single() && get_post_type() === 'post' && (!defined('REST_REQUEST') || !REST_REQUEST)) {
+    global $post;
+
+    // Append the top posts list only for single post pages of type 'post'
+    // and not having terms in the 'dossier' taxonomy
+    if (is_single() && get_post_type() === 'post' && 
+        (!has_term('', 'dossier', $post->ID)) &&
+        (!defined('REST_REQUEST') || !REST_REQUEST)) {
         $content .= top_posts_list();
     }
     return $content;
 });
-?>
