@@ -58,8 +58,8 @@ function top_posts_list()
                     $post_permalink = get_permalink($post_id);
                     $post_title = get_the_title($post_id);
                 ?>
-                <li class="top-post-item" data-post-id="<?php echo esc_attr($post_id); ?>" style="margin-bottom: 10px;">
-                    <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none; plausible-event-name=Recirculatie;">
+                <li class="top-post-item" data-post-id="<?php echo esc_attr($post_id); ?>" style="margin-bottom: 10px; plausible-event-name=Recirculatie;">
+                    <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
                         <?php echo esc_html($post_title); ?>
                     </a>
                 </li>
