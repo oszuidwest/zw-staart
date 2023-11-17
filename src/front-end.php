@@ -50,7 +50,7 @@ function top_posts_list()
     ob_start();
     ?>
     <aside id="top-posts-list" style="margin-top: 20px; font-family: Arial, sans-serif;">
-        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Leestips voor jou ⬇️</h3>
+        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Leestips voor jou</h3>
         <ol style="margin: 0; padding-left: 20px;">
             <?php foreach ($output_posts as $p): ?>
                 <?php
