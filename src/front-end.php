@@ -100,7 +100,7 @@ function top_posts_list()
 
         // Remove "Read this too" blocks if they match any of the displayed top posts
         document.querySelectorAll('a.block').forEach(function (block) {
-            if (block.querySelector('span').textContent.includes('Lees ook:')) {
+            if (block.querySelector('span') && block.querySelector('span').textContent.includes('Lees ook:')) {
                 var blockUrl = new URL(block.getAttribute('href'));
                 var blockBaseUrl = blockUrl.origin + blockUrl.pathname;
 
