@@ -51,7 +51,7 @@ function top_posts_list()
     ?>
     <aside id="top-posts-list" style="margin-top: 20px; font-family: Arial, sans-serif;">
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Leestips voor jou ⬇️</h3>
-        <ol style="margin: 0; padding-left: 20px;">
+        <ol style="margin: 0; padding-left: 20px; plausible-event-name=Recirculatie;">
             <?php foreach ($output_posts as $p): ?>
                 <?php
                     $post_id = url_to_postid(home_url($p['page']));
