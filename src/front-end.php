@@ -51,7 +51,7 @@ function top_posts_list()
     ?>
     <aside id="top-posts-list" style="margin-top: 20px; font-family: Arial, sans-serif;">
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Leestips voor jou ⬇️</h3>
-        <ol style="margin: 0; padding-left: 20px; plausible-event-name=Recirculatie;">
+        <ol style="margin: 0; padding-left: 20px;">
             <?php foreach ($output_posts as $p): ?>
                 <?php
                     $post_id = url_to_postid(home_url($p['page']));
@@ -59,7 +59,7 @@ function top_posts_list()
                     $post_title = get_the_title($post_id);
                 ?>
                 <li class="top-post-item" data-post-id="<?php echo esc_attr($post_id); ?>" style="margin-bottom: 10px;">
-                    <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none;">
+                    <a href="<?php echo esc_url($post_permalink . '?utm_source=recirculatie'); ?>" style="text-decoration: none; plausible-event-name=Recirculatie;">
                         <?php echo esc_html($post_title); ?>
                     </a>
                 </li>
