@@ -1,59 +1,59 @@
 ## [0.3] - 2023-11-18
 ### Toegevoegd
-- Click tracking met een event genaamd 'Recirculatie' in Plausible Analytics.
+- Implementeert click tracking met een event 'Recirculatie' in Plausible Analytics.
 
 ### Veranderd
-- Emoji bij blok weggehaald.
-- Javascript error in front-end opelost.
-- Probleem waarbij de cookie met gelezen artikelen voor filter niet werd gelezen opgelost.
+- Verwijdert emoji bij blok.
+- Lost Javascript error in front-end op.
+- Lost probleem op dat verhindert dat de cookie met gelezen artikelen voor filter wordt gelezen.
 
 ## [0.2.6] - 2023-11-16
 ### Veranderd
-- Haalt elk uur artikelen op in plaats van elke 12 uur.
-- Kijkt naar pageviews van de laatste 5 in plaats van 7 dagen.
+- Haalt nu elk uur artikelen op in plaats van elke 12 uur.
+- Baseert zich op pageviews van de laatste 5 in plaats van 7 dagen.
 
 ## [0.2.5] - 2023-11-16
 ### Veranderd
 - Filtert lees ook'jes die ook in de lijst met top 5 artikelen voorkomen uit artikelen.
-- Toon blok niet op artikelen die onderdeel zijn van een dossier.
+- Toont blok niet op artikelen die onderdeel zijn van een dossier.
 
 ## [0.2] - 2023-11-15
 ### Toegevoegd
-- Switch naar 'most read not read' model waarbij tracker bijhoudt welke artikelen gelezen zijn en de top 5 filtert.
+- Schakelt naar 'most read not read' model waarbij tracker bijhoudt welke artikelen gelezen zijn en de top 5 filtert.
 
 ## [0.1.2] - 2023-11-15
 ### Veranderd
-- Output robuuster gemaakt: als er geen posts geselecteerd kunnen worden, toon dan niets.
-- Huidige post excluden voordat de top 5 gemaakt wordt. Anders krijg je soms een top 4.
-- Inmiddels overbodige debug logging verwijderd.
+- Maakt output robuuster: toont niets als er geen posts geselecteerd kunnen worden.
+- Excludeert huidige post voordat de top 5 wordt gemaakt om een top 4 te voorkomen.
+- Verwijdert inmiddels overbodige debug logging.
 
 ## [0.1.1] - 2023-11-15
 ### Veranderd
-- Probleem met scheduled events die niet werkten opgelost.
-- Plausible token automatisch laten invullen door Github Action.
+- Lost probleem op met scheduled events die niet werkten.
+- Laat Plausible token automatisch invullen door Github Action.
 
 ## [0.1] - 2023-11-14
 ### Toegevoegd
-- De plugin opgesplitst in meerdere bestanden:
+- Splitst de plugin op in meerdere bestanden:
   - `zwr.php`: Het hoofdbestand.
-  - `src/admin.php`: Bevat backend logica voor het ophalen en opslaan van de gegevens.
-  - `src/front-end.php`: Voor de weergave van de meest gelezen berichten op de frond-end.
-- Logging van fouten geïmplementeerd in `admin.php`.
-- Code in `admin.php` en `front-end.php` wat gedocumenteerd met comments.
+  - `src/admin.php`: Bevat backend logica voor het ophalen en opslaan van gegevens.
+  - `src/front-end.php`: Voor weergave van de meest gelezen berichten op de front-end.
+- Implementeert logging van fouten in `admin.php`.
+- Documenteert code in `front-end.php` met comments.
 
 ### Veranderd
-- In plaats van `curl` nu de `wp_remote_get` functie gebruikt voor externe calls, conform de WordPress-standaarden.
-- Transiënte caching verwijderd uit `front-end.php` gezien de data toch direct uit de `wp_options` tabel komt.
+- Vervangt `curl` door `wp_remote_get` voor externe calls, conform WordPress-standaarden.
+- Verwijdert transiënte caching uit `front-end.php` aangezien data direct uit `wp_options` tabel komt.
 
 ## [0.0.2] - 2023-11-13
 ### Veranderd
-- Hernoemd naar "ZuidWest Recirculatie" (zwr).
-- Meest gelezen berichten alleen tonen op post_type `post`.
-- Haalt meest gelzen berichten op van de Plausible Analytics API en sla ze op in de WordPress-optietabel.
-- Doe niets wanneer een post via de WP REST API opgevraagd wordt.
-- Compatibel met dark mode.
+- Plug-in naam aangepast naar "ZuidWest Recirculatie" (zwr).
+- Toont meest gelezen berichten alleen op post_type `post`.
+- Haalt meest gelezen berichten op van de Plausible Analytics API en slaat ze op in de WordPress-optietabel.
+- Doet niets wanneer een post via de WP REST API opgevraagd wordt.
+- Maakt compatibel met dark mode.
 
 ## [0.0.1] - 2023-11-13
 ### Toegevoegd
 - Eerste prototype.
-- Weergave van meest gelezen berichten uit een JSON-bestand toegevoegd aan `post_content`.
+- Voegt weergave van meest gelezen berichten uit een JSON-bestand toe aan `post_content`.
