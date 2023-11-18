@@ -1,3 +1,12 @@
+## [0.3] - 2023-11-16
+### Toegevoegd
+- Click tracking met een event genaamd 'Recirculatie' in Plausible Analytics.
+
+### Veranderd
+- Emoji bij blok weggehaald.
+- Javascript error in front-end opelost.
+- Probleem waarbij de cookie met gelezen artikelen voor filter niet werd gelezen opgelost.
+
 ## [0.2.6] - 2023-11-16
 ### Veranderd
 - Haalt elk uur artikelen op in plaats van elke 12 uur.

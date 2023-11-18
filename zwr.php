@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ZuidWest Recirculatie
  * Description: Experiment om bezoekers meer te laten recirculeren met top 5 posts onder ieder artikel
- * Version: 0.2.6
+ * Version: 0.3
  * Author: Raymon Mens
  */
 
