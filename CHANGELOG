@@ -1,3 +1,7 @@
+## [0.3.1] - 2025-04-18
+### Veranderd
+- Switch naar de Plausible Stats API v2.
+
 ## [0.3] - 2023-11-18
 ### Toegevoegd
 - Implementeert click tracking met een event 'Recirculatie' in Plausible Analytics.
