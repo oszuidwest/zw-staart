@@ -29,42 +29,64 @@ function zwr_deactivate()
     }
 }
 
-
 add_action('zwr_event_hook', 'zwr_get_top_posts');
 
 /**
- * Fetches the top posts data from an external API.
+ * Fetches the top posts data from Plausible Analytics API.
  */
 function zwr_get_top_posts()
 {
-    $baseUrl = 'https://stats.zuidwesttv.nl';
+    // Configuration
+    $apiKey = 'your_token_here';
     $siteId = 'zuidwestupdate.nl';
-    $token = 'your_token_here'; // Replace with your actual token
+    $apiEndpoint = 'https://stats.zuidwesttv.nl/api/v2/query';
 
-    // Calculate date range for the last 5 days
-    $endDate = new DateTime(); // Today's date
-    $startDate = new DateTime(); // Today's date
-    $startDate->modify('-4 days'); // Subtract 4 days to include today in the 5-day period
+    // Calculate date range (last 5 days)
+    $endDate = date('Y-m-d'); // Today
+    $startDate = date('Y-m-d', strtotime('-4 days')); // 4 days ago (for a total of 5 days including today)
 
-    $formattedStartDate = $startDate->format('Y-m-d');
-    $formattedEndDate = $endDate->format('Y-m-d');
+    // Create the request data
+    $requestData = [
+        'site_id' => $siteId,
+        'metrics' => ['pageviews'],
+        'date_range' => [$startDate, $endDate],
+        'dimensions' => ['event:page'],
+        'order_by' => [['pageviews', 'desc']],
+        'pagination' => ['limit' => 100, 'offset' => 0]
+    ];
 
-    $url = "{$baseUrl}/api/v1/stats/breakdown?site_id={$siteId}&period=custom&date={$formattedStartDate},{$formattedEndDate}&metrics=pageviews&property=event:page";
-    $response = wp_remote_get($url, array(
-        'headers' => array(
-            'Authorization' => 'Bearer ' . $token
-        )
-    ));
+    // Get the response via the WordPress HTTP API
+    $response = wp_remote_post($apiEndpoint, [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $apiKey,
+            'Content-Type' => 'application/json'
+        ],
+        'body' => json_encode($requestData),
+        'timeout' => 30
+    ]);
 
     // Check for WP_Error or a non-200 response code
     if (is_wp_error($response) || wp_remote_retrieve_response_code($response) != 200) {
-        error_log('Error fetching top posts: ' . wp_remote_retrieve_response_message($response));
+        error_log('Error fetching top posts: ' . (is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response)));
         return []; // Handle error accordingly
     }
 
     // Decode the response
     $data = json_decode(wp_remote_retrieve_body($response), true);
-    $articles = $data['results'] ?? [];
+    
+    // Structure matches API v2 response format
+    $articles = [];
+    if (!empty($data['results'])) {
+        foreach ($data['results'] as $result) {
+            $page = $result['dimensions'][0];
+            $pageviews = $result['metrics'][0];
+            
+            $articles[] = [
+                'page' => $page,
+                'pageviews' => $pageviews
+            ];
+        }
+    }
 
     // Filter and sort the articles
     $filteredArticles = array_filter($articles, static function ($article) {
