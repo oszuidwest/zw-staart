@@ -38,12 +38,12 @@ function zw_staart_podcast_promo_block()
     ob_start();
     ?>
     <aside id="zw-staart-podcast-promo" style="margin-top: 20px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; background-color: #fafafa;">
-        <h3 style="margin: 0 0 16px 0; font-size: 1.3em; font-weight: 600; border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 8px; display: inline-block;"><?php echo esc_html($heading); ?></h3>
         <div style="display: flex; flex-direction: column; gap: 16px;">
             <?php if (!empty($artwork_url)): ?>
                 <img src="<?php echo esc_url($artwork_url); ?>" alt="Podcast artwork" style="width: 100%; max-width: 200px; height: auto; aspect-ratio: 1; border-radius: 6px; object-fit: cover; align-self: center;" />
             <?php endif; ?>
-            <div>
+            <div style="flex: 1;">
+                <h3 style="margin: 0 0 16px 0; font-size: 1.3em; font-weight: 600; border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 8px; display: inline-block;"><?php echo esc_html($heading); ?></h3>
                 <p style="margin: 0 0 16px 0; line-height: 1.5; color: #666;"><?php echo esc_html($description); ?></p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <?php if (!empty($spotify_url)): ?>
@@ -64,9 +64,9 @@ function zw_staart_podcast_promo_block()
     </aside>
     <style>
         @media (min-width: 600px) {
-            #zw-staart-podcast-promo > div:first-of-type {
+            #zw-staart-podcast-promo > div {
                 flex-direction: row !important;
-                align-items: flex-start !important;
+                gap: 20px !important;
             }
             #zw-staart-podcast-promo img {
                 max-width: 140px !important;
