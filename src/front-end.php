@@ -41,7 +41,9 @@ function zw_staart_podcast_promo_block()
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;"><?php echo esc_html($heading); ?></h3>
         <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
             <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <p style="margin: 0; padding: 0; line-height: 1.5; font-weight: normal; font-size: 0.95em; flex: 1;"><?php echo esc_html($description); ?></p>
+                <div style="flex: 1;">
+                    <p style="margin: 0; padding: 0; line-height: 1.5; font-weight: normal; font-size: 0.95em;"><?php echo esc_html($description); ?></p>
+                </div>
                 <?php if (!empty($artwork_url)): ?>
                     <img src="<?php echo esc_url($artwork_url); ?>" alt="Podcast artwork" style="width: 100px; min-width: 100px; height: 100px; margin: 0; padding: 0; aspect-ratio: 1; border-radius: 6px; object-fit: cover; display: block;" />
                 <?php endif; ?>
@@ -69,23 +71,20 @@ function zw_staart_podcast_promo_block()
         @media (min-width: 600px) {
             #zw-staart-podcast-promo > div {
                 flex-direction: row !important;
+                align-items: flex-start !important;
                 gap: 20px !important;
             }
             #zw-staart-podcast-promo > div > div:first-child {
-                flex-direction: row !important;
-                flex-wrap: wrap !important;
+                flex-direction: column !important;
                 flex: 1 !important;
                 order: 1 !important;
-                align-items: center !important;
+                gap: 16px !important;
             }
-            #zw-staart-podcast-promo > div > div:first-child > p {
-                flex: 1 !important;
-                min-width: 200px !important;
-                margin-right: 16px !important;
+            #zw-staart-podcast-promo > div > div:first-child > div {
+                flex: none !important;
             }
             #zw-staart-podcast-promo > div > div:last-child {
                 order: 1 !important;
-                flex: 1 !important;
             }
             #zw-staart-podcast-promo img {
                 width: 140px !important;
@@ -96,7 +95,6 @@ function zw_staart_podcast_promo_block()
             #zw-staart-podcast-promo p:first-of-type {
                 font-size: 1em !important;
                 line-height: 1.6 !important;
-                margin-bottom: 0 !important;
             }
             #zw-staart-podcast-promo .plausible-event-name\=Podcast\+Spotify,
             #zw-staart-podcast-promo .plausible-event-name\=Podcast\+Apple {
