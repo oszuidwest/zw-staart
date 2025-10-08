@@ -68,25 +68,29 @@ function zw_staart_podcast_promo_block()
     <style>
         @media (min-width: 600px) {
             #zw-staart-podcast-promo > div {
-                flex-direction: row-reverse !important;
+                flex-direction: row !important;
                 gap: 20px !important;
             }
             #zw-staart-podcast-promo > div > div:first-child {
-                flex-direction: column !important;
                 flex: 1 !important;
+                order: 1 !important;
             }
             #zw-staart-podcast-promo > div > div:first-child > p {
-                margin-bottom: 16px !important;
+                flex: 1 !important;
+            }
+            #zw-staart-podcast-promo > div > div:last-child {
+                order: 1 !important;
             }
             #zw-staart-podcast-promo img {
-                max-width: 140px !important;
                 width: 140px !important;
+                min-width: 140px !important;
                 height: 140px !important;
-                align-self: flex-start !important;
+                order: 2 !important;
             }
             #zw-staart-podcast-promo p:first-of-type {
                 font-size: 1em !important;
                 line-height: 1.6 !important;
+                margin-bottom: 16px !important;
             }
             #zw-staart-podcast-promo .plausible-event-name\=Podcast\+Spotify,
             #zw-staart-podcast-promo .plausible-event-name\=Podcast\+Apple {
