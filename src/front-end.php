@@ -78,19 +78,23 @@ function zw_staart_podcast_promo_block()
                 flex-direction: column !important;
                 flex: 1 !important;
                 order: 1 !important;
-                gap: 16px !important;
             }
             #zw-staart-podcast-promo > div > div:first-child > div {
-                flex: none !important;
+                margin-bottom: 16px !important;
+            }
+            #zw-staart-podcast-promo > div > div:first-child img {
+                position: absolute !important;
+                right: 0 !important;
+                top: 0 !important;
+                width: 140px !important;
+                height: 140px !important;
             }
             #zw-staart-podcast-promo > div > div:last-child {
                 order: 1 !important;
             }
-            #zw-staart-podcast-promo img {
-                width: 140px !important;
-                min-width: 140px !important;
-                height: 140px !important;
-                order: 2 !important;
+            #zw-staart-podcast-promo > div {
+                position: relative !important;
+                padding-right: 160px !important;
             }
             #zw-staart-podcast-promo p:first-of-type {
                 font-size: 1em !important;
