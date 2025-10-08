@@ -37,6 +37,7 @@ Configureer de verbinding met Plausible Analytics voor het ophalen van de meest 
 
 Configureer het podcast-promoblok:
 
+- **Koptekst**: De koptekst boven het podcast-promoblok (standaard: "Luister ook naar onze podcast")
 - **Podcast-titel**: De naam van de podcast
 - **Podcast-beschrijving**: Korte beschrijving die in de promo verschijnt
 - **Artwork URL (1:1)**: Volledige URL naar de podcast artwork (vierkant formaat)
@@ -44,6 +45,12 @@ Configureer het podcast-promoblok:
 - **Apple Podcasts-link**: Link naar de podcast op Apple Podcasts
 
 **Let op**: Als de podcast-promovelden niet zijn ingevuld, wordt bij elke podcast-selectie automatisch de lijst "Leestips voor jou" getoond als fallback.
+
+### Leestips-instellingen
+
+Configureer de weergave van de meest gelezen artikelen:
+
+- **Koptekst**: De koptekst boven de lijst met meest gelezen artikelen (standaard: "Leestips voor jou")
 
 ## Hoe het werkt
 

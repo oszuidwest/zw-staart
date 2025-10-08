@@ -173,7 +173,11 @@ function zw_staart_save_settings()
             'description' => sanitize_textarea_field($_POST['zw_staart_podcast_description'] ?? ''),
             'artwork_url' => esc_url_raw($_POST['zw_staart_podcast_artwork_url'] ?? ''),
             'spotify_url' => esc_url_raw($_POST['zw_staart_podcast_spotify_url'] ?? ''),
-            'apple_url' => esc_url_raw($_POST['zw_staart_podcast_apple_url'] ?? '')
+            'apple_url' => esc_url_raw($_POST['zw_staart_podcast_apple_url'] ?? ''),
+            'heading' => sanitize_text_field($_POST['zw_staart_podcast_heading'] ?? 'Luister ook naar onze podcast')
+        ],
+        'top_posts' => [
+            'heading' => sanitize_text_field($_POST['zw_staart_top_posts_heading'] ?? 'Leestips voor jou')
         ]
     ];
 
@@ -211,6 +215,8 @@ function zw_staart_settings_page()
     $podcast_artwork_url = zw_staart_get_setting('podcast', 'artwork_url');
     $podcast_spotify_url = zw_staart_get_setting('podcast', 'spotify_url');
     $podcast_apple_url = zw_staart_get_setting('podcast', 'apple_url');
+    $podcast_heading = zw_staart_get_setting('podcast', 'heading', 'Luister ook naar onze podcast');
+    $top_posts_heading = zw_staart_get_setting('top_posts', 'heading', 'Leestips voor jou');
     ?>
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
@@ -259,6 +265,14 @@ function zw_staart_settings_page()
 
             <table class="form-table">
                 <tr valign="top">
+                    <th scope="row">Koptekst</th>
+                    <td>
+                        <input type="text" name="zw_staart_podcast_heading" value="<?php echo esc_attr($podcast_heading); ?>" class="regular-text" />
+                        <p class="description">De koptekst boven het podcast-promoblok (standaard: "Luister ook naar onze podcast")</p>
+                    </td>
+                </tr>
+
+                <tr valign="top">
                     <th scope="row">Podcast-titel</th>
                     <td>
                         <input type="text" name="zw_staart_podcast_title" value="<?php echo esc_attr($podcast_title); ?>" class="regular-text" />
@@ -293,6 +307,19 @@ function zw_staart_settings_page()
                     <td>
                         <input type="url" name="zw_staart_podcast_apple_url" value="<?php echo esc_attr($podcast_apple_url); ?>" class="regular-text" />
                         <p class="description">Voer de volledige Apple Podcasts-URL in (bijv. https://podcasts.apple.com/...)</p>
+                    </td>
+                </tr>
+            </table>
+
+            <h2>Leestips-instellingen</h2>
+            <p>Configureer de weergave van de meest gelezen artikelen.</p>
+
+            <table class="form-table">
+                <tr valign="top">
+                    <th scope="row">Koptekst</th>
+                    <td>
+                        <input type="text" name="zw_staart_top_posts_heading" value="<?php echo esc_attr($top_posts_heading); ?>" class="regular-text" />
+                        <p class="description">De koptekst boven de lijst met meest gelezen artikelen (standaard: "Leestips voor jou")</p>
                     </td>
                 </tr>
             </table>

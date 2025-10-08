@@ -23,6 +23,7 @@ function zw_staart_fetch_top_posts()
 function zw_staart_podcast_promo_block()
 {
     // Get podcast settings from serialized options
+    $heading = zw_staart_get_setting('podcast', 'heading', 'Luister ook naar onze podcast');
     $title = zw_staart_get_setting('podcast', 'title');
     $description = zw_staart_get_setting('podcast', 'description');
     $artwork_url = zw_staart_get_setting('podcast', 'artwork_url');
@@ -38,7 +39,7 @@ function zw_staart_podcast_promo_block()
     ob_start();
     ?>
     <aside id="zw-staart-podcast-promo" style="margin-top: 20px">
-        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Luister ook naar onze podcast</h3>
+        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;"><?php echo esc_html($heading); ?></h3>
         <div style="display: flex; gap: 20px; align-items: flex-start; margin-top: 15px;">
             <?php if (!empty($artwork_url)): ?>
                 <img src="<?php echo esc_url($artwork_url); ?>" alt="<?php echo esc_attr($title); ?>" style="width: 120px; height: 120px; border-radius: 8px; object-fit: cover;" />
@@ -73,6 +74,9 @@ function zw_staart_podcast_promo_block()
  */
 function zw_staart_top_posts_list()
 {
+    // Get heading from settings
+    $heading = zw_staart_get_setting('top_posts', 'heading', 'Leestips voor jou');
+
     // Fetch the top posts
     $posts = zw_staart_fetch_top_posts();
 
@@ -101,7 +105,7 @@ function zw_staart_top_posts_list()
     ob_start();
     ?>
     <aside id="zw-staart-top-posts-list" style="margin-top: 20px">
-        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;">Leestips voor jou</h3>
+        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;"><?php echo esc_html($heading); ?></h3>
         <ol style="margin: 0; padding-left: 20px;">
             <?php foreach ($output_posts as $p): ?>
                 <?php
