@@ -38,24 +38,31 @@ function zw_staart_podcast_promo_block()
     // Start output buffering to capture HTML output
     ob_start();
     ?>
-    <aside id="zw-staart-podcast-promo" style="margin-top: 20px">
-        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;"><?php echo esc_html($heading); ?></h3>
-        <div style="display: flex; gap: 20px; align-items: flex-start; margin-top: 15px;">
+    <aside id="zw-staart-podcast-promo" style="margin: 30px 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 16px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);">
+        <div style="display: flex; gap: 28px; align-items: center;">
             <?php if (!empty($artwork_url)): ?>
-                <img src="<?php echo esc_url($artwork_url); ?>" alt="<?php echo esc_attr($title); ?>" style="width: 120px; height: 120px; border-radius: 8px; object-fit: cover;" />
+                <div style="flex-shrink: 0;">
+                    <img src="<?php echo esc_url($artwork_url); ?>" alt="<?php echo esc_attr($title); ?>" style="width: 160px; height: 160px; border-radius: 12px; object-fit: cover; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); border: 4px solid white;" />
+                </div>
             <?php endif; ?>
-            <div style="flex: 1;">
-                <h4 style="margin: 0 0 10px 0; font-size: 1.2em;"><?php echo esc_html($title); ?></h4>
-                <p style="margin: 0 0 15px 0; line-height: 1.5;"><?php echo esc_html($description); ?></p>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 0;">
+                <div style="display: inline-block; background-color: rgb(0, 222, 1); color: black; padding: 6px 14px; border-radius: 20px; font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                    🎙️ Podcast
+                </div>
+                <h3 style="margin: 0 0 8px 0; font-size: 1.75em; font-weight: 700; color: #1a1a1a; line-height: 1.2;"><?php echo esc_html($heading); ?></h3>
+                <h4 style="margin: 0 0 12px 0; font-size: 1.3em; font-weight: 600; color: #333;"><?php echo esc_html($title); ?></h4>
+                <p style="margin: 0 0 20px 0; line-height: 1.6; color: #555; font-size: 1em;"><?php echo esc_html($description); ?></p>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                     <?php if (!empty($spotify_url)): ?>
-                        <a href="<?php echo esc_url($spotify_url . '?utm_source=recirculatie'); ?>" class="plausible-event-name=Podcast+Spotify" style="display: inline-block; padding: 8px 16px; background-color: #1DB954; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
-                            Luister op Spotify
+                        <a href="<?php echo esc_url($spotify_url . '?utm_source=recirculatie'); ?>" class="plausible-event-name=Podcast+Spotify" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background-color: #1DB954; color: white; text-decoration: none; border-radius: 24px; font-weight: 600; font-size: 0.95em; box-shadow: 0 4px 12px rgba(29, 185, 84, 0.3); transition: all 0.2s;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                            Spotify
                         </a>
                     <?php endif; ?>
                     <?php if (!empty($apple_url)): ?>
-                        <a href="<?php echo esc_url($apple_url . '?utm_source=recirculatie'); ?>" class="plausible-event-name=Podcast+Apple" style="display: inline-block; padding: 8px 16px; background-color: #A45EE5; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
-                            Luister op Apple Podcasts
+                        <a href="<?php echo esc_url($apple_url . '?utm_source=recirculatie'); ?>" class="plausible-event-name=Podcast+Apple" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background-color: #A45EE5; color: white; text-decoration: none; border-radius: 24px; font-weight: 600; font-size: 0.95em; box-shadow: 0 4px 12px rgba(164, 94, 229, 0.3); transition: all 0.2s;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>
+                            Apple Podcasts
                         </a>
                     <?php endif; ?>
                 </div>
