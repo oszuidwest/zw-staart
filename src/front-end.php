@@ -41,7 +41,7 @@ function zw_staart_podcast_promo_block()
         <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;"><?php echo esc_html($heading); ?></h3>
         <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 15px;">
             <?php if (!empty($artwork_url)): ?>
-                <img src="<?php echo esc_url($artwork_url); ?>" alt="Podcast artwork" style="width: 100%; max-width: 200px; height: auto; aspect-ratio: 1; border-radius: 6px; object-fit: cover; align-self: center;" />
+                <img src="<?php echo esc_url($artwork_url); ?>" alt="Podcast artwork" style="width: 100%; max-width: 120px; height: auto; aspect-ratio: 1; border-radius: 6px; object-fit: cover; align-self: center;" />
             <?php endif; ?>
             <div style="flex: 1;">
                 <p style="margin: 0 0 16px 0; line-height: 1.6; font-weight: normal; font-size: 1em;"><?php echo esc_html($description); ?></p>
