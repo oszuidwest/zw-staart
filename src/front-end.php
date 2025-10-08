@@ -73,9 +73,10 @@ function zw_staart_podcast_promo_block()
             }
             #zw-staart-podcast-promo > div > div:first-child {
                 flex-direction: column !important;
-            }
-            #zw-staart-podcast-promo > div > div:last-child {
                 flex: 1 !important;
+            }
+            #zw-staart-podcast-promo > div > div:first-child > p {
+                margin-bottom: 16px !important;
             }
             #zw-staart-podcast-promo img {
                 max-width: 140px !important;
@@ -86,7 +87,6 @@ function zw_staart_podcast_promo_block()
             #zw-staart-podcast-promo p:first-of-type {
                 font-size: 1em !important;
                 line-height: 1.6 !important;
-                margin-bottom: 16px !important;
             }
             #zw-staart-podcast-promo .plausible-event-name\=Podcast\+Spotify,
             #zw-staart-podcast-promo .plausible-event-name\=Podcast\+Apple {
