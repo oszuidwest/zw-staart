@@ -37,14 +37,14 @@ function zw_staart_podcast_promo_block()
     // Start output buffering to capture HTML output
     ob_start();
     ?>
-    <aside id="zw-staart-podcast-promo" style="margin-top: 20px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; background-color: #fafafa;">
-        <div style="display: flex; flex-direction: column; gap: 16px;">
+    <aside id="zw-staart-podcast-promo" style="margin-top: 20px;">
+        <h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;"><?php echo esc_html($heading); ?></h3>
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 15px;">
             <?php if (!empty($artwork_url)): ?>
                 <img src="<?php echo esc_url($artwork_url); ?>" alt="Podcast artwork" style="width: 100%; max-width: 200px; height: auto; aspect-ratio: 1; border-radius: 6px; object-fit: cover; align-self: center;" />
             <?php endif; ?>
             <div style="flex: 1;">
-                <h3 style="margin: 0 0 16px 0; font-size: 1.3em; font-weight: 600; border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 8px; display: inline-block;"><?php echo esc_html($heading); ?></h3>
-                <p style="margin: 0 0 16px 0; line-height: 1.5; color: #666;"><?php echo esc_html($description); ?></p>
+                <p style="margin: 0 0 16px 0; line-height: 1.5;"><?php echo esc_html($description); ?></p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <?php if (!empty($spotify_url)): ?>
                         <a href="<?php echo esc_url($spotify_url . '?utm_source=recirculatie'); ?>" class="plausible-event-name=Podcast+Spotify" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background-color: #1DB954; color: white; text-decoration: none; border-radius: 4px; font-weight: 500; font-size: 0.9em;">
@@ -65,7 +65,7 @@ function zw_staart_podcast_promo_block()
     <style>
         @media (min-width: 600px) {
             #zw-staart-podcast-promo > div {
-                flex-direction: row !important;
+                flex-direction: row-reverse !important;
                 gap: 20px !important;
             }
             #zw-staart-podcast-promo img {
