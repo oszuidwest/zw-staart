@@ -228,7 +228,23 @@ add_filter('the_content', function ($content) {
                 } else if (!hasTopPosts && hasPodcast) {
                     // Only podcast exists: show it (nothing to hide)
                 }
-                // If neither exists, nothing to do
+
+                // Remove 'lees ookje' if it's directly after our block
+                function removeLeesOokjeAfter(element) {
+                    if (!element || element.style.display === 'none') return;
+
+                    var nextEl = element.nextElementSibling;
+                    if (nextEl && nextEl.tagName === 'A' && nextEl.classList.contains('block')) {
+                        var firstSpan = nextEl.querySelector('span');
+                        if (firstSpan && firstSpan.textContent.includes('Lees ook:')) {
+                            nextEl.remove();
+                        }
+                    }
+                }
+
+                // Check both blocks
+                removeLeesOokjeAfter(topPostsList);
+                removeLeesOokjeAfter(podcastPromo);
             })();
         </script>
         ";
