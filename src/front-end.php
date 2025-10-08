@@ -64,8 +64,8 @@ function zw_staart_podcast_promo_block()
                         </a>
                     <?php endif; ?>
                 </div>
-                <a href="#" id="zw-staart-show-leestips" style="display: inline-block; margin-top: 12px; font-size: 0.85em; color: #666; text-decoration: underline; cursor: pointer;">Toon mijn vertrouwde leestips</a>
             </div>
+            <button id="zw-staart-show-leestips" style="position: absolute; top: 0; right: 0; background: none; border: none; font-size: 24px; line-height: 1; color: #666; cursor: pointer; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" aria-label="Sluit podcast promo" title="Toon mijn vertrouwde leestips">×</button>
         </div>
     </aside>
     <script>
