@@ -45,6 +45,7 @@ function zw_staart_podcast_promo_block()
             <?php endif; ?>
             <div style="flex: 1;">
                 <p style="margin: 0 0 16px 0; line-height: 1.6; font-weight: normal; font-size: 1em;"><?php echo esc_html($description); ?></p>
+                <p style="margin: 0 0 8px 0; font-size: 0.75em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #666;">Luister nu via:</p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                     <?php if (!empty($spotify_url)): ?>
                         <a href="<?php echo esc_url($spotify_url . '?utm_source=recirculatie'); ?>" class="plausible-event-name=Podcast+Spotify" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background-color: #1DB954; color: white; text-decoration: none; border-radius: 4px; font-weight: 500; font-size: 0.9em;">
