@@ -169,7 +169,6 @@ function zw_staart_save_settings()
             'days' => intval($_POST['zw_staart_plausible_days'] ?? 5)
         ],
         'podcast' => [
-            'title' => sanitize_text_field($_POST['zw_staart_podcast_title'] ?? ''),
             'description' => sanitize_textarea_field($_POST['zw_staart_podcast_description'] ?? ''),
             'artwork_url' => esc_url_raw($_POST['zw_staart_podcast_artwork_url'] ?? ''),
             'spotify_url' => esc_url_raw($_POST['zw_staart_podcast_spotify_url'] ?? ''),
@@ -210,7 +209,6 @@ function zw_staart_settings_page()
     $plausible_endpoint = zw_staart_get_setting('plausible', 'endpoint');
     $plausible_days = zw_staart_get_setting('plausible', 'days') ?: 5;
 
-    $podcast_title = zw_staart_get_setting('podcast', 'title');
     $podcast_description = zw_staart_get_setting('podcast', 'description');
     $podcast_artwork_url = zw_staart_get_setting('podcast', 'artwork_url');
     $podcast_spotify_url = zw_staart_get_setting('podcast', 'spotify_url');
@@ -273,14 +271,7 @@ function zw_staart_settings_page()
                 </tr>
 
                 <tr valign="top">
-                    <th scope="row">Podcast-titel</th>
-                    <td>
-                        <input type="text" name="zw_staart_podcast_title" value="<?php echo esc_attr($podcast_title); ?>" class="regular-text" />
-                    </td>
-                </tr>
-
-                <tr valign="top">
-                    <th scope="row">Podcast-beschrijving</th>
+                    <th scope="row">Beschrijving</th>
                     <td>
                         <textarea name="zw_staart_podcast_description" rows="4" class="large-text"><?php echo esc_textarea($podcast_description); ?></textarea>
                     </td>

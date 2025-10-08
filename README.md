@@ -38,8 +38,7 @@ Configureer de verbinding met Plausible Analytics voor het ophalen van de meest 
 Configureer het podcast-promoblok:
 
 - **Koptekst**: De koptekst boven het podcast-promoblok (standaard: "Luister ook naar onze podcast")
-- **Podcast-titel**: De naam van de podcast
-- **Podcast-beschrijving**: Korte beschrijving die in de promo verschijnt
+- **Beschrijving**: Korte beschrijving die in de promo verschijnt
 - **Artwork URL (1:1)**: Volledige URL naar de podcast artwork (vierkant formaat)
 - **Spotify-link**: Link naar de podcast op Spotify
 - **Apple Podcasts-link**: Link naar de podcast op Apple Podcasts
