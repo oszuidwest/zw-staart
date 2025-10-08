@@ -1,3 +1,26 @@
+## [0.4.0] - TBA
+### Toegevoegd
+- Podcast-promoblok met 50/50 verdeling tussen top posts en podcast-promo
+- Admin-instellingen voor podcast (titel, beschrijving, coverafbeelding, Spotify-link, Apple Podcasts-link)
+- Admin-instellingen voor Plausible Analytics (API-sleutel, site-ID, endpoint, aantal dagen)
+- Smart fallback logica: toont beschikbaar blok als slechts één geconfigureerd is
+- Migratielogica voor oude `zwr_` data naar nieuwe `zw_staart_` structuur
+- Click tracking voor podcast-knoppen (Podcast+Spotify, Podcast+Apple events)
+
+### Veranderd
+- Plugin hernoemd van "ZuidWest Recirculatie" naar "ZuidWest Staart"
+- Alle functies hernoemd: `zwr_*` → `zw_staart_*`
+- Cookie hernoemd: `visitedPostIds` → `zw_staart_visited_posts`
+- Settings geconsolideerd in geserialiseerde array `zw_staart_settings`
+- Cache-compatibiliteit: beide blokken worden altijd gerenderd, JavaScript bepaalt weergave
+- Verbeterde Nederlandse teksten (spelling, stijl, koppeltekens)
+- Plausible-instellingen nu verplicht (geen hardcoded defaults meer)
+
+### Verwijderd
+- Hardcoded Plausible API-configuratie
+- Automatische token replacement in deployment
+- Oude `zwr_` database entries en cron hooks (via migratie)
+
 ## [0.3.1] - 2025-04-18
 ### Veranderd
 - Switch naar de Plausible Stats API v2.

@@ -1,7 +1,7 @@
 <?php
 
-add_action('wp_footer', 'add_postid_tracker_script');
-function add_postid_tracker_script() {
+add_action('wp_footer', 'zw_staart_add_postid_tracker_script');
+function zw_staart_add_postid_tracker_script() {
     global $post;
 
     if (is_single() && isset($post->ID)) {
@@ -12,12 +12,12 @@ function add_postid_tracker_script() {
                 updatePostIdCookie(postId);
 
                 function updatePostIdCookie(postId) {
-                    var postIds = getCookie('visitedPostIds');
+                    var postIds = getCookie('zw_staart_visited_posts');
                     postIds = postIds ? postIds.split(',') : [];
                     if (postIds.indexOf(postId) === -1) {
                         postIds.push(postId);
                     }
-                    setCookie('visitedPostIds', postIds.join(','), 7);
+                    setCookie('zw_staart_visited_posts', postIds.join(','), 7);
                 }
 
                 function setCookie(name, value, days) {
