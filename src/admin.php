@@ -218,104 +218,105 @@ function zw_staart_settings_page()
     ?>
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+        <p style="max-width: 800px; margin-bottom: 30px;">
+            Deze plugin toont dynamische content onder artikelen: leestips op basis van populaire artikelen, een podcast-promo, of beide willekeurig afgewisseld.
+            Configureer hieronder welke blokken je wilt gebruiken.
+        </p>
+
         <form method="post" action="">
             <?php wp_nonce_field('zw_staart_settings_action', 'zw_staart_settings_nonce'); ?>
 
-            <h2>Plausible Analytics-instellingen (optioneel)</h2>
-            <p>Configureer de verbinding met Plausible Analytics voor het ophalen van populaire artikelen. <strong>Laat leeg als je alleen het podcast-promoblok wilt gebruiken.</strong></p>
+            <!-- Weergave-instellingen -->
+            <h2>Weergave</h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">Koptekst leestips</th>
+                    <td>
+                        <input type="text" name="zw_staart_top_posts_heading" value="<?php echo esc_attr($top_posts_heading); ?>" class="regular-text" placeholder="Leestips voor jou" />
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Koptekst podcast</th>
+                    <td>
+                        <input type="text" name="zw_staart_podcast_heading" value="<?php echo esc_attr($podcast_heading); ?>" class="regular-text" placeholder="Luister ook naar onze podcast" />
+                    </td>
+                </tr>
+            </table>
 
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row">API Key</th>
+            <hr style="margin: 40px 0;">
+
+            <!-- Leestips configuratie -->
+            <h2>Leestips <span style="font-weight: normal; color: #646970;">(optioneel)</span></h2>
+            <p>Vul onderstaande velden in om leestips te tonen op basis van Plausible Analytics-data.</p>
+
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">API-sleutel</th>
                     <td>
                         <input type="text" name="zw_staart_plausible_api_key" value="<?php echo esc_attr($plausible_api_key); ?>" class="regular-text" />
-                        <p class="description">De API-sleutel voor Plausible Analytics</p>
                     </td>
                 </tr>
-
-                <tr valign="top">
-                    <th scope="row">Site ID</th>
+                <tr>
+                    <th scope="row">Site-ID</th>
                     <td>
-                        <input type="text" name="zw_staart_plausible_site_id" value="<?php echo esc_attr($plausible_site_id); ?>" class="regular-text" />
-                        <p class="description">Het site-ID in Plausible (bijv. zuidwestupdate.nl)</p>
+                        <input type="text" name="zw_staart_plausible_site_id" value="<?php echo esc_attr($plausible_site_id); ?>" class="regular-text" placeholder="zuidwestupdate.nl" />
                     </td>
                 </tr>
-
-                <tr valign="top">
-                    <th scope="row">API Endpoint</th>
+                <tr>
+                    <th scope="row">API-endpoint</th>
                     <td>
-                        <input type="url" name="zw_staart_plausible_endpoint" value="<?php echo esc_attr($plausible_endpoint); ?>" class="large-text" />
-                        <p class="description">De volledige URL naar de Plausible API v2 endpoint (bijv. https://stats.zuidwesttv.nl/api/v2/query)</p>
+                        <input type="url" name="zw_staart_plausible_endpoint" value="<?php echo esc_attr($plausible_endpoint); ?>" class="large-text" placeholder="https://stats.zuidwesttv.nl/api/v2/query" />
                     </td>
                 </tr>
-
-                <tr valign="top">
-                    <th scope="row">Aantal dagen terug</th>
+                <tr>
+                    <th scope="row">Aantal dagen</th>
                     <td>
                         <input type="number" name="zw_staart_plausible_days" value="<?php echo esc_attr($plausible_days); ?>" min="1" max="30" class="small-text" />
-                        <p class="description">Hoeveel dagen terug moet de data worden opgehaald (standaard: 5)</p>
+                        <p class="description">Aantal dagen terug voor data-analyse (standaard: 5)</p>
                     </td>
                 </tr>
             </table>
 
-            <h2>Podcast-promoinstellingen (optioneel)</h2>
-            <p>Vul onderstaande velden in om het podcast-promoblok te configureren. <strong>Laat leeg als je alleen de meest gelezen artikelen wilt tonen.</strong> Als beide blokken zijn geconfigureerd, worden ze willekeurig afgewisseld (50/50).</p>
+            <hr style="margin: 40px 0;">
 
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row">Koptekst</th>
-                    <td>
-                        <input type="text" name="zw_staart_podcast_heading" value="<?php echo esc_attr($podcast_heading); ?>" class="regular-text" />
-                        <p class="description">De koptekst boven het podcast-promoblok (standaard: "Luister ook naar onze podcast")</p>
-                    </td>
-                </tr>
+            <!-- Podcast configuratie -->
+            <h2>Podcast-promo <span style="font-weight: normal; color: #646970;">(optioneel)</span></h2>
+            <p>Vul onderstaande velden in om een podcast-promoblok te tonen.</p>
 
-                <tr valign="top">
+            <table class="form-table" role="presentation">
+                <tr>
                     <th scope="row">Beschrijving</th>
                     <td>
-                        <textarea name="zw_staart_podcast_description" rows="4" class="large-text"><?php echo esc_textarea($podcast_description); ?></textarea>
+                        <textarea name="zw_staart_podcast_description" rows="3" class="large-text" placeholder="Korte introductie van de podcast..."><?php echo esc_textarea($podcast_description); ?></textarea>
                     </td>
                 </tr>
-
-                <tr valign="top">
-                    <th scope="row">Artwork URL (1:1)</th>
+                <tr>
+                    <th scope="row">Cover (1:1)</th>
                     <td>
-                        <input type="url" name="zw_staart_podcast_artwork_url" value="<?php echo esc_attr($podcast_artwork_url); ?>" class="regular-text" />
-                        <p class="description">Voer de volledige URL in naar de podcast-coverafbeelding (bijv. https://example.com/artwork.jpg)</p>
+                        <input type="url" name="zw_staart_podcast_artwork_url" value="<?php echo esc_attr($podcast_artwork_url); ?>" class="regular-text" placeholder="https://..." />
+                        <p class="description">Vierkante afbeelding</p>
                     </td>
                 </tr>
-
-                <tr valign="top">
+                <tr>
                     <th scope="row">Spotify-link</th>
                     <td>
-                        <input type="url" name="zw_staart_podcast_spotify_url" value="<?php echo esc_attr($podcast_spotify_url); ?>" class="regular-text" />
-                        <p class="description">Voer de volledige Spotify-URL in (bijv. https://open.spotify.com/show/...)</p>
+                        <input type="url" name="zw_staart_podcast_spotify_url" value="<?php echo esc_attr($podcast_spotify_url); ?>" class="regular-text" placeholder="https://open.spotify.com/show/..." />
                     </td>
                 </tr>
-
-                <tr valign="top">
+                <tr>
                     <th scope="row">Apple Podcasts-link</th>
                     <td>
-                        <input type="url" name="zw_staart_podcast_apple_url" value="<?php echo esc_attr($podcast_apple_url); ?>" class="regular-text" />
-                        <p class="description">Voer de volledige Apple Podcasts-URL in (bijv. https://podcasts.apple.com/...)</p>
+                        <input type="url" name="zw_staart_podcast_apple_url" value="<?php echo esc_attr($podcast_apple_url); ?>" class="regular-text" placeholder="https://podcasts.apple.com/..." />
                     </td>
                 </tr>
             </table>
 
-            <h2>Leestips-instellingen</h2>
-            <p>Configureer de weergave van de meest gelezen artikelen.</p>
+            <p style="background: #f0f0f1; padding: 15px; border-left: 4px solid #72aee6; margin-top: 30px;">
+                <strong>Tip:</strong> Als je beide blokken configureert, worden ze willekeurig afgewisseld (50/50).
+                Configureer slechts één blok als je altijd hetzelfde wilt tonen.
+            </p>
 
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row">Koptekst</th>
-                    <td>
-                        <input type="text" name="zw_staart_top_posts_heading" value="<?php echo esc_attr($top_posts_heading); ?>" class="regular-text" />
-                        <p class="description">De koptekst boven de lijst met meest gelezen artikelen (standaard: "Leestips voor jou")</p>
-                    </td>
-                </tr>
-            </table>
-
-            <?php submit_button('Instellingen opslaan'); ?>
+            <?php submit_button('Opslaan'); ?>
         </form>
     </div>
     <?php
