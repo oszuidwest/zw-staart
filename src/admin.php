@@ -246,14 +246,14 @@ function zw_staart_settings_page()
             <hr style="margin: 40px 0;">
 
             <!-- Leestips configuratie -->
-            <h2>Leestips <span style="font-weight: normal; color: #646970;">(optioneel)</span></h2>
+            <h2>Leestips</h2>
             <p>Vul onderstaande velden in om leestips te tonen op basis van Plausible Analytics-data.</p>
 
             <table class="form-table" role="presentation">
                 <tr>
                     <th scope="row">API-sleutel</th>
                     <td>
-                        <input type="text" name="zw_staart_plausible_api_key" value="<?php echo esc_attr($plausible_api_key); ?>" class="regular-text" />
+                        <input type="password" name="zw_staart_plausible_api_key" value="<?php echo esc_attr($plausible_api_key); ?>" class="regular-text" autocomplete="off" />
                     </td>
                 </tr>
                 <tr>
@@ -280,7 +280,7 @@ function zw_staart_settings_page()
             <hr style="margin: 40px 0;">
 
             <!-- Podcast configuratie -->
-            <h2>Podcast-promo <span style="font-weight: normal; color: #646970;">(optioneel)</span></h2>
+            <h2>Podcast-promo</h2>
             <p>Vul onderstaande velden in om een podcast-promoblok te tonen.</p>
 
             <table class="form-table" role="presentation">
