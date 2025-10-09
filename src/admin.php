@@ -221,14 +221,14 @@ function zw_staart_settings_page()
         <form method="post" action="">
             <?php wp_nonce_field('zw_staart_settings_action', 'zw_staart_settings_nonce'); ?>
 
-            <h2>Plausible Analytics-instellingen</h2>
-            <p>Configureer de verbinding met Plausible Analytics voor het ophalen van populaire artikelen.</p>
+            <h2>Plausible Analytics-instellingen (optioneel)</h2>
+            <p>Configureer de verbinding met Plausible Analytics voor het ophalen van populaire artikelen. <strong>Laat leeg als je alleen het podcast-promoblok wilt gebruiken.</strong></p>
 
             <table class="form-table">
                 <tr valign="top">
                     <th scope="row">API Key</th>
                     <td>
-                        <input type="text" name="zw_staart_plausible_api_key" value="<?php echo esc_attr($plausible_api_key); ?>" class="regular-text" required />
+                        <input type="text" name="zw_staart_plausible_api_key" value="<?php echo esc_attr($plausible_api_key); ?>" class="regular-text" />
                         <p class="description">De API-sleutel voor Plausible Analytics</p>
                     </td>
                 </tr>
@@ -236,7 +236,7 @@ function zw_staart_settings_page()
                 <tr valign="top">
                     <th scope="row">Site ID</th>
                     <td>
-                        <input type="text" name="zw_staart_plausible_site_id" value="<?php echo esc_attr($plausible_site_id); ?>" class="regular-text" required />
+                        <input type="text" name="zw_staart_plausible_site_id" value="<?php echo esc_attr($plausible_site_id); ?>" class="regular-text" />
                         <p class="description">Het site-ID in Plausible (bijv. zuidwestupdate.nl)</p>
                     </td>
                 </tr>
@@ -244,7 +244,7 @@ function zw_staart_settings_page()
                 <tr valign="top">
                     <th scope="row">API Endpoint</th>
                     <td>
-                        <input type="url" name="zw_staart_plausible_endpoint" value="<?php echo esc_attr($plausible_endpoint); ?>" class="large-text" required />
+                        <input type="url" name="zw_staart_plausible_endpoint" value="<?php echo esc_attr($plausible_endpoint); ?>" class="large-text" />
                         <p class="description">De volledige URL naar de Plausible API v2 endpoint (bijv. https://stats.zuidwesttv.nl/api/v2/query)</p>
                     </td>
                 </tr>
@@ -258,8 +258,8 @@ function zw_staart_settings_page()
                 </tr>
             </table>
 
-            <h2>Podcast-promoinstellingen</h2>
-            <p>Vul onderstaande velden in om het podcast-promoblok te configureren. Dit wordt in 50% van de gevallen getoond in plaats van de meest gelezen artikelen.</p>
+            <h2>Podcast-promoinstellingen (optioneel)</h2>
+            <p>Vul onderstaande velden in om het podcast-promoblok te configureren. <strong>Laat leeg als je alleen de meest gelezen artikelen wilt tonen.</strong> Als beide blokken zijn geconfigureerd, worden ze willekeurig afgewisseld (50/50).</p>
 
             <table class="form-table">
                 <tr valign="top">
