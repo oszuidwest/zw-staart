@@ -65,28 +65,8 @@ function zw_staart_podcast_promo_block()
                     <?php endif; ?>
                 </div>
             </div>
-            <button id="zw-staart-show-leestips" style="position: absolute; top: 0; right: 0; background: none; border: none; font-size: 24px; line-height: 1; color: #666; cursor: pointer; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" aria-label="Sluit podcast promo" title="Toon mijn vertrouwde leestips">×</button>
         </div>
     </aside>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var showLeestipsLink = document.getElementById('zw-staart-show-leestips');
-            if (showLeestipsLink) {
-                showLeestipsLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var podcastPromo = document.getElementById('zw-staart-podcast-promo');
-                    var topPostsList = document.getElementById('zw-staart-top-posts-list');
-
-                    if (podcastPromo) {
-                        podcastPromo.style.display = 'none';
-                    }
-                    if (topPostsList) {
-                        topPostsList.style.display = 'block';
-                    }
-                });
-            }
-        });
-    </script>
     <style>
         @media (min-width: 600px) {
             #zw-staart-podcast-promo > div {
