@@ -246,8 +246,19 @@ add_filter('the_content', function ($content) {
 
                 // Smart selection logic
                 if (hasTopPosts && hasPodcast) {
-                    // Both blocks exist: 50/50 random selection
-                    var showPodcast = Math.random() < 0.5;
+                    // Both blocks exist: 50/50 random selection with better randomness
+                    var showPodcast;
+                    if (window.crypto && window.crypto.getRandomValues) {
+                        // Use cryptographically secure random if available
+                        var randomArray = new Uint32Array(1);
+                        window.crypto.getRandomValues(randomArray);
+                        showPodcast = (randomArray[0] % 2) === 0;
+                    } else {
+                        // Fallback to Math.random with timestamp seed
+                        var seed = Date.now() * Math.random();
+                        showPodcast = (Math.floor(seed) % 2) === 0;
+                    }
+
                     if (showPodcast) {
                         topPostsList.style.display = 'none';
                     } else {
