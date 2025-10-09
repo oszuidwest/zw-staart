@@ -219,7 +219,7 @@ function zw_staart_settings_page()
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
         <p style="max-width: 800px; margin-bottom: 30px;">
-            Deze plugin toont dynamische content onder artikelen: leestips op basis van populaire artikelen, een podcast-promo, of beide willekeurig afgewisseld.
+            Deze plugin toont promotionele blokken onder artikelen (in de 'staart van het artikel'). Leestips op basis van populaire artikelen, een podcast-promo, of beide willekeurig afgewisseld.
             Configureer hieronder welke blokken je wilt gebruiken.
         </p>
 
