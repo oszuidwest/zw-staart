@@ -9,10 +9,7 @@ defined('ABSPATH') or die('No script kiddies please!');
  */
 function zw_staart_fetch_top_posts()
 {
-    // Get the top posts stored in the wp_options table
-    $topPosts = get_option('zw_staart_top_posts');
-    // Ensure the returned value is an array
-    return is_array($topPosts) ? $topPosts : [];
+    return (array) get_option('zw_staart_top_posts', []);
 }
 
 /**
@@ -22,19 +19,16 @@ function zw_staart_fetch_top_posts()
  */
 function zw_staart_podcast_promo_block()
 {
-    // Get podcast settings from serialized options
     $heading = zw_staart_get_setting('podcast', 'heading', 'Luister ook naar onze podcast');
     $description = zw_staart_get_setting('podcast', 'description');
     $artwork_url = zw_staart_get_setting('podcast', 'artwork_url');
     $spotify_url = zw_staart_get_setting('podcast', 'spotify_url');
     $apple_url = zw_staart_get_setting('podcast', 'apple_url');
 
-    // Return empty if required fields are missing
     if (empty($description)) {
         return '';
     }
 
-    // Start output buffering to capture HTML output
     ob_start();
     ?>
     <aside id="zw-staart-podcast-promo" style="margin-top: 20px;">
@@ -105,7 +99,6 @@ function zw_staart_podcast_promo_block()
         }
     </style>
     <?php
-    // Return the buffered content
     return ob_get_clean();
 }
 
@@ -130,17 +123,19 @@ function zw_staart_top_posts_list()
 
     global $post;
 
-    // Output all posts, excluding the current post
-    $output_posts = array_filter($posts, function ($p) use ($post) {
-        $post_id = url_to_postid(home_url($p['page']));
-        return $post_id != 0 && $post_id != $post->ID;
-    });
+    // Post IDs are pre-resolved during API fetch to avoid N+1 queries
+    $output_posts = array_filter(
+        $posts,
+        fn($p) => ($p['post_id'] ?? 0) !== 0 && ($p['post_id'] ?? 0) !== $post->ID
+    );
 
-    // Generate a mapping of post IDs to URLs
+    // Generate a mapping of post IDs to URLs (used in JavaScript)
     $postIdToUrlMapping = [];
     foreach ($output_posts as $p) {
-        $post_id = url_to_postid(home_url($p['page']));
-        $postIdToUrlMapping[$post_id] = get_permalink($post_id);
+        $post_id = $p['post_id'] ?? 0;
+        if ($post_id) {
+            $postIdToUrlMapping[$post_id] = get_permalink($post_id);
+        }
     }
 
     // Start output buffering to capture HTML output
@@ -151,7 +146,9 @@ function zw_staart_top_posts_list()
         <ol style="margin: 0; padding-left: 20px;">
             <?php foreach ($output_posts as $p): ?>
                 <?php
-                    $post_id = url_to_postid(home_url($p['page']));
+                    $post_id = $p['post_id'] ?? 0;
+                    if (!$post_id) continue; // Skip if post ID wasn't resolved
+
                     $post_permalink = get_permalink($post_id);
                     $post_title = get_the_title($post_id);
                 ?>
@@ -165,7 +162,8 @@ function zw_staart_top_posts_list()
     </aside>
     <script>
 	    document.addEventListener('DOMContentLoaded', function () {
-	        var postIdToUrlMapping = <?php echo json_encode($postIdToUrlMapping); ?>;
+	        var postIdToUrlMapping = <?php echo wp_json_encode($postIdToUrlMapping, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+	        var minPostsDisplay = <?php echo ZW_STAART_MIN_POSTS_DISPLAY; ?>;
 	        var visitedPostIds = getVisitedPostIds();
 	        var topPostItems = document.querySelectorAll('#zw-staart-top-posts-list .zw-staart-top-post-item');
 	        var displayedTopPostUrls = [];
@@ -176,11 +174,11 @@ function zw_staart_top_posts_list()
 	            return cookieValue ? cookieValue.split('=')[1].split(',').map(Number) : [];
 	        }
 
-	        // Display only the top posts not visited, up to 5
+	        // Display only the top posts not visited, up to the minimum required
 	        var displayedCount = 0;
 	        topPostItems.forEach(function (item) {
 	            var postId = parseInt(item.getAttribute('data-post-id'));
-	            if (!visitedPostIds.includes(postId) && displayedCount < 5) {
+	            if (!visitedPostIds.includes(postId) && displayedCount < minPostsDisplay) {
 	                var url = new URL(item.querySelector('a').getAttribute('href'));
 	                var baseUrl = url.origin + url.pathname;
 	                displayedTopPostUrls.push(baseUrl);
@@ -190,14 +188,15 @@ function zw_staart_top_posts_list()
 	            }
 	        });
 
-	        // Remove the entire aside element if less than 5 posts are displayed
-	        if (displayedTopPostUrls.length < 5) {
+	        // Remove the entire aside element if less than minimum posts are displayed
+	        if (displayedTopPostUrls.length < minPostsDisplay) {
 	            document.getElementById('zw-staart-top-posts-list').remove();
 	        }
 
         // Remove "Read this too" blocks if they match any of the displayed top posts
         document.querySelectorAll('a.block').forEach(function (block) {
-            if (block.querySelector('span') && block.querySelector('span').textContent.includes('Lees ook:')) {
+            var span = block.querySelector('span');
+            if (span && span.textContent.includes('Lees ook:')) {
                 var blockUrl = new URL(block.getAttribute('href'));
                 var blockBaseUrl = blockUrl.origin + blockUrl.pathname;
 
@@ -209,27 +208,28 @@ function zw_staart_top_posts_list()
     });
     </script>
     <?php
-    // Return the buffered content
     return ob_get_clean();
 }
 
 /**
- * Appends both the top posts list and podcast promo block to the end of the post content.
- * JavaScript will randomly hide one of the two blocks (50/50) for cache compatibility.
+ * Appends promotional blocks (reading tips and podcast) to post content.
  *
- * @param string $content The content of the post.
- * @return string The modified content with both blocks appended.
+ * Both blocks are rendered server-side for caching efficiency. Client-side JavaScript
+ * randomly displays one block (50/50 split) to provide variety without cache invalidation.
+ *
+ * @param string $content The post content.
+ * @return string Modified content with promotional blocks appended.
  */
-add_filter('the_content', function ($content) {
-    global $post;
+add_filter(
+    hook_name: 'the_content',
+    callback: function (string $content): string {
+        global $post;
 
-    // Only append content for single post pages of type 'post'
-    // and not having terms in the 'dossier' taxonomy
+    // Skip REST API requests to avoid polluting API responses with promotional HTML
     if (is_single() && get_post_type() === 'post' &&
         (!has_term('', 'dossier', $post->ID)) &&
-        (!defined('REST_REQUEST') || !REST_REQUEST)) {
+        !wp_is_json_request()) {
 
-        // Output both blocks - JavaScript will hide one randomly
         $content .= zw_staart_top_posts_list();
         $content .= zw_staart_podcast_promo_block();
 
@@ -246,18 +246,8 @@ add_filter('the_content', function ($content) {
 
                 // Smart selection logic
                 if (hasTopPosts && hasPodcast) {
-                    // Both blocks exist: 50/50 random selection with better randomness
-                    var showPodcast;
-                    if (window.crypto && window.crypto.getRandomValues) {
-                        // Use cryptographically secure random if available
-                        var randomArray = new Uint32Array(1);
-                        window.crypto.getRandomValues(randomArray);
-                        showPodcast = (randomArray[0] % 2) === 0;
-                    } else {
-                        // Fallback to Math.random with timestamp seed
-                        var seed = Date.now() * Math.random();
-                        showPodcast = (Math.floor(seed) % 2) === 0;
-                    }
+                    // Both blocks exist: 50/50 random selection
+                    var showPodcast = Math.random() < 0.5;
 
                     if (showPodcast) {
                         topPostsList.style.display = 'none';
@@ -289,6 +279,9 @@ add_filter('the_content', function ($content) {
             })();
         </script>
         ";
-    }
-    return $content;
-});
+        }
+        return $content;
+    },
+    priority: 99, // Run late to ensure other plugins have added their content first
+    accepted_args: 1
+);
