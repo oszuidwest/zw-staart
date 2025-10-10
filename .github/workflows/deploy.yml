@@ -12,12 +12,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Replace token in file
-        env:
-          PLAUSIBLE_TOKEN: ${{ secrets.PLAUSIBLE_TOKEN }}
-        run: |
-          sed -i "s/\$token = 'your_token_here';/\$token = '${PLAUSIBLE_TOKEN}';/" src/admin.php
-
       - name: Deploy to remote server
         uses: easingthemes/ssh-deploy@v4
         with:

@@ -1,23 +1,31 @@
 <?php
 
-add_action('wp_footer', 'add_postid_tracker_script');
-function add_postid_tracker_script() {
+/**
+ * Adds visitor tracking script to footer.
+ *
+ * Tracks visited post IDs in a cookie for personalized content filtering.
+ *
+ * @return void
+ */
+function zw_staart_add_postid_tracker_script(): void
+{
     global $post;
 
     if (is_single() && isset($post->ID)) {
         ?>
         <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function() {
-                var postId = '<?php echo $post->ID; ?>';
+                var postId = <?php echo intval($post->ID); ?>;
+                var cookieExpiryDays = <?php echo ZW_STAART_COOKIE_EXPIRY_DAYS; ?>;
                 updatePostIdCookie(postId);
 
                 function updatePostIdCookie(postId) {
-                    var postIds = getCookie('visitedPostIds');
+                    var postIds = getCookie('zw_staart_visited_posts');
                     postIds = postIds ? postIds.split(',') : [];
                     if (postIds.indexOf(postId) === -1) {
                         postIds.push(postId);
                     }
-                    setCookie('visitedPostIds', postIds.join(','), 7);
+                    setCookie('zw_staart_visited_posts', postIds.join(','), cookieExpiryDays);
                 }
 
                 function setCookie(name, value, days) {
@@ -27,7 +35,9 @@ function add_postid_tracker_script() {
                         date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
                         expires = ";expires=" + date.toUTCString();
                     }
-                    document.cookie = name + "=" + (value || "") + expires + ";path=/";
+                    // Add Secure flag if on HTTPS, and SameSite for CSRF protection
+                    var secure = window.location.protocol === 'https:' ? ';Secure' : '';
+                    document.cookie = name + "=" + (value || "") + expires + ";path=/;SameSite=Lax" + secure;
                 }
 
                 function getCookie(name) {
@@ -45,3 +55,10 @@ function add_postid_tracker_script() {
         <?php
     }
 }
+
+add_action(
+    hook_name: 'wp_footer',
+    callback: zw_staart_add_postid_tracker_script(...),
+    priority: 20,
+    accepted_args: 0
+);
