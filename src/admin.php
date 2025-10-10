@@ -341,10 +341,15 @@ function zw_staart_get_top_posts()
     $apiEndpoint = zw_staart_get_setting('plausible', 'endpoint');
     $days = intval(zw_staart_get_setting('plausible', 'days') ?: ZW_STAART_DEFAULT_DAYS);
 
+    error_log('ZuidWest Staart DEBUG: API Key: ' . (!empty($apiKey) ? 'SET' : 'EMPTY'));
+    error_log('ZuidWest Staart DEBUG: Site ID: ' . $siteId);
+    error_log('ZuidWest Staart DEBUG: Endpoint: ' . $apiEndpoint);
+    error_log('ZuidWest Staart DEBUG: Days: ' . $days);
+
     // Validate required settings
     if (empty($apiKey) || empty($siteId) || empty($apiEndpoint)) {
         error_log('ZuidWest Staart: Plausible Analytics settings are not configured. Please configure them in Settings → ZuidWest Staart.');
-        return [];
+        return;
     }
 
     // Calculate date range using wp_date() to respect WordPress timezone settings
@@ -372,13 +377,21 @@ function zw_staart_get_top_posts()
     ]);
 
     // Check for WP_Error or a non-200 response code
-    if (is_wp_error($response) || wp_remote_retrieve_response_code($response) != 200) {
-        error_log('Error fetching top posts: ' . (is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response)));
-        return []; // Handle error accordingly
+    if (is_wp_error($response)) {
+        error_log('ZuidWest Staart ERROR: API call failed - ' . $response->get_error_message());
+        return;
+    }
+
+    $response_code = wp_remote_retrieve_response_code($response);
+    if ($response_code != 200) {
+        error_log('ZuidWest Staart ERROR: API returned non-200 status - ' . $response_code . ': ' . wp_remote_retrieve_response_message($response));
+        error_log('ZuidWest Staart ERROR: Response body - ' . wp_remote_retrieve_body($response));
+        return;
     }
 
     // Decode the response
     $data = json_decode(wp_remote_retrieve_body($response), true);
+    error_log('ZuidWest Staart DEBUG: API returned ' . count($data['results'] ?? []) . ' results');
 
     // Parse Plausible Analytics API response
     $articles = [];
@@ -402,6 +415,8 @@ function zw_staart_get_top_posts()
                                 && strlen($article['page'] ?? '') > strlen('/nieuws/')
     );
 
+    error_log('ZuidWest Staart DEBUG: Filtered down to ' . count($filteredArticles) . ' news/background articles');
+
     usort($filteredArticles, static fn($a, $b) => $b['pageviews'] <=> $a['pageviews']);
 
     $topArticles = array_slice($filteredArticles, 0, ZW_STAART_MAX_TOP_ARTICLES);
@@ -409,7 +424,11 @@ function zw_staart_get_top_posts()
     // Resolve post IDs in batch to avoid N+1 queries later
     $topArticles = zw_staart_resolve_post_ids($topArticles);
 
+    $articles_with_ids = array_filter($topArticles, fn($a) => !empty($a['post_id']));
+    error_log('ZuidWest Staart DEBUG: Resolved ' . count($articles_with_ids) . ' post IDs out of ' . count($topArticles) . ' articles');
+
     zw_staart_save_top_posts($topArticles);
+    error_log('ZuidWest Staart DEBUG: Saved ' . count($topArticles) . ' articles to database');
 }
 
 /**
