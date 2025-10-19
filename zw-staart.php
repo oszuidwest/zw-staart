@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: ZuidWest Staart
- * Description: Experiment om bezoekers meer te laten recirculeren met top 5 posts onder ieder artikel
+ * Description: Toont leestips of podcast-promo onder artikelen voor betere recirculatie en engagement
  * Version: 0.4.1
  * Author: Streekomroep ZuidWest
  * Plugin URI: https://github.com/oszuidwest/zw-staart
