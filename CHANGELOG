@@ -1,4 +1,14 @@
-## [0.4.0] - TBA
+## [0.4.1] - 2025-10-20
+### Veranderd
+- Podcast-links openen nu in nieuwe tabs met `target="_blank"` en `rel="noopener noreferrer"`
+- UTM-tracking verwijderd van podcast-links (alleen op artikel-links)
+- Plausible event namen verbeterd voor consistentie:
+  - Top posts: `Recirculatie+Artikel` (was: `Recirculatie`)
+  - Spotify: `Recirculatie+Podcast+Spotify` (was: `Podcast+Spotify`)
+  - Apple: `Recirculatie+Podcast+Apple` (was: `Podcast+Apple`)
+- Conditiële checks toegevoegd voor lege podcast-URLs om kapotte links te voorkomen
+
+## [0.4.0] - 2025-10-10
 ### Toegevoegd
 - Podcast-promoblok met 50/50 verdeling tussen top posts en podcast-promo
 - Admin-instellingen voor podcast (titel, beschrijving, coverafbeelding, Spotify-link, Apple Podcasts-link)

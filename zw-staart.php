@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ZuidWest Staart
  * Description: Experiment om bezoekers meer te laten recirculeren met top 5 posts onder ieder artikel
- * Version: 0.4.0
+ * Version: 0.4.1
  * Author: Streekomroep ZuidWest
  * Plugin URI: https://github.com/oszuidwest/zw-staart
  * Requires at least: 6.0
@@ -15,7 +15,7 @@ defined('ABSPATH') or die('No script kiddies please!');
 
 // Plugin version and metadata
 if (!defined('ZW_STAART_VERSION')) {
-    define('ZW_STAART_VERSION', '0.4.0');
+    define('ZW_STAART_VERSION', '0.4.1');
 }
 if (!defined('ZW_STAART_PLUGIN_FILE')) {
     define('ZW_STAART_PLUGIN_FILE', __FILE__);
