@@ -4,11 +4,13 @@
  * Description: Toont leestips of podcast-promo onder artikelen voor betere recirculatie en engagement
  * Version: 0.4.1
  * Author: Streekomroep ZuidWest
+ * Author URI: https://www.zuidwesttv.nl
  * Plugin URI: https://github.com/oszuidwest/zw-staart
  * Requires at least: 6.0
  * Tested up to: 6.8
  * Requires PHP: 8.1
  * License: GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *
  * @package ZuidWest_Staart
  */
