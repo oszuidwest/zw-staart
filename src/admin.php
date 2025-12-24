@@ -13,12 +13,12 @@ defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
  *
  * @param string $group Setting group (e.g., 'plausible', 'podcast').
  * @param string $key Setting key.
- * @param mixed  $default Default value if setting doesn't exist.
+ * @param mixed  $default_value Default value if setting doesn't exist.
  * @return mixed The setting value.
  */
-function zw_staart_get_setting( $group, $key, $default = '' ) {
+function zw_staart_get_setting( $group, $key, $default_value = '' ) {
 	$settings = get_option( 'zw_staart_settings', array() );
-	return $settings[ $group ][ $key ] ?? $default;
+	return $settings[ $group ][ $key ] ?? $default_value;
 }
 
 /**
