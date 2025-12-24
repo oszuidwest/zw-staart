@@ -1,3 +1,5 @@
 
 .DS_Store
 CLAUDE.md
+/vendor/
+composer.lock
