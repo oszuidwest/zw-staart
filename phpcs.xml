@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<ruleset name="ZuidWest">
+    <description>WordPress Coding Standards</description>
+    <file>.</file>
+    <exclude-pattern>/vendor/</exclude-pattern>
+    <arg name="extensions" value="php"/>
+    <arg value="s"/>
+    <rule ref="WordPress"/>
+    <config name="minimum_wp_version" value="6.0"/>
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="zw-staart"/>
+            </property>
+        </properties>
+    </rule>
+</ruleset>
