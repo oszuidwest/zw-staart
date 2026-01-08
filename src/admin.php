@@ -89,7 +89,9 @@ function zw_staart_migrate_from_old_version() {
 }
 
 /**
- * Activation hook function: Schedules the event to fetch top posts.
+ * Schedules the event to fetch top posts on plugin activation.
+ *
+ * @return void
  */
 function zw_staart_activate() {
 	zw_staart_migrate_from_old_version();
@@ -105,7 +107,9 @@ function zw_staart_activate() {
 }
 
 /**
- * Deactivation hook function: Clears the scheduled event.
+ * Clears the scheduled event on plugin deactivation.
+ *
+ * @return void
  */
 function zw_staart_deactivate() {
 	$timestamp = wp_next_scheduled( 'zw_staart_event_hook' );
@@ -205,7 +209,9 @@ function zw_staart_sanitize_settings( $input ) {
 }
 
 /**
- * Renders the settings page.
+ * Displays the plugin settings page.
+ *
+ * @return void
  */
 function zw_staart_settings_page() {
 	// Check user capabilities.
