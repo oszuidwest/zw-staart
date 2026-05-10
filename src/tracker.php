@@ -5,6 +5,8 @@
  * @package ZuidWest_Staart
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Adds visitor tracking script to footer.
  *
