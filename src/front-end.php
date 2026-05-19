@@ -166,13 +166,13 @@ function zw_staart_top_posts_list() {
 			var topPostItems = document.querySelectorAll('#zw-staart-top-posts-list .zw-staart-top-post-item');
 			var displayedTopPostUrls = [];
 
-			// Function to parse the 'zw_staart_visited_posts' cookie.
 			function getVisitedPostIds() {
-				var cookieValue = document.cookie.split('; ').find(row => row.startsWith('zw_staart_visited_posts='));
-				return cookieValue ? cookieValue.split('=')[1].split(',').map(function(id) {
+				var cookieName = 'zw_staart_visited_posts=';
+				var cookieValue = document.cookie.split('; ').find(row => row.startsWith(cookieName));
+				return cookieValue ? cookieValue.substring(cookieName.length).split(',').map(function(id) {
 					return parseInt(id, 10);
 				}).filter(function(id) {
-					return id > 0 && !isNaN(id);
+					return id > 0;
 				}) : [];
 			}
 

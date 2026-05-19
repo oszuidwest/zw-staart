@@ -29,6 +29,7 @@ function zw_staart_add_postid_tracker_script(): void {
 				function updatePostIdCookie(postId) {
 					var postIds = getCookie('zw_staart_visited_posts');
 					postIds = postIds ? parsePostIds(postIds) : [];
+					// Move re-visited IDs to the tail so slice(-maxVisitedPosts) keeps the most recent visits.
 					postIds = postIds.filter(function(id) {
 						return id !== postId;
 					});
@@ -41,7 +42,7 @@ function zw_staart_add_postid_tracker_script(): void {
 					return value.split(',').map(function(id) {
 						return parseInt(id, 10);
 					}).filter(function(id, index, postIds) {
-						return id > 0 && !isNaN(id) && postIds.indexOf(id) === index;
+						return id > 0 && postIds.lastIndexOf(id) === index;
 					});
 				}
 
