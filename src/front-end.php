@@ -169,7 +169,11 @@ function zw_staart_top_posts_list() {
 			// Function to parse the 'zw_staart_visited_posts' cookie.
 			function getVisitedPostIds() {
 				var cookieValue = document.cookie.split('; ').find(row => row.startsWith('zw_staart_visited_posts='));
-				return cookieValue ? cookieValue.split('=')[1].split(',').map(Number) : [];
+				return cookieValue ? cookieValue.split('=')[1].split(',').map(function(id) {
+					return parseInt(id, 10);
+				}).filter(function(id) {
+					return id > 0 && !isNaN(id);
+				}) : [];
 			}
 
 			// Display only the top posts not visited, up to the minimum required.
