@@ -23,15 +23,27 @@ function zw_staart_add_postid_tracker_script(): void {
 			document.addEventListener('DOMContentLoaded', function() {
 				var postId = <?php echo intval( $post->ID ); ?>;
 				var cookieExpiryDays = <?php echo intval( ZW_STAART_COOKIE_EXPIRY_DAYS ); ?>;
+				var maxVisitedPosts = <?php echo intval( ZW_STAART_MAX_VISITED_POSTS ); ?>;
 				updatePostIdCookie(postId);
 
 				function updatePostIdCookie(postId) {
 					var postIds = getCookie('zw_staart_visited_posts');
-					postIds = postIds ? postIds.split(',') : [];
-					if (postIds.indexOf(postId) === -1) {
-						postIds.push(postId);
-					}
+					postIds = postIds ? parsePostIds(postIds) : [];
+					// Move re-visited IDs to the tail so slice(-maxVisitedPosts) keeps the most recent visits.
+					postIds = postIds.filter(function(id) {
+						return id !== postId;
+					});
+					postIds.push(postId);
+					postIds = postIds.slice(-maxVisitedPosts);
 					setCookie('zw_staart_visited_posts', postIds.join(','), cookieExpiryDays);
+				}
+
+				function parsePostIds(value) {
+					return value.split(',').map(function(id) {
+						return parseInt(id, 10);
+					}).filter(function(id, index, postIds) {
+						return id > 0 && postIds.lastIndexOf(id) === index;
+					});
 				}
 
 				function setCookie(name, value, days) {

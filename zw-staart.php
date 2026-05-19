@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ZuidWest Staart
  * Description: Toont leestips of podcast-promo onder artikelen voor betere recirculatie en engagement
- * Version: 0.4.1
+ * Version: 0.4.2
  * Author: Streekomroep ZuidWest
  * Author URI: https://www.zuidwesttv.nl
  * Plugin URI: https://github.com/oszuidwest/zw-staart
@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 // Plugin version and metadata.
 if ( ! defined( 'ZW_STAART_VERSION' ) ) {
-	define( 'ZW_STAART_VERSION', '0.4.1' );
+	define( 'ZW_STAART_VERSION', '0.4.2' );
 }
 if ( ! defined( 'ZW_STAART_PLUGIN_FILE' ) ) {
 	define( 'ZW_STAART_PLUGIN_FILE', __FILE__ );
@@ -40,6 +40,9 @@ if ( ! defined( 'ZW_STAART_COOKIE_EXPIRY_DAYS' ) ) {
 }
 if ( ! defined( 'ZW_STAART_MAX_TOP_ARTICLES' ) ) {
 	define( 'ZW_STAART_MAX_TOP_ARTICLES', 25 );      // Maximum articles to cache.
+}
+if ( ! defined( 'ZW_STAART_MAX_VISITED_POSTS' ) ) {
+	define( 'ZW_STAART_MAX_VISITED_POSTS', 100 );    // Maximum visited post IDs to keep in the cookie.
 }
 if ( ! defined( 'ZW_STAART_MIN_POSTS_DISPLAY' ) ) {
 	define( 'ZW_STAART_MIN_POSTS_DISPLAY', 5 );      // Minimum posts to show list.

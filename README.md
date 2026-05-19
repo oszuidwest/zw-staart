@@ -47,7 +47,7 @@ Configureer de verbinding met Plausible Analytics:
 - Data wordt lokaal gecached voor snelle weergave
 
 ### Personalisatie
-- De plugin onthoudt welke artikelen een bezoeker heeft gelezen via een cookie (`zw_staart_visited_posts`, 7 dagen geldig)
+- De plugin onthoudt welke artikelen een bezoeker heeft gelezen via een cookie (`zw_staart_visited_posts`, 7 dagen geldig, maximaal 100 artikelen)
 - Alleen ongelezen artikelen worden getoond in de leestips
 - Het huidige artikel en dossier-artikelen worden automatisch uitgesloten
 - Als er minder dan 5 ongelezen artikelen beschikbaar zijn, wordt het leestips-blok verborgen

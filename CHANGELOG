@@ -1,3 +1,8 @@
+## [0.4.2] - 2026-05-19
+### Veranderd
+- Beperkt `zw_staart_visited_posts` tot maximaal 100 recente artikel-IDs, zodat de cookie-header niet onbeperkt groeit.
+- Normaliseert de opgeslagen artikel-IDs bij het lezen en schrijven van de cookie.
+
 ## [0.4.1] - 2025-10-20
 ### Veranderd
 - Podcast-links openen nu in nieuwe tabs met `target="_blank"` en `rel="noopener noreferrer"`
