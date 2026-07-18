@@ -6,9 +6,9 @@
  * Author: Streekomroep ZuidWest
  * Author URI: https://www.zuidwesttv.nl
  * Plugin URI: https://github.com/oszuidwest/zw-staart
- * Requires at least: 6.0
- * Tested up to: 6.8
- * Requires PHP: 8.1
+ * Requires at least: 7.0
+ * Tested up to: 7.0
+ * Requires PHP: 8.3
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  *

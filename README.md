@@ -69,7 +69,7 @@ Alleen artikel-links bevatten UTM-parameters voor campagne-tracking. Podcast-lin
 
 ## Vereisten
 
-- WordPress 6.0 of hoger
-- PHP 8.1 of hoger
+- WordPress 7.0 of hoger
+- PHP 8.3 of hoger
 - JavaScript voor 50/50 selectie en cookie tracking
 - Plausible Analytics account (voor leestips functionaliteit)
