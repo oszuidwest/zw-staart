@@ -218,8 +218,11 @@
 	let dismissed = false;
 	let impressed = false;
 	let armed = false;
-	// Only a scroll opens the next article, not a resize or the first draw.
+	// Set by any interaction before the end of the text on this view, so not by a restore at the bottom.
+	let reading = false;
+	// Only a scroll down opens the next article, not a resize, the first draw or a scroll back up.
 	let scrolled = false;
+	let lastY = window.scrollY;
 	let swiped = false;
 	let frame = 0;
 	// Set once the next article opens; from then on the page is on its way.
@@ -282,8 +285,9 @@
 
 	function update() {
 		frame = 0;
-		const byScroll = scrolled;
+		const byScroll = scrolled && window.scrollY > lastY;
 		scrolled = false;
+		lastY = window.scrollY;
 		if (dismissed || leaving) {
 			return;
 		}
@@ -308,8 +312,7 @@
 		}
 
 		ringFill.style.strokeDashoffset = String(100 - value * 100);
-		// Only promise what scrolling does: unarmed, as on a short article or a page restored at its end,
-		// scrolling down does not open the next article.
+		// Only promise what scrolling does: unarmed, scrolling down does not open the next article.
 		setKicker(value >= ALMOST && armed ? KICKER.almost : KICKER.idle);
 		// Only open the next article while the bar is on screen, so a short article never jumps away unseen.
 		if (byScroll && value >= 1 && armed && bar.classList.contains('is-visible')) {
@@ -324,10 +327,14 @@
 	}
 
 	// Only a real scroll action by the reader, with the bar in view, may open the next article: a page
-	// that the back button restores at the bottom, or one swipe from the top of a short article, must
-	// not load the next article unseen.
+	// that the back button restores at the bottom must not load it unseen. After one swipe past the end
+	// of a short article, the next touch iOS reports arms the bar.
 	function onInteract() {
-		if (!armed && bar.classList.contains('is-visible') && progress() < 1) {
+		if (armed) {
+			return;
+		}
+		reading = reading || progress() < 1;
+		if (reading && bar.classList.contains('is-visible')) {
 			armed = true;
 			schedule(); // The label may now promise the next article.
 		}
@@ -407,6 +414,7 @@
 		leaving = false;
 		bar.classList.remove('is-loading');
 		armed = false;
+		reading = false;
 		next = pickNext();
 		if (!next || isDismissed()) {
 			deactivate();

@@ -1,3 +1,7 @@
+## [0.5.1] - 2026-10-23
+### Opgelost
+- Doorscrollen werkt nu ook na één veeg voorbij het einde van een kort artikel. Omhoog scrollen opent het volgende artikel nooit.
+
 ## [0.5.0] - 2026-10-23
 ### Toegevoegd
 - Doorscrollen: een balk onderin met de eerste ongelezen leestip, op desktop met afbeelding. Het wiel loopt vol tijdens het lezen; wie doorscrolt tot het einde van de tekst, gaat naar het volgende artikel. Standaard uit, aan te zetten onder **Instellingen → ZuidWest Staart**.
