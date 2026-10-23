@@ -225,11 +225,25 @@
 	let lastY = window.scrollY;
 	let swiped = false;
 	let frame = 0;
+	// The prefetch rule for the current next article; next can change after a bfcache restore.
+	let prefetchRule = null;
 	// Set once the next article opens; from then on the page is on its way.
 	let leaving = false;
 	// Increased on every departure and on a bfcache restore, so a late callback or timeout of an
 	// earlier departure cannot navigate the restored page.
 	let departure = 0;
+
+	// Best-effort prefetch of the next article's HTML; it runs no scripts of that page. Browsers without
+	// speculation rules ignore the script. A new URL replaces the old rule, so a stale one is not fetched
+	// again.
+	function prefetch(url) {
+		prefetchRule?.remove();
+		prefetchRule = document.createElement('script');
+		prefetchRule.type = 'speculationrules';
+		prefetchRule.dataset.url = url;
+		prefetchRule.textContent = JSON.stringify({ prefetch: [{ source: 'list', urls: [url] }] });
+		document.head.appendChild(prefetchRule);
+	}
 
 	function setKicker(text) {
 		if (kicker.textContent !== text) {
@@ -246,12 +260,13 @@
 	}
 
 	// Hides the bar for good on this page and brings the reading tips block back. A next article that
-	// is still loading stays here: closing means "stop met doorladen".
+	// is still loading stays here and its prefetch is withdrawn: closing means "stop met doorladen".
 	function deactivate() {
 		dismissed = true;
 		departure++;
 		bar.classList.remove('is-visible');
 		document.documentElement.classList.remove(ACTIVE_CLASS);
+		prefetchRule?.remove();
 	}
 
 	function dismiss(action) {
@@ -305,10 +320,15 @@
 		} else if (window.scrollY < HIDE_ABOVE_PX) {
 			bar.classList.remove('is-visible');
 		}
-		// Readers who never reach the bar do not download its image; on mobile the stylesheet hides it,
-		// so lazy loading skips it there.
-		if (next.image && !image.hasAttribute('src') && bar.classList.contains('is-visible')) {
-			image.src = next.image;
+		// The image and the prefetch start only once the bar shows; on mobile the stylesheet hides the
+		// image, so lazy loading skips it there.
+		if (bar.classList.contains('is-visible')) {
+			if (next.image && !image.hasAttribute('src')) {
+				image.src = next.image;
+			}
+			if (prefetchRule?.dataset.url !== next.url) {
+				prefetch(next.url);
+			}
 		}
 
 		ringFill.style.strokeDashoffset = String(100 - value * 100);
@@ -419,6 +439,11 @@
 		if (!next || isDismissed()) {
 			deactivate();
 			return;
+		}
+		// The restore makes the browser look at the rules again: withdraw the one for the old candidate.
+		if (prefetchRule && prefetchRule.dataset.url !== next.url) {
+			prefetchRule.remove();
+			prefetchRule = null;
 		}
 		render();
 		schedule();
