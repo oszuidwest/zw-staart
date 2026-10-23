@@ -69,7 +69,8 @@
 	const shareLink = Array.from(document.querySelectorAll('a[href*="sharebutton"]')).find(
 		(candidate) => article.compareDocumentPosition(candidate) & Node.DOCUMENT_POSITION_FOLLOWING
 	);
-	const end = (shareLink && shareLink.closest('aside')) || article;
+	// The row of buttons, not the whole share block, whose bottom padding would keep the wheel short.
+	const end = (shareLink && shareLink.parentElement) || article;
 
 	function track(action, callback) {
 		if (typeof window.plausible === 'function') {
