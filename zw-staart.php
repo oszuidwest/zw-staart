@@ -2,7 +2,7 @@
 /**
  * Plugin Name: ZuidWest Staart
  * Description: Toont leestips onder artikelen voor betere recirculatie en engagement
- * Version: 0.6.0
+ * Version: 0.5.0
  * Author: Streekomroep ZuidWest
  * Author URI: https://www.zuidwesttv.nl
  * Plugin URI: https://github.com/oszuidwest/zw-staart
@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 // Plugin version and metadata.
 if ( ! defined( 'ZW_STAART_VERSION' ) ) {
-	define( 'ZW_STAART_VERSION', '0.6.0' );
+	define( 'ZW_STAART_VERSION', '0.5.0' );
 }
 if ( ! defined( 'ZW_STAART_PLUGIN_FILE' ) ) {
 	define( 'ZW_STAART_PLUGIN_FILE', __FILE__ );
