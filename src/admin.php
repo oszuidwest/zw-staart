@@ -211,7 +211,8 @@ function zw_staart_settings_page() {
 	$plausible_api_key  = zw_staart_get_setting( 'plausible', 'api_key' );
 	$plausible_site_id  = zw_staart_get_setting( 'plausible', 'site_id' );
 	$plausible_endpoint = zw_staart_get_setting( 'plausible', 'endpoint' );
-	$plausible_days     = zw_staart_get_setting( 'plausible', 'days' ) ? zw_staart_get_setting( 'plausible', 'days' ) : ZW_STAART_DEFAULT_DAYS;
+	$plausible_days     = zw_staart_get_setting( 'plausible', 'days' );
+	$plausible_days     = $plausible_days ? $plausible_days : ZW_STAART_DEFAULT_DAYS;
 	$top_posts_heading  = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
 	?>
 	<div class="wrap">
@@ -282,7 +283,8 @@ function zw_staart_get_top_posts() {
 	$api_key      = zw_staart_get_setting( 'plausible', 'api_key' );
 	$site_id      = zw_staart_get_setting( 'plausible', 'site_id' );
 	$api_endpoint = zw_staart_get_setting( 'plausible', 'endpoint' );
-	$days         = intval( zw_staart_get_setting( 'plausible', 'days' ) ? zw_staart_get_setting( 'plausible', 'days' ) : ZW_STAART_DEFAULT_DAYS );
+	$days         = zw_staart_get_setting( 'plausible', 'days' );
+	$days         = intval( $days ? $days : ZW_STAART_DEFAULT_DAYS );
 
 	// Validate required settings.
 	if ( empty( $api_key ) || empty( $site_id ) || empty( $api_endpoint ) ) {
@@ -381,13 +383,7 @@ function zw_staart_resolve_post_ids( $articles ) {
 		$path  = trim( $article['page'], '/' );
 		$parts = explode( '/', $path );
 		// Last part is the slug (e.g., /nieuws/article-slug -> article-slug).
-		if ( count( $parts ) > 0 ) {
-			$slugs[] = end( $parts );
-		}
-	}
-
-	if ( count( $slugs ) === 0 ) {
-		return $articles;
+		$slugs[] = end( $parts );
 	}
 
 	// Query all posts in a single database call for optimal performance.
@@ -421,7 +417,7 @@ function zw_staart_resolve_post_ids( $articles ) {
 	foreach ( $articles as &$article ) {
 		$path  = trim( $article['page'], '/' );
 		$parts = explode( '/', $path );
-		$slug  = count( $parts ) > 0 ? end( $parts ) : '';
+		$slug  = end( $parts );
 
 		$article['post_id'] = $slug_to_id[ $slug ] ?? 0;
 	}

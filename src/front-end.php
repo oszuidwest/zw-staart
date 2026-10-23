@@ -42,15 +42,6 @@ function zw_staart_top_posts_list() {
 		fn( $p ) => ( $p['post_id'] ?? 0 ) !== 0 && ( $p['post_id'] ?? 0 ) !== $post->ID
 	);
 
-	// Generate a mapping of post IDs to URLs (used in JavaScript).
-	$post_id_to_url_mapping = array();
-	foreach ( $output_posts as $p ) {
-		$post_id = $p['post_id'] ?? 0;
-		if ( $post_id ) {
-			$post_id_to_url_mapping[ $post_id ] = get_permalink( $post_id );
-		}
-	}
-
 	// Start output buffering to capture HTML output.
 	ob_start();
 	?>
@@ -77,7 +68,6 @@ function zw_staart_top_posts_list() {
 	</aside>
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
-			var postIdToUrlMapping = <?php echo wp_json_encode( $post_id_to_url_mapping, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ); ?>;
 			var minPostsDisplay = <?php echo intval( ZW_STAART_MIN_POSTS_DISPLAY ); ?>;
 			var visitedPostIds = getVisitedPostIds();
 			var topPostItems = document.querySelectorAll('#zw-staart-top-posts-list .zw-staart-top-post-item');
@@ -94,14 +84,12 @@ function zw_staart_top_posts_list() {
 			}
 
 			// Display only the top posts not visited, up to the minimum required.
-			var displayedCount = 0;
 			topPostItems.forEach(function (item) {
 				var postId = parseInt(item.getAttribute('data-post-id'));
-				if (!visitedPostIds.includes(postId) && displayedCount < minPostsDisplay) {
+				if (!visitedPostIds.includes(postId) && displayedTopPostUrls.length < minPostsDisplay) {
 					var url = new URL(item.querySelector('a').getAttribute('href'));
 					var baseUrl = url.origin + url.pathname;
 					displayedTopPostUrls.push(baseUrl);
-					displayedCount++;
 				} else {
 					item.style.display = 'none';
 				}
