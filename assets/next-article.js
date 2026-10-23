@@ -33,15 +33,6 @@
 		almost: 'Blijf scrollen om te openen',
 		loading: 'Volgende artikel laden\u2026', // Ellipsis escaped: the file stays ASCII, whatever charset the server sends.
 	};
-	// Material Icons (filled), the same set the theme header uses.
-	const ICONS = {
-		close: 'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
-		down: 'M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z',
-	};
-	const icon = (name, className) => {
-		const classAttribute = className ? ` class="${className}"` : '';
-		return `<svg${classAttribute} viewBox="0 0 24 24" aria-hidden="true"><path d="${ICONS[name]}"/></svg>`;
-	};
 
 	function isDismissed() {
 		try {
@@ -92,6 +83,7 @@
 	bar.className = 'zw-staart-next-article';
 	bar.setAttribute('role', 'region');
 	bar.setAttribute('aria-label', 'Volgende artikel voor jou');
+	// Icons: Material Icons (filled), the same set the theme header uses.
 	bar.innerHTML = `
 		<div class="zw-staart-next-article-inner">
 			<a class="zw-staart-next-article-link plausible-event-name=Recirculatie+Scroll plausible-event-actie=geklikt">
@@ -101,10 +93,10 @@
 				</span>
 				<span class="zw-staart-next-article-wheel" aria-hidden="true">
 					<svg class="zw-staart-next-article-ring" viewBox="0 0 48 48"><circle class="zw-staart-next-article-ring-track" cx="24" cy="24" r="21"/><circle class="zw-staart-next-article-ring-fill" cx="24" cy="24" r="21" pathLength="100"/></svg>
-					${icon('down', 'zw-staart-next-article-arrow')}
+					<svg class="zw-staart-next-article-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg>
 				</span>
 			</a>
-			<button class="zw-staart-next-article-close" type="button" aria-label="Stop met doorladen">${icon('close')}</button>
+			<button class="zw-staart-next-article-close" type="button" aria-label="Stop met doorladen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
 		</div>`;
 	const link = bar.querySelector('.zw-staart-next-article-link');
 	const title = bar.querySelector('.zw-staart-next-article-title');
