@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 /**
  * Gets a setting value from the serialized settings array.
  *
- * @param string $group Setting group (e.g., 'plausible', 'top_posts').
+ * @param string $group Setting group (e.g., 'plausible', 'top_posts', 'next_article').
  * @param string $key Setting key.
  * @param mixed  $default_value Default value if setting doesn't exist.
  * @return mixed The setting value.
@@ -179,11 +179,12 @@ function zw_staart_sanitize_settings( $input ) {
 	// form fields so the second pass keeps the values instead of resetting them.
 	if ( isset( $input['plausible'] ) ) {
 		$input = array(
-			'zw_staart_plausible_api_key'  => $input['plausible']['api_key'] ?? '',
-			'zw_staart_plausible_site_id'  => $input['plausible']['site_id'] ?? '',
-			'zw_staart_plausible_endpoint' => $input['plausible']['endpoint'] ?? '',
-			'zw_staart_plausible_days'     => $input['plausible']['days'] ?? ZW_STAART_DEFAULT_DAYS,
-			'zw_staart_top_posts_heading'  => $input['top_posts']['heading'] ?? 'Leestips voor jou',
+			'zw_staart_plausible_api_key'    => $input['plausible']['api_key'] ?? '',
+			'zw_staart_plausible_site_id'    => $input['plausible']['site_id'] ?? '',
+			'zw_staart_plausible_endpoint'   => $input['plausible']['endpoint'] ?? '',
+			'zw_staart_plausible_days'       => $input['plausible']['days'] ?? ZW_STAART_DEFAULT_DAYS,
+			'zw_staart_top_posts_heading'    => $input['top_posts']['heading'] ?? 'Leestips voor jou',
+			'zw_staart_next_article_enabled' => $input['next_article']['enabled'] ?? false,
 		);
 	}
 
@@ -193,14 +194,17 @@ function zw_staart_sanitize_settings( $input ) {
 	}
 
 	$sanitized = array(
-		'plausible' => array(
+		'plausible'    => array(
 			'api_key'  => sanitize_text_field( $input['zw_staart_plausible_api_key'] ?? '' ),
 			'site_id'  => sanitize_text_field( $input['zw_staart_plausible_site_id'] ?? '' ),
 			'endpoint' => esc_url_raw( $input['zw_staart_plausible_endpoint'] ?? '' ),
 			'days'     => $days,
 		),
-		'top_posts' => array(
+		'top_posts'    => array(
 			'heading' => sanitize_text_field( $input['zw_staart_top_posts_heading'] ?? 'Leestips voor jou' ),
+		),
+		'next_article' => array(
+			'enabled' => ! empty( $input['zw_staart_next_article_enabled'] ),
 		),
 	);
 
@@ -226,13 +230,15 @@ function zw_staart_settings_page() {
 	$plausible_endpoint = zw_staart_get_setting( 'plausible', 'endpoint' );
 	$plausible_days     = zw_staart_get_setting( 'plausible', 'days' );
 	$plausible_days     = $plausible_days ? $plausible_days : ZW_STAART_DEFAULT_DAYS;
-	$top_posts_heading  = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
+
+	$top_posts_heading    = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
+	$next_article_enabled = (bool) zw_staart_get_setting( 'next_article', 'enabled', false );
 	?>
 	<div class="wrap">
 		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 		<p style="max-width: 800px; margin-bottom: 30px;">
 			Deze plugin toont leestips onder artikelen (in de 'staart van het artikel') op basis van populaire artikelen uit Plausible Analytics.
-			Configureer hieronder de koptekst en de verbinding met Plausible.
+			Configureer hieronder de weergave en de verbinding met Plausible.
 		</p>
 
 		<form method="post" action="options.php">
@@ -245,6 +251,20 @@ function zw_staart_settings_page() {
 					<th scope="row">Koptekst leestips</th>
 					<td>
 						<input type="text" name="zw_staart_settings[zw_staart_top_posts_heading]" value="<?php echo esc_attr( $top_posts_heading ); ?>" class="regular-text" placeholder="Leestips voor jou" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">Doorscrollen</th>
+					<td>
+						<label>
+							<input type="checkbox" name="zw_staart_settings[zw_staart_next_article_enabled]" value="1" <?php checked( $next_article_enabled ); ?> />
+							Toon onderin een balk met de volgende leestip
+						</label>
+						<p class="description">
+							Het wiel in de balk loopt vol tijdens het lezen; wie doorscrolt tot de deelknoppen, gaat naar het volgende artikel.
+							Staat de balk aan, dan wordt het leestipsblok onder het artikel verborgen;
+							na sluiten komt het terug als er genoeg ongelezen leestips zijn.
+						</p>
 					</td>
 				</tr>
 			</table>

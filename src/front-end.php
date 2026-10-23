@@ -18,6 +18,32 @@ function zw_staart_fetch_top_posts() {
 }
 
 /**
+ * Returns the IDs of the cached top posts, most read first.
+ *
+ * Skips posts whose ID could not be resolved during the Plausible sync.
+ *
+ * @param int $exclude_id Post ID to leave out, usually the post being displayed.
+ * @return int[] Post IDs.
+ */
+function zw_staart_top_post_ids( $exclude_id ) {
+	$post_ids = array_map( static fn( $p ) => (int) ( $p['post_id'] ?? 0 ), zw_staart_fetch_top_posts() );
+
+	return array_values( array_filter( $post_ids, static fn( $post_id ) => 0 !== $post_id && $post_id !== $exclude_id ) );
+}
+
+/**
+ * Checks whether reading tips belong on this request: a single news post outside a dossier.
+ *
+ * REST API requests are skipped to avoid polluting API responses with promotional HTML.
+ *
+ * @param int $post_id ID of the post being displayed.
+ * @return bool True if reading tips should be shown.
+ */
+function zw_staart_is_eligible_post( $post_id ) {
+	return is_single() && 'post' === get_post_type( $post_id ) && ! has_term( '', 'dossier', $post_id ) && ! wp_is_json_request();
+}
+
+/**
  * Generates the HTML markup for displaying the top posts list.
  *
  * @return string The HTML output for the top posts list.
@@ -26,21 +52,14 @@ function zw_staart_top_posts_list() {
 	// Get heading from settings.
 	$heading = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
 
-	// Fetch the top posts.
-	$posts = zw_staart_fetch_top_posts();
-
-	// Check if there are no posts.
-	if ( empty( $posts ) ) {
-		return '';
-	}
-
 	global $post;
 
 	// Post IDs are pre-resolved during API fetch to avoid N+1 queries.
-	$output_posts = array_filter(
-		$posts,
-		fn( $p ) => ( $p['post_id'] ?? 0 ) !== 0 && ( $p['post_id'] ?? 0 ) !== $post->ID
-	);
+	$post_ids = zw_staart_top_post_ids( $post->ID );
+
+	if ( empty( $post_ids ) ) {
+		return '';
+	}
 
 	// Start output buffering to capture HTML output.
 	ob_start();
@@ -48,17 +67,12 @@ function zw_staart_top_posts_list() {
 	<aside id="zw-staart-top-posts-list" style="margin-top: 20px">
 		<h3 style="border-bottom: 2px solid rgb(0, 222, 1); padding-bottom: 5px;"><?php echo esc_html( $heading ); ?></h3>
 		<ol style="margin: 0; padding-left: 20px;">
-			<?php foreach ( $output_posts as $p ) : ?>
+			<?php foreach ( $post_ids as $post_id ) : ?>
 				<?php
-					$post_id = $p['post_id'] ?? 0;
-				if ( ! $post_id ) {
-					continue; // Skip if post ID wasn't resolved.
-				}
-
 					$post_permalink = get_permalink( $post_id );
 					$post_title     = get_the_title( $post_id );
 				?>
-				<li class="zw-staart-top-post-item" data-post-id="<?php echo esc_attr( $post_id ); ?>" style="margin-bottom: 10px;">
+				<li class="zw-staart-top-post-item" data-post-id="<?php echo absint( $post_id ); ?>" style="margin-bottom: 10px;">
 					<a href="<?php echo esc_url( $post_permalink . '?utm_source=recirculatie' ); ?>" class="plausible-event-name=Recirculatie+Artikel" style="text-decoration: none;">
 						<?php echo esc_html( $post_title ); ?>
 					</a>
@@ -130,12 +144,7 @@ function zw_staart_top_posts_list() {
 add_filter(
 	hook_name: 'the_content',
 	callback: function ( string $content ): string {
-		global $post;
-
-		// Skip REST API requests to avoid polluting API responses with promotional HTML.
-		if ( is_single() && get_post_type() === 'post' &&
-		( ! has_term( '', 'dossier', $post->ID ) ) &&
-		! wp_is_json_request() ) {
+		if ( zw_staart_is_eligible_post( (int) get_the_ID() ) ) {
 			$content .= zw_staart_top_posts_list();
 		}
 		return $content;

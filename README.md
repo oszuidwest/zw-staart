@@ -6,6 +6,15 @@ WordPress-plugin voor het WordPress-thema van Streekomroep ZuidWest die leestips
 
 De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartikelen (niet bij dossier-artikelen): de top 5 meest gelezen artikelen die de bezoeker nog niet heeft gelezen.
 
+Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hieronder).
+
+### Doorscrollen
+- Halverwege het artikel schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
+- Het wiel in de balk loopt vol tijdens het lezen en is vol zodra de deelknoppen boven de balk zichtbaar zijn; wie doorscrolt, gaat naar het volgende artikel (een gewone paginalading)
+- Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor is eerst een scrollbeweging nodig
+- Op mobiel sluit je de balk door hem omlaag te vegen, op desktop met het kruisje; daarna blijft hij de rest van de sessie weg
+- Zolang de balk actief is, wordt het leestipsblok onder het artikel verborgen; na sluiten komt het terug (als er minstens 5 ongelezen leestips zijn, zoals altijd)
+
 ## Installatie
 
 1. Upload de plugin naar `/wp-content/plugins/` of installeer via de WordPress plugin-directory
@@ -17,6 +26,7 @@ De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartik
 ### Weergave
 
 - **Koptekst leestips**: Standaard "Leestips voor jou"
+- **Doorscrollen**: Standaard uit
 
 ### Plausible Analytics (voor leestips)
 
@@ -50,6 +60,7 @@ Configureer de verbinding met Plausible Analytics:
 Klikken worden geregistreerd in Plausible Analytics:
 
 - **Recirculatie+Artikel**: Klikken op artikelen in leestips (met `?utm_source=recirculatie`)
+- **Recirculatie+Scroll**: Balk van Doorscrollen, met eigenschap `actie`: `getoond`, `geklikt`, `doorgescrold`, `gesloten` (kruisje) of `weggeveegd` (mobiel). De link naar het volgende artikel krijgt `?utm_source=recirculatie&utm_content=scroll`
 
 ## Vereisten
 
