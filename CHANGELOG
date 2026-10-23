@@ -1,6 +1,6 @@
 ## [0.5.1] - 2026-10-23
 ### Opgelost
-- Doorscrollen werkte niet op korte artikelen: wie in één veeg voorbij het einde van de tekst scrolde, ging daarna nooit meer door naar het volgende artikel. Nu opent de volgende veeg het wel.
+- Doorscrollen werkt nu ook na één veeg voorbij het einde van een kort artikel. Omhoog scrollen opent het volgende artikel nooit.
 
 ## [0.5.0] - 2026-10-23
 ### Toegevoegd

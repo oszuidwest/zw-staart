@@ -13,7 +13,7 @@ Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hierond
 - Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
 - Het wiel in de balk loopt vol tijdens het lezen en is vol zodra het einde van de tekst boven de balk zichtbaar is; wie doorscrolt, gaat naar het volgende artikel (een gewone paginalading). De deelknoppen onder het artikel komen dus niet meer helemaal in beeld zolang de balk actief is
 - Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug de tekst in scrollen
-- Scrolt de lezer van een kort artikel in één veeg voorbij het einde, dan opent de volgende veeg het volgende artikel
+- Na één veeg voorbij het einde van een kort artikel opent de volgende veeg omlaag het volgende artikel; omhoog scrollen nooit
 - Op mobiel sluit je de balk door hem omlaag te vegen, op desktop met het kruisje; daarna blijft hij de rest van de sessie weg
 - Zolang de balk actief is, wordt het leestipsblok onder het artikel verborgen; na sluiten komt het terug (als er minstens 5 ongelezen leestips zijn, zoals altijd)
 
