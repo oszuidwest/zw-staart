@@ -39,8 +39,12 @@ function zw_staart_next_article_image( $post_id ) {
  */
 function zw_staart_next_article_candidates( $current_id ) {
 	$candidates = array();
+	$post_ids   = zw_staart_top_post_ids( $current_id );
 
-	foreach ( zw_staart_top_post_ids( $current_id ) as $post_id ) {
+	// The featured images too, in one go.
+	_prime_post_caches( array_filter( array_map( 'get_post_thumbnail_id', $post_ids ) ), false, true );
+
+	foreach ( $post_ids as $post_id ) {
 		$permalink = get_permalink( $post_id );
 		if ( ! $permalink ) {
 			continue; // Post was removed after the last Plausible sync.

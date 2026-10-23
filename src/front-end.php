@@ -27,8 +27,12 @@ function zw_staart_fetch_top_posts() {
  */
 function zw_staart_top_post_ids( $exclude_id ) {
 	$post_ids = array_map( static fn( $p ) => (int) ( $p['post_id'] ?? 0 ), zw_staart_fetch_top_posts() );
+	$post_ids = array_values( array_filter( $post_ids, static fn( $post_id ) => 0 !== $post_id && $post_id !== $exclude_id ) );
 
-	return array_values( array_filter( $post_ids, static fn( $post_id ) => 0 !== $post_id && $post_id !== $exclude_id ) );
+	// Load the posts with their terms and meta in a few queries instead of a few per post.
+	_prime_post_caches( $post_ids );
+
+	return $post_ids;
 }
 
 /**
@@ -50,7 +54,7 @@ function zw_staart_is_eligible_post( $post_id ) {
  */
 function zw_staart_top_posts_list() {
 	// Get heading from settings.
-	$heading = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
+	$heading = zw_staart_get_setting( 'top_posts', 'heading', ZW_STAART_DEFAULT_HEADING );
 
 	global $post;
 

@@ -2,14 +2,10 @@
 /**
  * Report for the ZuidWest Staart A/B test: reading tips block (a) against the next article bar (b).
  *
- * Reads the events from the Plausible Stats API v2 and applies the decision rule from the README:
- * - primary metric: recirculation per article view, i.e. reading tip clicks plus bar clicks and
- *   scroll-throughs, divided by "Recirculatie Weergave" events, compared per day (paired);
- * - check: the visitors per group must split 50/50 (sample ratio mismatch), tested per day like the
- *   groups are drawn and Plausible counts visitors;
- * - guardrail: quick returns ("Recirculatie Terug") per recirculation.
+ * Reads the events from the Plausible Stats API v2 and applies the decision rule from the README
+ * (section "A/B-test"), which was fixed before the test started.
  *
- * Usage: PLAUSIBLE_API_KEY=... node tools/ab-rapport.mjs --van 2026-11-02 --tot 2026-11-15
+ * Usage: PLAUSIBLE_API_KEY=... node tools/ab-rapport.mjs --van 2026-11-02 --tot 2026-12-13
  * Needs Node.js 18 or later and nothing else.
  */
 

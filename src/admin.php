@@ -197,41 +197,31 @@ function zw_staart_register_settings() {
  * @return array Sanitized settings array.
  */
 function zw_staart_sanitize_settings( $input ) {
-	// When the option does not exist yet, update_option() hands over to add_option(), which runs
-	// this callback a second time on the already sanitized array. Map that stored shape back to the
-	// form fields so the second pass keeps the values instead of resetting them.
-	if ( isset( $input['plausible'] ) ) {
-		$input = array(
-			'zw_staart_plausible_api_key'  => $input['plausible']['api_key'] ?? '',
-			'zw_staart_plausible_site_id'  => $input['plausible']['site_id'] ?? '',
-			'zw_staart_plausible_endpoint' => $input['plausible']['endpoint'] ?? '',
-			'zw_staart_plausible_days'     => $input['plausible']['days'] ?? ZW_STAART_DEFAULT_DAYS,
-			'zw_staart_top_posts_heading'  => $input['top_posts']['heading'] ?? 'Leestips voor jou',
-			'zw_staart_next_article_mode'  => $input['next_article']['mode'] ?? 'off',
-		);
-	}
+	// The form fields use the stored shape, so sanitizing a second time gives the same result. That
+	// happens on the first save: update_option() hands a new option to add_option(), which sanitizes again.
+	$plausible    = (array) ( $input['plausible'] ?? array() );
+	$top_posts    = (array) ( $input['top_posts'] ?? array() );
+	$next_article = (array) ( $input['next_article'] ?? array() );
 
-	$days = intval( $input['zw_staart_plausible_days'] ?? ZW_STAART_DEFAULT_DAYS );
+	$days = intval( $plausible['days'] ?? ZW_STAART_DEFAULT_DAYS );
 	if ( $days < 1 || $days > 30 ) {
 		$days = ZW_STAART_DEFAULT_DAYS;
 	}
 
-	$sanitized = array(
+	return array(
 		'plausible'    => array(
-			'api_key'  => sanitize_text_field( $input['zw_staart_plausible_api_key'] ?? '' ),
-			'site_id'  => sanitize_text_field( $input['zw_staart_plausible_site_id'] ?? '' ),
-			'endpoint' => esc_url_raw( $input['zw_staart_plausible_endpoint'] ?? '' ),
+			'api_key'  => sanitize_text_field( $plausible['api_key'] ?? '' ),
+			'site_id'  => sanitize_text_field( $plausible['site_id'] ?? '' ),
+			'endpoint' => esc_url_raw( $plausible['endpoint'] ?? '' ),
 			'days'     => $days,
 		),
 		'top_posts'    => array(
-			'heading' => sanitize_text_field( $input['zw_staart_top_posts_heading'] ?? 'Leestips voor jou' ),
+			'heading' => sanitize_text_field( $top_posts['heading'] ?? ZW_STAART_DEFAULT_HEADING ),
 		),
 		'next_article' => array(
-			'mode' => zw_staart_sanitize_next_article_mode( $input['zw_staart_next_article_mode'] ?? '' ),
+			'mode' => zw_staart_sanitize_next_article_mode( $next_article['mode'] ?? '' ),
 		),
 	);
-
-	return $sanitized;
 }
 
 /**
@@ -254,7 +244,7 @@ function zw_staart_settings_page() {
 	$plausible_days     = zw_staart_get_setting( 'plausible', 'days' );
 	$plausible_days     = $plausible_days ? $plausible_days : ZW_STAART_DEFAULT_DAYS;
 
-	$top_posts_heading = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
+	$top_posts_heading = zw_staart_get_setting( 'top_posts', 'heading', ZW_STAART_DEFAULT_HEADING );
 	$next_article_mode = zw_staart_get_setting( 'next_article', 'mode', 'off' );
 	?>
 	<div class="wrap">
@@ -273,7 +263,7 @@ function zw_staart_settings_page() {
 				<tr>
 					<th scope="row">Koptekst leestips</th>
 					<td>
-						<input type="text" name="zw_staart_settings[zw_staart_top_posts_heading]" value="<?php echo esc_attr( $top_posts_heading ); ?>" class="regular-text" placeholder="Leestips voor jou" />
+						<input type="text" name="zw_staart_settings[top_posts][heading]" value="<?php echo esc_attr( $top_posts_heading ); ?>" class="regular-text" placeholder="<?php echo esc_attr( ZW_STAART_DEFAULT_HEADING ); ?>" />
 					</td>
 				</tr>
 				<tr>
@@ -283,7 +273,7 @@ function zw_staart_settings_page() {
 							<legend class="screen-reader-text">Doorscrollen</legend>
 							<?php foreach ( zw_staart_next_article_modes() as $mode => $label ) : ?>
 								<label>
-									<input type="radio" name="zw_staart_settings[zw_staart_next_article_mode]"
+									<input type="radio" name="zw_staart_settings[next_article][mode]"
 										value="<?php echo esc_attr( $mode ); ?>" <?php checked( $next_article_mode, $mode ); ?> />
 									<?php echo esc_html( $label ); ?>
 								</label><br />
@@ -313,25 +303,25 @@ function zw_staart_settings_page() {
 				<tr>
 					<th scope="row">API-sleutel</th>
 					<td>
-						<input type="password" name="zw_staart_settings[zw_staart_plausible_api_key]" value="<?php echo esc_attr( $plausible_api_key ); ?>" class="regular-text" autocomplete="off" />
+						<input type="password" name="zw_staart_settings[plausible][api_key]" value="<?php echo esc_attr( $plausible_api_key ); ?>" class="regular-text" autocomplete="off" />
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">Site-ID</th>
 					<td>
-						<input type="text" name="zw_staart_settings[zw_staart_plausible_site_id]" value="<?php echo esc_attr( $plausible_site_id ); ?>" class="regular-text" placeholder="zuidwestupdate.nl" />
+						<input type="text" name="zw_staart_settings[plausible][site_id]" value="<?php echo esc_attr( $plausible_site_id ); ?>" class="regular-text" placeholder="zuidwestupdate.nl" />
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">API-endpoint</th>
 					<td>
-						<input type="url" name="zw_staart_settings[zw_staart_plausible_endpoint]" value="<?php echo esc_attr( $plausible_endpoint ); ?>" class="large-text" placeholder="https://stats.zuidwesttv.nl/api/v2/query" />
+						<input type="url" name="zw_staart_settings[plausible][endpoint]" value="<?php echo esc_attr( $plausible_endpoint ); ?>" class="large-text" placeholder="https://stats.zuidwesttv.nl/api/v2/query" />
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">Aantal dagen</th>
 					<td>
-						<input type="number" name="zw_staart_settings[zw_staart_plausible_days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
+						<input type="number" name="zw_staart_settings[plausible][days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
 						<p class="description">Aantal dagen terug voor data-analyse (standaard: 5)</p>
 					</td>
 				</tr>

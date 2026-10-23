@@ -1,16 +1,6 @@
 /**
- * ZuidWest Staart: next article bar.
- *
- * After about a third of the article a bar slides in with the most read reading tip the visitor has
- * not read yet. Its wheel fills while reading and is full once the end of the text is visible
- * above the bar; scrolling there opens the next article as a regular page load. On mobile the
- * bar is closed by swiping it down, on desktop with a close button. Closing it keeps it away
- * for the rest of the session and brings back the reading tips block.
- *
- * In A/B test mode half of the visitors get the bar (b) and the other half only the reading tips
- * block (a). The group is drawn in the browser, as pages are cached, and kept for the day: Plausible
- * counts visitors per day, so each day is an independent repeat of the test. Every view and every
- * recirculation event then carries the group as the Plausible property "variant".
+ * ZuidWest Staart: the next article bar ("Doorscrollen") and its A/B test against the reading tips
+ * block. The README describes the behaviour and the test design.
  */
 (() => {
 	'use strict';
@@ -160,10 +150,10 @@
 			tip.classList.add(`plausible-event-variant=${variant}`);
 			tip.addEventListener('click', (event) => isPlainClick(event) && markLeave('leestip'));
 		});
-		if (variant === 'a') {
-			return;
-		}
-	} else if (config.test) {
+	}
+
+	// In the test only group b gets the bar; group a and visitors without a group keep the block.
+	if (config.test && variant !== 'b') {
 		return;
 	}
 
@@ -172,12 +162,10 @@
 		return;
 	}
 
-	// The bar replaces the reading tips block. Hide it right away, not when the bar slides in,
-	// so the text does not jump while reading.
-	const readingTips = document.getElementById('zw-staart-top-posts-list');
-	if (readingTips) {
-		readingTips.hidden = true;
-	}
+	// The bar replaces the reading tips block, which the stylesheet hides while this class is set. Set
+	// it right away, not when the bar slides in, so the text does not jump while reading.
+	const ACTIVE_CLASS = 'zw-staart-has-next-article';
+	document.documentElement.classList.add(ACTIVE_CLASS);
 
 	const bar = document.createElement('div');
 	bar.className = 'zw-staart-next-article';
@@ -210,11 +198,9 @@
 	const render = () => {
 		link.href = next.url;
 		title.textContent = next.title;
-		// Decorative: the title next to it says the same. Mobile hides it, so lazy loading skips it.
+		// Decorative: the title next to it says the same. Loaded once the bar shows (see update()).
 		image.hidden = !next.image;
-		if (next.image) {
-			image.src = next.image;
-		}
+		image.removeAttribute('src');
 	};
 	render();
 	document.body.appendChild(bar);
@@ -251,9 +237,7 @@
 		dismissed = true;
 		departure++;
 		bar.classList.remove('is-visible');
-		if (readingTips) {
-			readingTips.hidden = false;
-		}
+		document.documentElement.classList.remove(ACTIVE_CLASS);
 	}
 
 	function dismiss(action) {
@@ -304,6 +288,11 @@
 		} else if (window.scrollY < HIDE_ABOVE_PX) {
 			bar.classList.remove('is-visible');
 		}
+		// Readers who never reach the bar do not download its image; on mobile the stylesheet hides it,
+		// so lazy loading skips it there.
+		if (next.image && !image.hasAttribute('src') && bar.classList.contains('is-visible')) {
+			image.src = next.image;
+		}
 
 		ringFill.style.strokeDashoffset = String(100 - value * 100);
 		// Only promise what scrolling does: unarmed, as on a short article or a page restored at its end,
@@ -324,7 +313,7 @@
 	// Only a real scroll action by the reader may open the next article. A page that the back button
 	// restores at the bottom must not immediately load the next article again.
 	function onInteract() {
-		if (!dismissed && !leaving && !armed && progress() < 1) {
+		if (!armed && progress() < 1) {
 			armed = true;
 			schedule(); // The label may now promise the next article.
 		}
@@ -390,7 +379,7 @@
 		{ passive: true }
 	);
 	window.addEventListener('resize', schedule);
-	['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((type) => window.addEventListener(type, onInteract, { passive: true }));
+	['wheel', 'keydown', 'pointerdown'].forEach((type) => window.addEventListener(type, onInteract, { passive: true }));
 	// Back via the bfcache: the page is restored as it was left, loading state included. Reset it and
 	// re-check the cookie and session, as the visitor may have read the tip or closed the bar since.
 	window.addEventListener('pageshow', (event) => {

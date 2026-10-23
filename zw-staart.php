@@ -35,6 +35,9 @@ if ( ! defined( 'ZW_STAART_PLUGIN_URL' ) ) {
 if ( ! defined( 'ZW_STAART_DEFAULT_DAYS' ) ) {
 	define( 'ZW_STAART_DEFAULT_DAYS', 5 );           // Default lookback days for Plausible.
 }
+if ( ! defined( 'ZW_STAART_DEFAULT_HEADING' ) ) {
+	define( 'ZW_STAART_DEFAULT_HEADING', 'Leestips voor jou' ); // Default heading of the reading tips.
+}
 if ( ! defined( 'ZW_STAART_COOKIE_EXPIRY_DAYS' ) ) {
 	define( 'ZW_STAART_COOKIE_EXPIRY_DAYS', 7 );     // Cookie expiration in days.
 }
