@@ -11,7 +11,8 @@ defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 /**
  * Gets a setting value from the serialized settings array.
  *
- * @param string $group Setting group (e.g., 'plausible', 'top_posts').
+ * @param string $group Setting group, such as 'plausible', 'top_posts', or
+ *                      'next_article'.
  * @param string $key Setting key.
  * @param mixed  $default_value Default value if setting doesn't exist.
  * @return mixed The setting value.
@@ -19,6 +20,33 @@ defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 function zw_staart_get_setting( $group, $key, $default_value = '' ) {
 	$settings = get_option( 'zw_staart_settings', array() );
 	return $settings[ $group ][ $key ] ?? $default_value;
+}
+
+/**
+ * Returns the next article bar modes and their settings page labels.
+ *
+ * @since 0.5.0
+ *
+ * @return array<string, string> Labels keyed by mode.
+ */
+function zw_staart_next_article_modes() {
+	return array(
+		'off'  => 'Uit: iedereen ziet het leestipsblok',
+		'on'   => 'Aan: iedereen ziet onderin een balk met de volgende leestip',
+		'test' => 'A/B-test: de helft ziet de balk (variant b), de andere helft het leestipsblok (variant a)',
+	);
+}
+
+/**
+ * Returns a supported next article bar mode, or 'off' for an invalid value.
+ *
+ * @since 0.5.0
+ *
+ * @param mixed $mode Submitted value.
+ * @return string Mode.
+ */
+function zw_staart_sanitize_next_article_mode( $mode ) {
+	return is_string( $mode ) && isset( zw_staart_next_article_modes()[ $mode ] ) ? $mode : 'off';
 }
 
 /**
@@ -170,28 +198,54 @@ function zw_staart_register_settings() {
 /**
  * Sanitizes and validates plugin settings.
  *
- * @param array $input Raw form input data.
- * @return array Sanitized settings array.
+ * Accepts form input or previously sanitized settings in the stored group
+ * structure. Missing values receive defaults; unsupported modes become 'off'
+ * and lookback days outside 1-30 become ZW_STAART_DEFAULT_DAYS.
+ *
+ * @since 0.5.0 Accepts settings in the stored group structure.
+ *
+ * @param array $input {
+ *     Settings grouped by feature. All groups and keys are optional.
+ *
+ *     @type array $plausible    Contains 'api_key', 'site_id', and 'endpoint',
+ *                              each defaulting to '', and 'days', defaulting
+ *                              to ZW_STAART_DEFAULT_DAYS.
+ *     @type array $top_posts    Contains 'heading', defaulting to
+ *                              ZW_STAART_DEFAULT_HEADING.
+ *     @type array $next_article Contains 'mode': 'off', 'on', or 'test'.
+ *                              Default 'off'.
+ * }
+ * @return array Sanitized settings with the same groups and all keys populated.
  */
 function zw_staart_sanitize_settings( $input ) {
-	$days = intval( $input['zw_staart_plausible_days'] ?? ZW_STAART_DEFAULT_DAYS );
+	/*
+	 * Keep the input and stored shapes identical so a second sanitizing pass
+	 * preserves the settings. On the first save, update_option() calls
+	 * add_option(), which sanitizes the value again.
+	 */
+	$plausible    = (array) ( $input['plausible'] ?? array() );
+	$top_posts    = (array) ( $input['top_posts'] ?? array() );
+	$next_article = (array) ( $input['next_article'] ?? array() );
+
+	$days = intval( $plausible['days'] ?? ZW_STAART_DEFAULT_DAYS );
 	if ( $days < 1 || $days > 30 ) {
 		$days = ZW_STAART_DEFAULT_DAYS;
 	}
 
-	$sanitized = array(
-		'plausible' => array(
-			'api_key'  => sanitize_text_field( $input['zw_staart_plausible_api_key'] ?? '' ),
-			'site_id'  => sanitize_text_field( $input['zw_staart_plausible_site_id'] ?? '' ),
-			'endpoint' => esc_url_raw( $input['zw_staart_plausible_endpoint'] ?? '' ),
+	return array(
+		'plausible'    => array(
+			'api_key'  => sanitize_text_field( $plausible['api_key'] ?? '' ),
+			'site_id'  => sanitize_text_field( $plausible['site_id'] ?? '' ),
+			'endpoint' => esc_url_raw( $plausible['endpoint'] ?? '' ),
 			'days'     => $days,
 		),
-		'top_posts' => array(
-			'heading' => sanitize_text_field( $input['zw_staart_top_posts_heading'] ?? 'Leestips voor jou' ),
+		'top_posts'    => array(
+			'heading' => sanitize_text_field( $top_posts['heading'] ?? ZW_STAART_DEFAULT_HEADING ),
+		),
+		'next_article' => array(
+			'mode' => zw_staart_sanitize_next_article_mode( $next_article['mode'] ?? '' ),
 		),
 	);
-
-	return $sanitized;
 }
 
 /**
@@ -213,13 +267,15 @@ function zw_staart_settings_page() {
 	$plausible_endpoint = zw_staart_get_setting( 'plausible', 'endpoint' );
 	$plausible_days     = zw_staart_get_setting( 'plausible', 'days' );
 	$plausible_days     = $plausible_days ? $plausible_days : ZW_STAART_DEFAULT_DAYS;
-	$top_posts_heading  = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
+
+	$top_posts_heading = zw_staart_get_setting( 'top_posts', 'heading', ZW_STAART_DEFAULT_HEADING );
+	$next_article_mode = zw_staart_get_setting( 'next_article', 'mode', 'off' );
 	?>
 	<div class="wrap">
 		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 		<p style="max-width: 800px; margin-bottom: 30px;">
 			Deze plugin toont leestips onder artikelen (in de 'staart van het artikel') op basis van populaire artikelen uit Plausible Analytics.
-			Configureer hieronder de koptekst en de verbinding met Plausible.
+			Configureer hieronder de weergave en de verbinding met Plausible.
 		</p>
 
 		<form method="post" action="options.php">
@@ -231,7 +287,32 @@ function zw_staart_settings_page() {
 				<tr>
 					<th scope="row">Koptekst leestips</th>
 					<td>
-						<input type="text" name="zw_staart_settings[zw_staart_top_posts_heading]" value="<?php echo esc_attr( $top_posts_heading ); ?>" class="regular-text" placeholder="Leestips voor jou" />
+						<input type="text" name="zw_staart_settings[top_posts][heading]" value="<?php echo esc_attr( $top_posts_heading ); ?>" class="regular-text" placeholder="<?php echo esc_attr( ZW_STAART_DEFAULT_HEADING ); ?>" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">Doorscrollen</th>
+					<td>
+						<fieldset>
+							<legend class="screen-reader-text">Doorscrollen</legend>
+							<?php foreach ( zw_staart_next_article_modes() as $mode => $label ) : ?>
+								<label>
+									<input type="radio" name="zw_staart_settings[next_article][mode]"
+										value="<?php echo esc_attr( $mode ); ?>" <?php checked( $next_article_mode, $mode ); ?> />
+									<?php echo esc_html( $label ); ?>
+								</label><br />
+							<?php endforeach; ?>
+						</fieldset>
+						<p class="description">
+							Het wiel in de balk loopt vol tijdens het lezen; wie doorscrolt tot het einde van de tekst, gaat naar het volgende artikel.
+							Staat de balk aan, dan wordt het leestipsblok onder het artikel verborgen;
+							na sluiten komt het terug als er genoeg ongelezen leestips zijn.
+						</p>
+						<p class="description">
+							In de A/B-test wordt elke bezoeker per dag ingedeeld; ingelogde gebruikers zien de balk en tellen niet mee.
+							Plausible krijgt bij elke artikelweergave het event Recirculatie Weergave
+							en bij elk recirculatie-event de eigenschap variant.
+						</p>
 					</td>
 				</tr>
 			</table>
@@ -246,25 +327,25 @@ function zw_staart_settings_page() {
 				<tr>
 					<th scope="row">API-sleutel</th>
 					<td>
-						<input type="password" name="zw_staart_settings[zw_staart_plausible_api_key]" value="<?php echo esc_attr( $plausible_api_key ); ?>" class="regular-text" autocomplete="off" />
+						<input type="password" name="zw_staart_settings[plausible][api_key]" value="<?php echo esc_attr( $plausible_api_key ); ?>" class="regular-text" autocomplete="off" />
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">Site-ID</th>
 					<td>
-						<input type="text" name="zw_staart_settings[zw_staart_plausible_site_id]" value="<?php echo esc_attr( $plausible_site_id ); ?>" class="regular-text" placeholder="zuidwestupdate.nl" />
+						<input type="text" name="zw_staart_settings[plausible][site_id]" value="<?php echo esc_attr( $plausible_site_id ); ?>" class="regular-text" placeholder="zuidwestupdate.nl" />
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">API-endpoint</th>
 					<td>
-						<input type="url" name="zw_staart_settings[zw_staart_plausible_endpoint]" value="<?php echo esc_attr( $plausible_endpoint ); ?>" class="large-text" placeholder="https://stats.zuidwesttv.nl/api/v2/query" />
+						<input type="url" name="zw_staart_settings[plausible][endpoint]" value="<?php echo esc_attr( $plausible_endpoint ); ?>" class="large-text" placeholder="https://stats.zuidwesttv.nl/api/v2/query" />
 					</td>
 				</tr>
 				<tr>
 					<th scope="row">Aantal dagen</th>
 					<td>
-						<input type="number" name="zw_staart_settings[zw_staart_plausible_days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
+						<input type="number" name="zw_staart_settings[plausible][days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
 						<p class="description">Aantal dagen terug voor data-analyse (standaard: 5)</p>
 					</td>
 				</tr>

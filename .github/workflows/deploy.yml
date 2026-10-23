@@ -23,4 +23,4 @@ jobs:
           TARGET: ${{ github.ref == 'refs/heads/main' && secrets.REMOTE_PATH || secrets.REMOTE_PATH_DEV }}
           SSH_PRIVATE_KEY: ${{ secrets.REMOTE_KEY }}
           ARGS: "-avz --delete"
-          EXCLUDE: "/.git/, /.github/"
+          EXCLUDE: "/.git/, /.github/, /tools/, /.distignore"

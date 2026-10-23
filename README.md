@@ -6,6 +6,16 @@ WordPress-plugin voor het WordPress-thema van Streekomroep ZuidWest die leestips
 
 De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartikelen (niet bij dossier-artikelen): de top 5 meest gelezen artikelen die de bezoeker nog niet heeft gelezen.
 
+Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hieronder).
+
+### Doorscrollen
+- Na ongeveer een derde van het artikel schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
+- Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
+- Het wiel in de balk loopt vol tijdens het lezen en is vol zodra het einde van de tekst boven de balk zichtbaar is; wie doorscrolt, gaat naar het volgende artikel (een gewone paginalading). De deelknoppen onder het artikel komen dus niet meer helemaal in beeld zolang de balk actief is
+- Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor is eerst een scrollbeweging nodig
+- Op mobiel sluit je de balk door hem omlaag te vegen, op desktop met het kruisje; daarna blijft hij de rest van de sessie weg
+- Zolang de balk actief is, wordt het leestipsblok onder het artikel verborgen; na sluiten komt het terug (als er minstens 5 ongelezen leestips zijn, zoals altijd)
+
 ## Installatie
 
 1. Upload de plugin naar `/wp-content/plugins/` of installeer via de WordPress plugin-directory
@@ -17,6 +27,7 @@ De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartik
 ### Weergave
 
 - **Koptekst leestips**: Standaard "Leestips voor jou"
+- **Doorscrollen**: Uit (standaard), Aan of A/B-test (zie hieronder)
 
 ### Plausible Analytics (voor leestips)
 
@@ -43,13 +54,48 @@ Configureer de verbinding met Plausible Analytics:
 ### Techniek
 - **Cache-compatibel**: Het blok wordt server-side gerenderd, JavaScript verbergt client-side de al gelezen artikelen
 - **Performance**: Minimale impact door slimme caching en efficiënte queries
-- **Privacy-vriendelijk**: Gebruikt alleen functionele cookies voor het bijhouden van gelezen artikelen
+- **Privacy-vriendelijk**: Gebruikt alleen functionele cookies voor het bijhouden van gelezen artikelen; tijdens de A/B-test bewaart `localStorage` (`zw_staart_ab_variant`) alleen de datum en de groep, a of b
 
 ## Tracking & Analytics
 
 Klikken worden geregistreerd in Plausible Analytics:
 
 - **Recirculatie+Artikel**: Klikken op artikelen in leestips (met `?utm_source=recirculatie`)
+- **Recirculatie+Scroll**: Balk van Doorscrollen, met eigenschap `actie`: `getoond`, `geklikt`, `doorgescrold`, `gesloten` (kruisje) of `weggeveegd` (mobiel). De link naar het volgende artikel krijgt `?utm_source=recirculatie&utm_content=scroll`
+
+Alleen tijdens de A/B-test, en daar krijgt elk event hierboven ook de eigenschap `variant` (`a` of `b`):
+
+- **Recirculatie Weergave**: elke artikelweergave in de test, ook een pagina die via de terugknop terugkomt
+- **Recirculatie Terug**: binnen 15 seconden terug op het artikel dat via de leestips of de balk werd verlaten, met eigenschap `via`: `leestip`, `geklikt` of `doorgescrold`
+
+Let op: UTM-parameters op interne links tellen in Plausible niet als bron, want de bron hoort bij het begin van een bezoek. Meten gaat daarom via de events.
+
+## A/B-test: leestipsblok tegen doorscroll-balk
+
+Vooraf vastgelegd, zodat het besluit niet achteraf wordt bijgesteld.
+
+- **Vraag**: levert de doorscroll-balk meer doorlezers op dan het leestipsblok, zonder lezers ongewild weg te sturen?
+- **Groepen**: elke bezoeker wordt in de browser willekeurig ingedeeld, 50/50, en blijft die dag in dezelfde groep; de volgende dag wordt opnieuw geloot. Zo is elke dag een onafhankelijke herhaling en past de indeling bij Plausible, dat bezoekers per dag telt. Groep a krijgt het leestipsblok, groep b de balk (en het leestipsblok na het sluiten van de balk). Bezoekers zonder `localStorage` doen niet mee en zien het leestipsblok. Ingelogde gebruikers (de redactie) doen ook niet mee: zij zien de balk, zonder test-events.
+- **Primaire maatstaf**: doorlezers per artikelweergave. Doorlezers zijn klikken op een leestip (`Recirculatie+Artikel`) plus klikken en doorscrollen op de balk (`Recirculatie+Scroll` met `actie` `geklikt` of `doorgescrold`); weergaven zijn `Recirculatie Weergave`. Elke weergave telt, ook als de bezoeker het blok of de balk niet bereikt.
+- **Analyse**: per dag het verschil tussen b en a, met een 95%-interval over de dagen (beide groepen krijgen hetzelfde nieuws, dus de schommelingen per dag vallen weg).
+- **Controle**: het aantal bezoekers per groep, per dag geteld, moet 50/50 zijn (chi-kwadraat, p ≥ 0,001); anders is de test ongeldig.
+- **Guardrail**: het aandeel doorlezers dat snel terugkomt (`Recirculatie Terug`) mag bij b hooguit 5 procentpunt hoger zijn dan bij a.
+- **Duur**: 42 dagen, zes volle weken, zonder tussentijds te stoppen; alleen dagen met beide groepen tellen. Met ongeveer 4.700 artikelweergaven per groep per dag en terugkerende lezers die elk hun eigen klikgedrag hebben, vindt de test een echt verschil van 10% in ongeveer 98% en van 5% in ongeveer 60% van de gevallen; zonder echt verschil wijst hij in ongeveer 5% van de gevallen toch een winnaar aan (simulatie op basis van de Plausible-cijfers van september en oktober 2026). Met een vaste groep per bezoeker zou dat laatste bijna de helft zijn, daarom wordt per dag geloot.
+- **Besluit**: b als het interval boven 0 ligt en de guardrail houdt; a als het interval onder 0 ligt of de guardrail breekt; anders geen aantoonbaar verschil en blijft Doorscrollen uit.
+
+### Voorbereiden in Plausible
+
+Voeg vóór de start onder **Site Settings → Goals** de custom events `Recirculatie Weergave`, `Recirculatie Scroll` en `Recirculatie Terug` toe (`Recirculatie Artikel` bestaat al), en onder **Custom Properties** `variant`, `actie` en `via`.
+
+### Rapport
+
+Na afloop, met een Plausible-sleutel voor de Stats API en Node.js 18 of hoger:
+
+```sh
+PLAUSIBLE_API_KEY=... node tools/ab-rapport.mjs --van 2026-11-02 --tot 2026-12-13
+```
+
+Het script toont per groep de bezoekers, weergaven, doorlezers en snel-terugkomers, het verschil per dag met interval, de 50/50-controle, de uitsplitsing naar apparaat en het besluit volgens de regel hierboven. Een venster van meer dan 42 dagen weigert het; een korter venster mag voor een tussentijdse controle van de verdeling, maar geeft geen besluit. Het staat niet in de plugin-zip.
 
 ## Vereisten
 
