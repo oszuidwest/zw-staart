@@ -26,10 +26,8 @@
 	const EVENT_NAME = 'Recirculatie Scroll';
 	const SHOW_AT = 0.35;
 	const ALMOST = 0.9;
-	// Scrolling back below this while the next article loads cancels it; the margin ignores jitter.
-	const CANCEL_BELOW = 0.99;
 	const HIDE_ABOVE_PX = 200;
-	const NAVIGATE_DELAY_MS = 300;
+	// Leave this long after the scroll-through at the latest, also when analytics does not answer.
 	const NAVIGATE_TIMEOUT_MS = 1500;
 	const SWIPE_START_PX = 6;
 	const SWIPE_CLOSE_PX = 60;
@@ -81,11 +79,14 @@
 	const variant = config.test ? drawVariant() : '';
 
 	// Events the visitor did not cause are non-interactive, so they do not change the bounce rate.
+	// Analytics never blocks the bar: when it is missing or fails, the callback runs right away.
 	function send(name, props, { callback, interactive = true } = {}) {
-		if (typeof window.plausible === 'function') {
+		try {
 			window.plausible(name, { props: variant ? { variant, ...props } : props, callback, interactive });
-		} else if (callback) {
-			callback();
+		} catch (e) {
+			if (callback) {
+				callback();
+			}
 		}
 	}
 
@@ -210,18 +211,13 @@
 	let dismissed = false;
 	let impressed = false;
 	let armed = false;
-	let triggered = false;
 	let swiped = false;
 	let frame = 0;
-	// Set once the page switch is committed; scrolling back no longer cancels it.
+	// Set once the next article opens; from then on the page is on its way.
 	let leaving = false;
-	let timer = 0;
-
-	function cancelNavigation() {
-		window.clearTimeout(timer);
-		triggered = false;
-		bar.classList.remove('is-loading');
-	}
+	// Increased on every departure and on a bfcache restore, so a late callback or timeout of an
+	// earlier departure cannot navigate the restored page.
+	let departure = 0;
 
 	function setKicker(text) {
 		if (kicker.textContent !== text) {
@@ -239,7 +235,6 @@
 	// Hides the bar for good on this page and brings the reading tips block back.
 	function deactivate() {
 		dismissed = true;
-		cancelNavigation();
 		bar.classList.remove('is-visible');
 		if (readingTips) {
 			readingTips.hidden = false;
@@ -254,27 +249,23 @@
 		deactivate();
 	}
 
+	// Like swiping to the next video: the scroll-through is the switch, without a pause. Count it, then
+	// load the next article as a regular page; the closed ring and label show it is on its way.
 	function openNext() {
-		triggered = true;
+		leaving = true;
 		bar.classList.add('is-visible', 'is-loading');
 		ringFill.style.strokeDashoffset = '0';
 		setKicker(KICKER.loading);
-
-		// Show the full, green wheel briefly; scrolling back meanwhile cancels. Then the switch is final:
-		// only now count it, and load the next article as a regular page, also if analytics does not answer.
-		timer = window.setTimeout(() => {
-			leaving = true;
-			markLeave('doorgescrold');
-			let left = false;
-			const leave = () => {
-				if (!left) {
-					left = true;
-					window.location.href = next.url;
-				}
-			};
-			track('doorgescrold', { callback: leave });
-			window.setTimeout(leave, NAVIGATE_TIMEOUT_MS);
-		}, NAVIGATE_DELAY_MS);
+		markLeave('doorgescrold');
+		const current = ++departure;
+		const leave = () => {
+			if (current === departure) {
+				departure++;
+				window.location.href = next.url;
+			}
+		};
+		track('doorgescrold', { callback: leave });
+		window.setTimeout(leave, NAVIGATE_TIMEOUT_MS);
 	}
 
 	function update() {
@@ -283,12 +274,6 @@
 			return;
 		}
 		const value = progress();
-		if (triggered) {
-			if (value >= CANCEL_BELOW) {
-				return;
-			}
-			cancelNavigation();
-		}
 
 		if (value >= SHOW_AT && window.scrollY >= HIDE_ABOVE_PX) {
 			if (!bar.classList.contains('is-visible')) {
@@ -321,7 +306,7 @@
 	// Only a real scroll action by the reader may open the next article. A page that the back button
 	// restores at the bottom must not immediately load the next article again.
 	function onInteract() {
-		if (!dismissed && !triggered && !armed && progress() < 1) {
+		if (!dismissed && !leaving && !armed && progress() < 1) {
 			armed = true;
 			schedule(); // The label may now promise the next article.
 		}
@@ -381,14 +366,18 @@
 	window.addEventListener('scroll', schedule, { passive: true });
 	window.addEventListener('resize', schedule);
 	['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((type) => window.addEventListener(type, onInteract, { passive: true }));
-	// Back via the bfcache: the page is restored as it was left. Cancel a pending page load and
+	// Back via the bfcache: the page is restored as it was left, loading state included. Reset it and
 	// re-check the cookie and session, as the visitor may have read the tip or closed the bar since.
 	window.addEventListener('pageshow', (event) => {
-		if (!event.persisted || dismissed) {
+		if (!event.persisted) {
 			return;
 		}
-		cancelNavigation();
+		departure++;
+		if (dismissed) {
+			return;
+		}
 		leaving = false;
+		bar.classList.remove('is-loading');
 		armed = false;
 		next = pickNext();
 		if (!next || isDismissed()) {
