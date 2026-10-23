@@ -29,7 +29,16 @@
 	transition: transform 0.25s ease-out, visibility 0s 0.25s;
 }
 
+/**
+ * In dark mode the page itself is gray-800, so the bar steps up to
+ * gray-700, like the theme's dark tabs and embed blocks. Label, close
+ * button and track step up with it to keep their contrast.
+ */
 .dark .zw-staart-next-article {
+	--zw-staart-next-article-surface: var(--color-gray-700, #364153);
+	--zw-staart-next-article-muted: var(--color-gray-300, #d1d5dc);
+	--zw-staart-next-article-quiet: var(--color-gray-400, #99a1af);
+	--zw-staart-next-article-track: var(--color-gray-600, #4a5565);
 	border-top-color: var(--zw-staart-next-article-track);
 }
 
@@ -100,6 +109,12 @@
 
 .zw-staart-next-article .zw-staart-next-article-link:hover .zw-staart-next-article-title {
 	color: var(--zw-staart-next-article-blue);
+}
+
+/* Blue lacks contrast on the dark mode bar; underline, like the dossier list. */
+.dark .zw-staart-next-article .zw-staart-next-article-link:hover .zw-staart-next-article-title {
+	color: #fff;
+	text-decoration: underline;
 }
 
 /**
