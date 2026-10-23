@@ -21,6 +21,8 @@
 	const EVENT_NAME = 'Recirculatie Scroll';
 	const SHOW_AT = 0.35;
 	const ALMOST = 0.9;
+	// Scrolling back below this while the next article loads cancels it; the margin ignores jitter.
+	const CANCEL_BELOW = 0.99;
 	const HIDE_ABOVE_PX = 200;
 	const NAVIGATE_DELAY_MS = 300;
 	const NAVIGATE_TIMEOUT_MS = 1500;
@@ -29,7 +31,7 @@
 	const KICKER = {
 		idle: 'Leestip',
 		almost: 'Blijf scrollen om te openen',
-		loading: 'Volgende artikel laden…',
+		loading: 'Volgende artikel laden\u2026', // Ellipsis escaped: the file stays ASCII, whatever charset the server sends.
 	};
 	// Material Icons (filled), the same set the theme header uses.
 	const ICONS = {
@@ -187,10 +189,16 @@
 
 	function update() {
 		frame = 0;
-		if (dismissed || triggered) {
+		if (dismissed) {
 			return;
 		}
 		const value = progress();
+		if (triggered) {
+			if (value >= CANCEL_BELOW) {
+				return;
+			}
+			cancelNavigation();
+		}
 
 		if (value >= SHOW_AT && window.scrollY >= HIDE_ABOVE_PX) {
 			if (!bar.classList.contains('is-visible')) {
