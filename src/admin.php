@@ -174,6 +174,19 @@ function zw_staart_register_settings() {
  * @return array Sanitized settings array.
  */
 function zw_staart_sanitize_settings( $input ) {
+	// When the option does not exist yet, update_option() hands over to add_option(), which runs
+	// this callback a second time on the already sanitized array. Map that stored shape back to the
+	// form fields so the second pass keeps the values instead of resetting them.
+	if ( isset( $input['plausible'] ) ) {
+		$input = array(
+			'zw_staart_plausible_api_key'  => $input['plausible']['api_key'] ?? '',
+			'zw_staart_plausible_site_id'  => $input['plausible']['site_id'] ?? '',
+			'zw_staart_plausible_endpoint' => $input['plausible']['endpoint'] ?? '',
+			'zw_staart_plausible_days'     => $input['plausible']['days'] ?? ZW_STAART_DEFAULT_DAYS,
+			'zw_staart_top_posts_heading'  => $input['top_posts']['heading'] ?? 'Leestips voor jou',
+		);
+	}
+
 	$days = intval( $input['zw_staart_plausible_days'] ?? ZW_STAART_DEFAULT_DAYS );
 	if ( $days < 1 || $days > 30 ) {
 		$days = ZW_STAART_DEFAULT_DAYS;
