@@ -162,10 +162,20 @@
 		return;
 	}
 
-	// The bar replaces the reading tips block, which the stylesheet hides while this class is set. Set
-	// it right away, not when the bar slides in, so the text does not jump while reading.
+	// The bar replaces the reading tips block, which the stylesheet hides while this class is set. It
+	// is set once the bar appears, so a reader who never gets the bar keeps the block.
 	const ACTIVE_CLASS = 'zw-staart-has-next-article';
-	document.documentElement.classList.add(ACTIVE_CLASS);
+
+	// The end of the text is its last element: not the reading tips block appended to the content, nor
+	// its script, so the wheel does not jump when the block hides. Looked up each time, as the reading
+	// tips script may remove a "Lees ook" link at the end.
+	function textEnd() {
+		let el = article.lastElementChild;
+		while (el && (el.id === 'zw-staart-top-posts-list' || el.tagName === 'SCRIPT')) {
+			el = el.previousElementSibling;
+		}
+		return el || article;
+	}
 
 	const bar = document.createElement('div');
 	bar.className = 'zw-staart-next-article';
@@ -226,7 +236,8 @@
 
 	// 0 at the start of the text, 1 once its end is visible above the bar.
 	function progress() {
-		const { top, bottom } = article.getBoundingClientRect();
+		const { top } = article.getBoundingClientRect();
+		const { bottom } = textEnd().getBoundingClientRect();
 		const visibleBottom = window.innerHeight - bar.offsetHeight;
 		return Math.min(1, Math.max(0, (visibleBottom - top) / Math.max(1, bottom - top)));
 	}
@@ -283,6 +294,7 @@
 				bar.classList.add('is-visible');
 				if (!impressed) {
 					impressed = true;
+					document.documentElement.classList.add(ACTIVE_CLASS);
 					track('getoond', { interactive: false });
 				}
 			}
@@ -311,10 +323,11 @@
 		}
 	}
 
-	// Only a real scroll action by the reader may open the next article. A page that the back button
-	// restores at the bottom must not immediately load the next article again.
+	// Only a real scroll action by the reader, with the bar in view, may open the next article: a page
+	// that the back button restores at the bottom, or one swipe from the top of a short article, must
+	// not load the next article unseen.
 	function onInteract() {
-		if (!armed && progress() < 1) {
+		if (!armed && bar.classList.contains('is-visible') && progress() < 1) {
 			armed = true;
 			schedule(); // The label may now promise the next article.
 		}

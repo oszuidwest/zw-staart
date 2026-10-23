@@ -20,7 +20,8 @@ function zw_staart_fetch_top_posts() {
 /**
  * Returns the IDs of the cached top posts, most read first.
  *
- * Skips posts whose ID could not be resolved during the Plausible sync.
+ * Skips posts whose ID could not be resolved during the Plausible sync, and posts that were deleted or
+ * unpublished since.
  *
  * @param int $exclude_id Post ID to leave out, usually the post being displayed.
  * @return int[] Post IDs.
@@ -32,7 +33,7 @@ function zw_staart_top_post_ids( $exclude_id ) {
 	// Load the posts with their terms and meta in a few queries instead of a few per post.
 	_prime_post_caches( $post_ids );
 
-	return $post_ids;
+	return array_values( array_filter( $post_ids, static fn( $post_id ) => 'publish' === get_post_status( $post_id ) ) );
 }
 
 /**

@@ -45,11 +45,6 @@ function zw_staart_next_article_candidates( $current_id ) {
 	_prime_post_caches( array_filter( array_map( 'get_post_thumbnail_id', $post_ids ) ), false, true );
 
 	foreach ( $post_ids as $post_id ) {
-		$permalink = get_permalink( $post_id );
-		if ( ! $permalink ) {
-			continue; // Post was removed after the last Plausible sync.
-		}
-
 		$candidates[] = array(
 			'id'    => $post_id,
 			'url'   => add_query_arg(
@@ -57,7 +52,7 @@ function zw_staart_next_article_candidates( $current_id ) {
 					'utm_source'  => 'recirculatie',
 					'utm_content' => 'scroll',
 				),
-				$permalink
+				get_permalink( $post_id )
 			),
 			'title' => html_entity_decode( wp_strip_all_tags( get_the_title( $post_id ) ), ENT_QUOTES, 'UTF-8' ),
 			'image' => zw_staart_next_article_image( $post_id ),
