@@ -43,7 +43,7 @@ function zw_staart_migrate_from_old_version() {
 				'api_key'  => get_option( 'zwr_plausible_api_key', '' ),
 				'site_id'  => get_option( 'zwr_plausible_site_id', '' ),
 				'endpoint' => get_option( 'zwr_plausible_api_endpoint', '' ),
-				'days'     => get_option( 'zwr_plausible_days', 5 ),
+				'days'     => get_option( 'zwr_plausible_days', '' ),
 			),
 		);
 
