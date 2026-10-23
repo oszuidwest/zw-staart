@@ -225,8 +225,8 @@
 	let lastY = window.scrollY;
 	let swiped = false;
 	let frame = 0;
-	// Last URL given a prefetch rule; next can change after a bfcache restore.
-	let prefetched = '';
+	// The prefetch rule for the current next article; next can change after a bfcache restore.
+	let prefetchRule = null;
 	// Set once the next article opens; from then on the page is on its way.
 	let leaving = false;
 	// Increased on every departure and on a bfcache restore, so a late callback or timeout of an
@@ -234,12 +234,15 @@
 	let departure = 0;
 
 	// Best-effort prefetch of the next article's HTML; it runs no scripts of that page. Browsers without
-	// speculation rules ignore the script.
+	// speculation rules ignore the script. A new URL replaces the old rule, so a stale one is not fetched
+	// again.
 	function prefetch(url) {
-		const rules = document.createElement('script');
-		rules.type = 'speculationrules';
-		rules.textContent = JSON.stringify({ prefetch: [{ source: 'list', urls: [url] }] });
-		document.head.appendChild(rules);
+		prefetchRule?.remove();
+		prefetchRule = document.createElement('script');
+		prefetchRule.type = 'speculationrules';
+		prefetchRule.dataset.url = url;
+		prefetchRule.textContent = JSON.stringify({ prefetch: [{ source: 'list', urls: [url] }] });
+		document.head.appendChild(prefetchRule);
 	}
 
 	function setKicker(text) {
@@ -322,8 +325,7 @@
 			if (next.image && !image.hasAttribute('src')) {
 				image.src = next.image;
 			}
-			if (prefetched !== next.url) {
-				prefetched = next.url;
+			if (prefetchRule?.dataset.url !== next.url) {
 				prefetch(next.url);
 			}
 		}
