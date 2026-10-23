@@ -2,7 +2,7 @@
  * ZuidWest Staart: next article bar.
  *
  * Halfway through the article a bar slides in with the most read reading tip the visitor has
- * not read yet. Its wheel fills while reading and is full once the share buttons are visible
+ * not read yet. Its wheel fills while reading and is full once the end of the text is visible
  * above the bar; scrolling there opens the next article as a regular page load. On mobile the
  * bar is closed by swiping it down, on desktop with a close button. Closing it keeps it away
  * for the rest of the session and brings back the reading tips block.
@@ -167,14 +167,6 @@
 		readingTips.hidden = true;
 	}
 
-	// The wheel is full once the share buttons below the article are visible; without them, at the
-	// end of the text.
-	const shareLink = Array.from(document.querySelectorAll('a[href*="sharebutton"]')).find(
-		(candidate) => article.compareDocumentPosition(candidate) & Node.DOCUMENT_POSITION_FOLLOWING
-	);
-	// The row of buttons, not the whole share block, whose bottom padding would keep the wheel short.
-	const end = (shareLink && shareLink.parentElement) || article;
-
 	const bar = document.createElement('div');
 	bar.className = 'zw-staart-next-article';
 	bar.setAttribute('role', 'region');
@@ -237,10 +229,9 @@
 		}
 	}
 
-	// 0 at the start of the text, 1 once the share buttons are fully visible above the bar.
+	// 0 at the start of the text, 1 once its end is visible above the bar.
 	function progress() {
-		const top = article.getBoundingClientRect().top;
-		const bottom = end.getBoundingClientRect().bottom;
+		const { top, bottom } = article.getBoundingClientRect();
 		const visibleBottom = window.innerHeight - bar.offsetHeight;
 		return Math.min(1, Math.max(0, (visibleBottom - top) / Math.max(1, bottom - top)));
 	}

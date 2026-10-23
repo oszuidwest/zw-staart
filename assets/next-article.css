@@ -11,7 +11,6 @@
 	--zw-staart-next-article-muted: var(--color-gray-400, #99a1af);
 	--zw-staart-next-article-quiet: var(--color-gray-500, #6a7282);
 	--zw-staart-next-article-track: var(--color-gray-700, #364153);
-	--zw-staart-next-article-dark: var(--color-gray-900, #101828);
 	--zw-staart-next-article-green: #00de01;
 	--zw-staart-next-article-blue: #009fe3;
 	position: fixed;
@@ -153,15 +152,17 @@
 	color: #fff;
 }
 
-/* Wheel: fills while reading, solid green once the next article loads. */
+/**
+ * Wheel: fills while reading and closes into a full ring when the next
+ * article loads. The fill follows the scrolling with a short delay, so the
+ * last step visibly closes the ring.
+ */
 .zw-staart-next-article .zw-staart-next-article-wheel {
 	position: relative;
 	flex: none;
 	width: 44px;
 	height: 44px;
 	margin-left: 8px;
-	border-radius: 50%;
-	transition: background-color 0.15s;
 }
 
 .zw-staart-next-article .zw-staart-next-article-ring {
@@ -185,6 +186,7 @@
 	stroke: var(--zw-staart-next-article-green);
 	stroke-dasharray: 100;
 	stroke-dashoffset: 100;
+	transition: stroke-dashoffset 0.2s linear;
 }
 
 .zw-staart-next-article .zw-staart-next-article-arrow {
@@ -195,12 +197,8 @@
 	fill: #fff;
 }
 
-.zw-staart-next-article.is-loading .zw-staart-next-article-wheel {
-	background: var(--zw-staart-next-article-green);
-}
-
 .zw-staart-next-article.is-loading .zw-staart-next-article-arrow {
-	fill: var(--zw-staart-next-article-dark);
+	fill: var(--zw-staart-next-article-green);
 }
 
 .zw-staart-next-article a:focus-visible,
@@ -259,7 +257,7 @@
 
 	.zw-staart-next-article,
 	.zw-staart-next-article.is-visible,
-	.zw-staart-next-article .zw-staart-next-article-wheel {
+	.zw-staart-next-article .zw-staart-next-article-ring-fill {
 		transition: none;
 	}
 }

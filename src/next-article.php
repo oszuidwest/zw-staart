@@ -3,7 +3,7 @@
  * Next article bar for ZuidWest Staart plugin.
  *
  * Shows a floating bar with the next reading tip. Its wheel fills while the visitor reads
- * and opens the next article as a regular page load once the share buttons are reached.
+ * and opens the next article as a regular page load once the end of the text is reached.
  *
  * @package ZuidWest_Staart
  */

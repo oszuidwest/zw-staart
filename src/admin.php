@@ -280,7 +280,7 @@ function zw_staart_settings_page() {
 							<?php endforeach; ?>
 						</fieldset>
 						<p class="description">
-							Het wiel in de balk loopt vol tijdens het lezen; wie doorscrolt tot de deelknoppen, gaat naar het volgende artikel.
+							Het wiel in de balk loopt vol tijdens het lezen; wie doorscrolt tot het einde van de tekst, gaat naar het volgende artikel.
 							Staat de balk aan, dan wordt het leestipsblok onder het artikel verborgen;
 							na sluiten komt het terug als er genoeg ongelezen leestips zijn.
 						</p>
