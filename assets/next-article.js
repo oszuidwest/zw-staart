@@ -260,12 +260,13 @@
 	}
 
 	// Hides the bar for good on this page and brings the reading tips block back. A next article that
-	// is still loading stays here: closing means "stop met doorladen".
+	// is still loading stays here and its prefetch is withdrawn: closing means "stop met doorladen".
 	function deactivate() {
 		dismissed = true;
 		departure++;
 		bar.classList.remove('is-visible');
 		document.documentElement.classList.remove(ACTIVE_CLASS);
+		prefetchRule?.remove();
 	}
 
 	function dismiss(action) {
