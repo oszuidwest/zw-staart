@@ -218,6 +218,9 @@
 	let dismissed = false;
 	let impressed = false;
 	let armed = false;
+	// Set once the reader touches the page while still in the text on this view, so the end was
+	// reached by reading rather than by a restore at the bottom.
+	let reading = false;
 	// Only a scroll opens the next article, not a resize or the first draw.
 	let scrolled = false;
 	let swiped = false;
@@ -308,8 +311,8 @@
 		}
 
 		ringFill.style.strokeDashoffset = String(100 - value * 100);
-		// Only promise what scrolling does: unarmed, as on a short article or a page restored at its end,
-		// scrolling down does not open the next article.
+		// Only promise what scrolling does: unarmed, as on a page restored at its end, scrolling down
+		// does not open the next article.
 		setKicker(value >= ALMOST && armed ? KICKER.almost : KICKER.idle);
 		// Only open the next article while the bar is on screen, so a short article never jumps away unseen.
 		if (byScroll && value >= 1 && armed && bar.classList.contains('is-visible')) {
@@ -324,10 +327,15 @@
 	}
 
 	// Only a real scroll action by the reader, with the bar in view, may open the next article: a page
-	// that the back button restores at the bottom, or one swipe from the top of a short article, must
-	// not load the next article unseen.
+	// that the back button restores at the bottom must not load the next article unseen. One swipe from
+	// the top of a short article past its end does not open it either, but the next one does: the reader
+	// started in the text, and now sees the bar.
 	function onInteract() {
-		if (!armed && bar.classList.contains('is-visible') && progress() < 1) {
+		if (armed) {
+			return;
+		}
+		reading = reading || progress() < 1;
+		if (reading && bar.classList.contains('is-visible')) {
 			armed = true;
 			schedule(); // The label may now promise the next article.
 		}
@@ -407,6 +415,7 @@
 		leaving = false;
 		bar.classList.remove('is-loading');
 		armed = false;
+		reading = false;
 		next = pickNext();
 		if (!next || isDismissed()) {
 			deactivate();
