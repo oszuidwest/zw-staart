@@ -166,16 +166,8 @@
 	// is set once the bar appears, so a reader who never gets the bar keeps the block.
 	const ACTIVE_CLASS = 'zw-staart-has-next-article';
 
-	// The end of the text is its last element: not the reading tips block appended to the content, nor
-	// its script, so the wheel does not jump when the block hides. Looked up each time, as the reading
-	// tips script may remove a "Lees ook" link at the end.
-	function textEnd() {
-		let el = article.lastElementChild;
-		while (el && (el.id === 'zw-staart-top-posts-list' || el.tagName === 'SCRIPT')) {
-			el = el.previousElementSibling;
-		}
-		return el || article;
-	}
+	// The post ends after the share buttons, which the theme puts at the end of its article element.
+	const post = article.closest('article') || article;
 
 	const bar = document.createElement('div');
 	bar.className = 'zw-staart-next-article';
@@ -218,7 +210,7 @@
 	let dismissed = false;
 	let impressed = false;
 	let armed = false;
-	// Set by any interaction before the end of the text on this view, so not by a restore at the bottom.
+	// Set by any interaction before the end of the post on this view, so not by a restore at the bottom.
 	let reading = false;
 	// Only a scroll down opens the next article, not a resize, the first draw or a scroll back up.
 	let scrolled = false;
@@ -251,10 +243,13 @@
 		}
 	}
 
-	// 0 at the start of the text, 1 once its end is visible above the bar.
+	// 0 at the start of the text, 1 once the end of the post is visible above the bar. The reading tips
+	// block does not count, so the wheel barely moves when it hides; looked up each time, as the reading
+	// tips script may remove it.
 	function progress() {
 		const { top } = article.getBoundingClientRect();
-		const { bottom } = textEnd().getBoundingClientRect();
+		const tips = document.getElementById('zw-staart-top-posts-list');
+		const bottom = post.getBoundingClientRect().bottom - (tips ? tips.offsetHeight : 0);
 		const visibleBottom = window.innerHeight - bar.offsetHeight;
 		return Math.min(1, Math.max(0, (visibleBottom - top) / Math.max(1, bottom - top)));
 	}
