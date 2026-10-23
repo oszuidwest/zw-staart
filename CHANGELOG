@@ -2,6 +2,7 @@
 ### Toegevoegd
 - Doorscrollen: een balk onderin met de eerste ongelezen leestip, op desktop met afbeelding. Het wiel loopt vol tijdens het lezen; wie doorscrolt tot de deelknoppen, gaat naar het volgende artikel. Standaard uit, aan te zetten onder **Instellingen → ZuidWest Staart**.
 - Plausible event `Recirculatie+Scroll` met eigenschap `actie` en UTM-parameters `utm_source=recirculatie&utm_content=scroll` op de link.
+- A/B-test leestipsblok tegen doorscroll-balk: Doorscrollen kent nu de standen Uit, Aan en A/B-test. In de test krijgen alle recirculatie-events de eigenschap `variant`, plus de events `Recirculatie Weergave` en `Recirculatie Terug`. `tools/ab-rapport.mjs` rekent het besluit uit met de Plausible-API.
 
 ### Verwijderd
 - Podcast-promoblok onder artikelen, inclusief de 50/50-verdeling met de leestips. Het leestipsblok wordt niet meer willekeurig verborgen; het verschijnt zodra er minimaal 5 ongelezen leestips zijn.

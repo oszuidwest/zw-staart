@@ -6,6 +6,11 @@
  * above the bar; scrolling there opens the next article as a regular page load. On mobile the
  * bar is closed by swiping it down, on desktop with a close button. Closing it keeps it away
  * for the rest of the session and brings back the reading tips block.
+ *
+ * In A/B test mode half of the visitors get the bar (b) and the other half only the reading tips
+ * block (a). The group is drawn in the browser, as pages are cached, and kept for the day: Plausible
+ * counts visitors per day, so each day is an independent repeat of the test. Every view and every
+ * recirculation event then carries the group as the Plausible property "variant".
  */
 (() => {
 	'use strict';
@@ -28,6 +33,10 @@
 	const NAVIGATE_TIMEOUT_MS = 1500;
 	const SWIPE_START_PX = 6;
 	const SWIPE_CLOSE_PX = 60;
+	const VARIANT_KEY = 'zw_staart_ab_variant';
+	const RETURN_KEY = 'zw_staart_ab_return';
+	// Guardrail: coming back within this time means the visitor did not want the article.
+	const QUICK_RETURN_MS = 15000;
 	const KICKER = {
 		idle: 'Volgende artikel',
 		almost: 'Blijf scrollen om te openen',
@@ -52,6 +61,100 @@
 		return config.candidates.find((candidate) => !visited.has(candidate.id));
 	};
 
+	// Draws a group once per day, Amsterdam time like the Plausible statistics. Without storage there
+	// is no fixed group: such a visitor stays outside the test.
+	function drawVariant() {
+		const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
+		try {
+			const [day, drawn] = (localStorage.getItem(VARIANT_KEY) || '').split(':');
+			if (day === today && (drawn === 'a' || drawn === 'b')) {
+				return drawn;
+			}
+			const group = Math.random() < 0.5 ? 'a' : 'b';
+			localStorage.setItem(VARIANT_KEY, `${today}:${group}`);
+			return group;
+		} catch (e) {
+			return '';
+		}
+	}
+
+	const variant = config.test ? drawVariant() : '';
+
+	// Events the visitor did not cause are non-interactive, so they do not change the bounce rate.
+	function send(name, props, { callback, interactive = true } = {}) {
+		if (typeof window.plausible === 'function') {
+			window.plausible(name, { props: variant ? { variant, ...props } : props, callback, interactive });
+		} else if (callback) {
+			callback();
+		}
+	}
+
+	function track(action, options) {
+		send(EVENT_NAME, { actie: action }, options);
+	}
+
+	const isPlainClick = (event) => event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+
+	// Departures per article, so a quick return is noticed on each step of a chain of articles.
+	function departures() {
+		try {
+			const all = JSON.parse(sessionStorage.getItem(RETURN_KEY)) || {};
+			return Object.fromEntries(Object.entries(all).filter(([, left]) => Date.now() - left.at <= QUICK_RETURN_MS));
+		} catch (e) {
+			return {};
+		}
+	}
+
+	function saveDepartures(all) {
+		try {
+			sessionStorage.setItem(RETURN_KEY, JSON.stringify(all));
+		} catch (e) {}
+	}
+
+	function markLeave(via) {
+		if (variant) {
+			saveDepartures({ ...departures(), [location.pathname]: { at: Date.now(), via, variant } });
+		}
+	}
+
+	function checkReturn() {
+		const all = departures();
+		const left = all[location.pathname];
+		if (left) {
+			delete all[location.pathname];
+			saveDepartures(all);
+			// Counted for the group the visitor left in, also when a new day has drawn another one since.
+			send('Recirculatie Terug', { via: left.via, variant: left.variant }, { interactive: false });
+		}
+	}
+
+	if (variant) {
+		// Every view counts, whether or not the visitor reaches the bar or the block (intent to treat).
+		// A page restored by the back button is a new view too, as it is for Plausible's page views.
+		send('Recirculatie Weergave', {}, { interactive: false });
+		checkReturn();
+		window.addEventListener('pageshow', (event) => {
+			if (event.persisted) {
+				// Restored from an earlier day: load the page again with today's group.
+				if (drawVariant() !== variant) {
+					location.reload();
+					return;
+				}
+				send('Recirculatie Weergave', {}, { interactive: false });
+				checkReturn();
+			}
+		});
+		document.querySelectorAll('#zw-staart-top-posts-list a').forEach((tip) => {
+			tip.classList.add(`plausible-event-variant=${variant}`);
+			tip.addEventListener('click', (event) => isPlainClick(event) && markLeave('leestip'));
+		});
+		if (variant === 'a') {
+			return;
+		}
+	} else if (config.test) {
+		return;
+	}
+
 	let next = pickNext();
 	if (!next || isDismissed()) {
 		return;
@@ -71,14 +174,6 @@
 	);
 	// The row of buttons, not the whole share block, whose bottom padding would keep the wheel short.
 	const end = (shareLink && shareLink.parentElement) || article;
-
-	function track(action, callback) {
-		if (typeof window.plausible === 'function') {
-			window.plausible(EVENT_NAME, { props: { actie: action }, callback });
-		} else if (callback) {
-			callback();
-		}
-	}
 
 	const bar = document.createElement('div');
 	bar.className = 'zw-staart-next-article';
@@ -101,6 +196,9 @@
 			<button class="zw-staart-next-article-close" type="button" aria-label="Stop met doorladen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
 		</div>`;
 	const link = bar.querySelector('.zw-staart-next-article-link');
+	if (variant) {
+		link.classList.add(`plausible-event-variant=${variant}`);
+	}
 	const title = bar.querySelector('.zw-staart-next-article-title');
 	const kicker = bar.querySelector('.zw-staart-next-article-label');
 	const ringFill = bar.querySelector('.zw-staart-next-article-ring-fill');
@@ -123,14 +221,12 @@
 	let triggered = false;
 	let swiped = false;
 	let frame = 0;
-	// Increased to cancel a pending page load, including a late analytics callback.
-	let navigationId = 0;
-	let timers = [];
+	// Set once the page switch is committed; scrolling back no longer cancels it.
+	let leaving = false;
+	let timer = 0;
 
 	function cancelNavigation() {
-		navigationId++;
-		timers.forEach((timer) => window.clearTimeout(timer));
-		timers = [];
+		window.clearTimeout(timer);
 		triggered = false;
 		bar.classList.remove('is-loading');
 	}
@@ -173,23 +269,26 @@
 		ringFill.style.strokeDashoffset = '0';
 		setKicker(KICKER.loading);
 
-		// Show the full, green wheel briefly, then load the next article as a regular page.
-		const current = ++navigationId;
-		const go = () => {
-			if (current === navigationId) {
-				navigationId++;
-				window.location.href = next.url;
-			}
-		};
-		timers = [
-			window.setTimeout(() => track('doorgescrold', go), NAVIGATE_DELAY_MS),
-			window.setTimeout(go, NAVIGATE_DELAY_MS + NAVIGATE_TIMEOUT_MS),
-		];
+		// Show the full, green wheel briefly; scrolling back meanwhile cancels. Then the switch is final:
+		// only now count it, and load the next article as a regular page, also if analytics does not answer.
+		timer = window.setTimeout(() => {
+			leaving = true;
+			markLeave('doorgescrold');
+			let left = false;
+			const leave = () => {
+				if (!left) {
+					left = true;
+					window.location.href = next.url;
+				}
+			};
+			track('doorgescrold', { callback: leave });
+			window.setTimeout(leave, NAVIGATE_TIMEOUT_MS);
+		}, NAVIGATE_DELAY_MS);
 	}
 
 	function update() {
 		frame = 0;
-		if (dismissed) {
+		if (dismissed || leaving) {
 			return;
 		}
 		const value = progress();
@@ -205,7 +304,7 @@
 				bar.classList.add('is-visible');
 				if (!impressed) {
 					impressed = true;
-					track('getoond');
+					track('getoond', { interactive: false });
 				}
 			}
 		} else if (window.scrollY < HIDE_ABOVE_PX) {
@@ -243,6 +342,8 @@
 			event.preventDefault();
 			event.stopPropagation();
 			swiped = false;
+		} else if (isPlainClick(event)) {
+			markLeave('geklikt');
 		}
 	});
 	bar.querySelector('.zw-staart-next-article-close').addEventListener('click', () => dismiss('gesloten'));
@@ -296,6 +397,7 @@
 			return;
 		}
 		cancelNavigation();
+		leaving = false;
 		armed = false;
 		next = pickNext();
 		if (!next || isDismissed()) {

@@ -22,6 +22,19 @@ function zw_staart_get_setting( $group, $key, $default_value = '' ) {
 }
 
 /**
+ * Returns the modes of the next article bar with their labels on the settings page.
+ *
+ * @return array<string, string> Labels keyed by mode.
+ */
+function zw_staart_next_article_modes() {
+	return array(
+		'off'  => 'Uit: iedereen ziet het leestipsblok',
+		'on'   => 'Aan: iedereen ziet onderin een balk met de volgende leestip',
+		'test' => 'A/B-test: de helft ziet de balk (variant b), de andere helft het leestipsblok (variant a)',
+	);
+}
+
+/**
  * Migrates data from legacy plugin prefix (zwr_) to current prefix (zw_staart_).
  *
  * Handles backward compatibility for sites upgrading from version < 0.4.0.
@@ -179,12 +192,12 @@ function zw_staart_sanitize_settings( $input ) {
 	// form fields so the second pass keeps the values instead of resetting them.
 	if ( isset( $input['plausible'] ) ) {
 		$input = array(
-			'zw_staart_plausible_api_key'    => $input['plausible']['api_key'] ?? '',
-			'zw_staart_plausible_site_id'    => $input['plausible']['site_id'] ?? '',
-			'zw_staart_plausible_endpoint'   => $input['plausible']['endpoint'] ?? '',
-			'zw_staart_plausible_days'       => $input['plausible']['days'] ?? ZW_STAART_DEFAULT_DAYS,
-			'zw_staart_top_posts_heading'    => $input['top_posts']['heading'] ?? 'Leestips voor jou',
-			'zw_staart_next_article_enabled' => $input['next_article']['enabled'] ?? false,
+			'zw_staart_plausible_api_key'  => $input['plausible']['api_key'] ?? '',
+			'zw_staart_plausible_site_id'  => $input['plausible']['site_id'] ?? '',
+			'zw_staart_plausible_endpoint' => $input['plausible']['endpoint'] ?? '',
+			'zw_staart_plausible_days'     => $input['plausible']['days'] ?? ZW_STAART_DEFAULT_DAYS,
+			'zw_staart_top_posts_heading'  => $input['top_posts']['heading'] ?? 'Leestips voor jou',
+			'zw_staart_next_article_mode'  => $input['next_article']['mode'] ?? 'off',
 		);
 	}
 
@@ -204,7 +217,7 @@ function zw_staart_sanitize_settings( $input ) {
 			'heading' => sanitize_text_field( $input['zw_staart_top_posts_heading'] ?? 'Leestips voor jou' ),
 		),
 		'next_article' => array(
-			'enabled' => ! empty( $input['zw_staart_next_article_enabled'] ),
+			'mode' => isset( zw_staart_next_article_modes()[ $input['zw_staart_next_article_mode'] ?? '' ] ) ? $input['zw_staart_next_article_mode'] : 'off',
 		),
 	);
 
@@ -231,8 +244,8 @@ function zw_staart_settings_page() {
 	$plausible_days     = zw_staart_get_setting( 'plausible', 'days' );
 	$plausible_days     = $plausible_days ? $plausible_days : ZW_STAART_DEFAULT_DAYS;
 
-	$top_posts_heading    = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
-	$next_article_enabled = (bool) zw_staart_get_setting( 'next_article', 'enabled', false );
+	$top_posts_heading = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
+	$next_article_mode = zw_staart_get_setting( 'next_article', 'mode', 'off' );
 	?>
 	<div class="wrap">
 		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -256,14 +269,25 @@ function zw_staart_settings_page() {
 				<tr>
 					<th scope="row">Doorscrollen</th>
 					<td>
-						<label>
-							<input type="checkbox" name="zw_staart_settings[zw_staart_next_article_enabled]" value="1" <?php checked( $next_article_enabled ); ?> />
-							Toon onderin een balk met de volgende leestip
-						</label>
+						<fieldset>
+							<legend class="screen-reader-text">Doorscrollen</legend>
+							<?php foreach ( zw_staart_next_article_modes() as $mode => $label ) : ?>
+								<label>
+									<input type="radio" name="zw_staart_settings[zw_staart_next_article_mode]"
+										value="<?php echo esc_attr( $mode ); ?>" <?php checked( $next_article_mode, $mode ); ?> />
+									<?php echo esc_html( $label ); ?>
+								</label><br />
+							<?php endforeach; ?>
+						</fieldset>
 						<p class="description">
 							Het wiel in de balk loopt vol tijdens het lezen; wie doorscrolt tot de deelknoppen, gaat naar het volgende artikel.
 							Staat de balk aan, dan wordt het leestipsblok onder het artikel verborgen;
 							na sluiten komt het terug als er genoeg ongelezen leestips zijn.
+						</p>
+						<p class="description">
+							In de A/B-test wordt elke bezoeker per dag ingedeeld; ingelogde gebruikers zien de balk en tellen niet mee.
+							Plausible krijgt bij elke artikelweergave het event Recirculatie Weergave
+							en bij elk recirculatie-event de eigenschap variant.
 						</p>
 					</td>
 				</tr>

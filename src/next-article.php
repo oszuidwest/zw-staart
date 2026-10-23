@@ -64,14 +64,15 @@ function zw_staart_next_article_candidates( $current_id ) {
 }
 
 /**
- * Enqueues the next article bar on eligible posts when it is enabled in the settings.
+ * Enqueues the next article bar on eligible posts when it is on or in A/B test mode.
  *
  * @return void
  */
 function zw_staart_enqueue_next_article() {
 	$current_id = get_queried_object_id();
+	$mode       = zw_staart_get_setting( 'next_article', 'mode', 'off' );
 
-	if ( ! zw_staart_get_setting( 'next_article', 'enabled', false ) || ! zw_staart_is_eligible_post( $current_id ) ) {
+	if ( 'off' === $mode || ! zw_staart_is_eligible_post( $current_id ) ) {
 		return;
 	}
 
@@ -98,9 +99,19 @@ function zw_staart_enqueue_next_article() {
 		)
 	);
 
+	// Logged-in users, the newsroom, see the bar during the test but do not take part in it. Cloudflare
+	// does not cache their pages, so this check reaches them.
+	$in_test = 'test' === $mode && ! is_user_logged_in();
+
 	wp_add_inline_script(
 		handle: 'zw-staart-next-article',
-		data: 'window.zwStaartNextArticle = ' . wp_json_encode( array( 'candidates' => $candidates ), JSON_HEX_TAG | JSON_HEX_AMP ) . ';',
+		data: 'window.zwStaartNextArticle = ' . wp_json_encode(
+			array(
+				'candidates' => $candidates,
+				'test'       => $in_test,
+			),
+			JSON_HEX_TAG | JSON_HEX_AMP
+		) . ';',
 		position: 'before'
 	);
 }
