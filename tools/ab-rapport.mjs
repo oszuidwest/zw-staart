@@ -67,11 +67,13 @@ function plausible(apiKey, dateRange) {
 				pagination: { limit: 10000 },
 			}),
 		});
-		const body = await response.json();
 		if (!response.ok) {
-			// Plausible explains what is wrong, e.g. a goal that is not configured yet.
-			throw new Error(`Plausible: ${body.error ?? response.status}`);
+			// Plausible explains what is wrong, e.g. a goal that is not configured yet; an error page from
+			// a proxy is no JSON, then the status has to do.
+			const detail = await response.json().then((body) => body.error, () => null);
+			throw new Error(`Plausible: ${detail ?? response.status}`);
 		}
+		const body = await response.json();
 		return new Map(body.results.map((row) => [key(...row.dimensions), row.metrics]));
 	};
 }

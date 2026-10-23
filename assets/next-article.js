@@ -256,11 +256,12 @@
 		bar.classList.add('is-visible', 'is-loading');
 		ringFill.style.strokeDashoffset = '0';
 		setKicker(KICKER.loading);
-		markLeave('doorgescrold');
 		const current = ++departure;
+		// Recorded only when the page really leaves, so a cancelled scroll-through leaves no departure.
 		const leave = () => {
 			if (current === departure) {
 				departure++;
+				markLeave('doorgescrold');
 				window.location.href = next.url;
 			}
 		};
