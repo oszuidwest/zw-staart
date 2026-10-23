@@ -95,7 +95,7 @@ Na afloop, met een Plausible-sleutel voor de Stats API en Node.js 18 of hoger:
 PLAUSIBLE_API_KEY=... node tools/ab-rapport.mjs --van 2026-11-02 --tot 2026-12-13
 ```
 
-Het script toont per groep de bezoekers, weergaven, doorlezers en snel-terugkomers, het verschil per dag met interval, de 50/50-controle, de uitsplitsing naar apparaat en het besluit volgens de regel hierboven. Het staat niet in de plugin-zip.
+Het script toont per groep de bezoekers, weergaven, doorlezers en snel-terugkomers, het verschil per dag met interval, de 50/50-controle, de uitsplitsing naar apparaat en het besluit volgens de regel hierboven. Een venster van meer dan 42 dagen weigert het; een korter venster mag voor een tussentijdse controle van de verdeling, maar geeft geen besluit. Het staat niet in de plugin-zip.
 
 ## Vereisten
 

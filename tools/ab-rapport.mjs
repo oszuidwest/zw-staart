@@ -225,6 +225,15 @@ async function main() {
 	if (!values.van || !values.tot) {
 		throw new Error('Gebruik: node tools/ab-rapport.mjs --van JJJJ-MM-DD --tot JJJJ-MM-DD');
 	}
+	// The test runs a fixed 42 days: a longer window would let the decision wait for a lucky result. A
+	// shorter one is fine for checking the split along the way; it gives no decision. With at most 42
+	// days, a decision on 42 days with both groups means 42 complete, consecutive days.
+	// A real calendar date as YYYY-MM-DD: Date.parse() would turn 2026-02-30 into 2 March.
+	const isDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().startsWith(value);
+	const windowDays = (Date.parse(values.tot) - Date.parse(values.van)) / 86400000 + 1;
+	if (!isDate(values.van) || !isDate(values.tot) || !(windowDays >= 1 && windowDays <= MIN_DAYS)) {
+		throw new Error(`Kies --van en --tot als JJJJ-MM-DD, binnen ${MIN_DAYS} dagen: de vastgelegde duur van de test.`);
+	}
 	// A day that is not over yet would count as a full day with too few views.
 	const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
 	if (values.tot >= today) {
