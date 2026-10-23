@@ -225,11 +225,23 @@
 	let lastY = window.scrollY;
 	let swiped = false;
 	let frame = 0;
+	// The next article that has a prefetch rule, so updates do not add it again. Next can change on a
+	// bfcache restore.
+	let prefetched = '';
 	// Set once the next article opens; from then on the page is on its way.
 	let leaving = false;
 	// Increased on every departure and on a bfcache restore, so a late callback or timeout of an
 	// earlier departure cannot navigate the restored page.
 	let departure = 0;
+
+	// Best-effort prefetch of the next article's HTML; it runs no scripts of that page. Browsers without
+	// speculation rules ignore the script.
+	function prefetch(url) {
+		const rules = document.createElement('script');
+		rules.type = 'speculationrules';
+		rules.textContent = JSON.stringify({ prefetch: [{ source: 'list', urls: [url] }] });
+		document.head.appendChild(rules);
+	}
 
 	function setKicker(text) {
 		if (kicker.textContent !== text) {
@@ -305,10 +317,16 @@
 		} else if (window.scrollY < HIDE_ABOVE_PX) {
 			bar.classList.remove('is-visible');
 		}
-		// Readers who never reach the bar do not download its image; on mobile the stylesheet hides it,
-		// so lazy loading skips it there.
-		if (next.image && !image.hasAttribute('src') && bar.classList.contains('is-visible')) {
-			image.src = next.image;
+		// The image and the prefetch start only once the bar shows; on mobile the stylesheet hides the
+		// image, so lazy loading skips it there.
+		if (bar.classList.contains('is-visible')) {
+			if (next.image && !image.hasAttribute('src')) {
+				image.src = next.image;
+			}
+			if (prefetched !== next.url) {
+				prefetched = next.url;
+				prefetch(next.url);
+			}
 		}
 
 		ringFill.style.strokeDashoffset = String(100 - value * 100);
