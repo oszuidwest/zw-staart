@@ -440,6 +440,11 @@
 			deactivate();
 			return;
 		}
+		// The restore makes the browser look at the rules again: withdraw the one for the old candidate.
+		if (prefetchRule && prefetchRule.dataset.url !== next.url) {
+			prefetchRule.remove();
+			prefetchRule = null;
+		}
 		render();
 		schedule();
 	});
