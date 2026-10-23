@@ -225,8 +225,7 @@
 	let lastY = window.scrollY;
 	let swiped = false;
 	let frame = 0;
-	// The next article that has a prefetch rule, so updates do not add it again. Next can change on a
-	// bfcache restore.
+	// Last URL given a prefetch rule; next can change after a bfcache restore.
 	let prefetched = '';
 	// Set once the next article opens; from then on the page is on its way.
 	let leaving = false;

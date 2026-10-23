@@ -11,7 +11,7 @@ Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hierond
 ### Doorscrollen
 - Na ongeveer een derde van het artikel schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
 - Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
-- Zodra de balk verschijnt, vraagt de balk een prefetch van het volgende artikel aan (speculation rules; Chrome en Edge, nog niet standaard in Safari). Die draait geen scripts, dus telt geen paginaweergave en markeert het artikel niet als gelezen
+- Zodra de balk verschijnt, vraagt hij een prefetch van het volgende artikel aan, waar de browser dat ondersteunt. Die draait geen scripts, dus telt niet als paginaweergave of gelezen artikel
 - Het wiel in de balk loopt vol tijdens het lezen en is vol zodra het einde van de tekst boven de balk zichtbaar is; wie doorscrolt, gaat naar het volgende artikel (een gewone paginalading). De deelknoppen onder het artikel komen dus niet meer helemaal in beeld zolang de balk actief is
 - Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug de tekst in scrollen
 - Na één veeg voorbij het einde van een kort artikel opent de volgende veeg omlaag het volgende artikel; omhoog scrollen nooit
