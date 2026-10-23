@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 /**
  * Gets a setting value from the serialized settings array.
  *
- * @param string $group Setting group (e.g., 'plausible', 'podcast').
+ * @param string $group Setting group (e.g., 'plausible', 'top_posts').
  * @param string $key Setting key.
  * @param mixed  $default_value Default value if setting doesn't exist.
  * @return mixed The setting value.
@@ -37,25 +37,18 @@ function zw_staart_migrate_from_old_version() {
 	// Legacy: Multiple get_option('zwr_*') calls -> Current: Single get_option('zw_staart_settings').
 	$new_settings = get_option( 'zw_staart_settings', array() );
 
-	if ( empty( $new_settings['plausible'] ) || empty( $new_settings['podcast'] ) ) {
+	if ( empty( $new_settings['plausible'] ) ) {
 		$migrated_settings = array(
 			'plausible' => array(
 				'api_key'  => get_option( 'zwr_plausible_api_key', '' ),
 				'site_id'  => get_option( 'zwr_plausible_site_id', '' ),
 				'endpoint' => get_option( 'zwr_plausible_api_endpoint', '' ),
-				'days'     => get_option( 'zwr_plausible_days', 5 ),
-			),
-			'podcast'   => array(
-				'title'       => get_option( 'zwr_podcast_title', '' ),
-				'description' => get_option( 'zwr_podcast_description', '' ),
-				'artwork_url' => get_option( 'zwr_podcast_artwork_url', '' ),
-				'spotify_url' => get_option( 'zwr_podcast_spotify_url', '' ),
-				'apple_url'   => get_option( 'zwr_podcast_apple_url', '' ),
+				'days'     => get_option( 'zwr_plausible_days', '' ),
 			),
 		);
 
 		// Prevent overwriting existing settings with empty migration data.
-		if ( ! empty( array_filter( $migrated_settings['plausible'] ) ) || ! empty( array_filter( $migrated_settings['podcast'] ) ) ) {
+		if ( ! empty( array_filter( $migrated_settings['plausible'] ) ) ) {
 			update_option( 'zw_staart_settings', $migrated_settings );
 		}
 	}
@@ -72,7 +65,7 @@ function zw_staart_migrate_from_old_version() {
 		wp_unschedule_event( $old_timestamp, 'zwr_event_hook' );
 	}
 
-	// Delete legacy individual option entries.
+	// Delete legacy individual option entries, including the retired podcast promo options.
 	$old_options = array(
 		'zwr_plausible_api_key',
 		'zwr_plausible_site_id',
@@ -169,7 +162,7 @@ function zw_staart_register_settings() {
 			'sanitize_callback' => zw_staart_sanitize_settings( ... ),
 			'default'           => array(),
 			'show_in_rest'      => false,
-			'description'       => 'ZuidWest Staart plugin settings for Plausible Analytics and podcast promotion',
+			'description'       => 'ZuidWest Staart plugin settings for Plausible Analytics and reading tips',
 		)
 	);
 }
@@ -192,13 +185,6 @@ function zw_staart_sanitize_settings( $input ) {
 			'site_id'  => sanitize_text_field( $input['zw_staart_plausible_site_id'] ?? '' ),
 			'endpoint' => esc_url_raw( $input['zw_staart_plausible_endpoint'] ?? '' ),
 			'days'     => $days,
-		),
-		'podcast'   => array(
-			'description' => sanitize_textarea_field( $input['zw_staart_podcast_description'] ?? '' ),
-			'artwork_url' => esc_url_raw( $input['zw_staart_podcast_artwork_url'] ?? '' ),
-			'spotify_url' => esc_url_raw( $input['zw_staart_podcast_spotify_url'] ?? '' ),
-			'apple_url'   => esc_url_raw( $input['zw_staart_podcast_apple_url'] ?? '' ),
-			'heading'     => sanitize_text_field( $input['zw_staart_podcast_heading'] ?? 'Luister ook naar onze podcast' ),
 		),
 		'top_posts' => array(
 			'heading' => sanitize_text_field( $input['zw_staart_top_posts_heading'] ?? 'Leestips voor jou' ),
@@ -225,20 +211,15 @@ function zw_staart_settings_page() {
 	$plausible_api_key  = zw_staart_get_setting( 'plausible', 'api_key' );
 	$plausible_site_id  = zw_staart_get_setting( 'plausible', 'site_id' );
 	$plausible_endpoint = zw_staart_get_setting( 'plausible', 'endpoint' );
-	$plausible_days     = zw_staart_get_setting( 'plausible', 'days' ) ? zw_staart_get_setting( 'plausible', 'days' ) : ZW_STAART_DEFAULT_DAYS;
-
-	$podcast_description = zw_staart_get_setting( 'podcast', 'description' );
-	$podcast_artwork_url = zw_staart_get_setting( 'podcast', 'artwork_url' );
-	$podcast_spotify_url = zw_staart_get_setting( 'podcast', 'spotify_url' );
-	$podcast_apple_url   = zw_staart_get_setting( 'podcast', 'apple_url' );
-	$podcast_heading     = zw_staart_get_setting( 'podcast', 'heading', 'Luister ook naar onze podcast' );
-	$top_posts_heading   = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
+	$plausible_days     = zw_staart_get_setting( 'plausible', 'days' );
+	$plausible_days     = $plausible_days ? $plausible_days : ZW_STAART_DEFAULT_DAYS;
+	$top_posts_heading  = zw_staart_get_setting( 'top_posts', 'heading', 'Leestips voor jou' );
 	?>
 	<div class="wrap">
 		<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 		<p style="max-width: 800px; margin-bottom: 30px;">
-			Deze plugin toont promotionele blokken onder artikelen (in de 'staart van het artikel'). Leestips op basis van populaire artikelen, een podcast-promo, of beide willekeurig afgewisseld.
-			Configureer hieronder welke blokken je wilt gebruiken.
+			Deze plugin toont leestips onder artikelen (in de 'staart van het artikel') op basis van populaire artikelen uit Plausible Analytics.
+			Configureer hieronder de koptekst en de verbinding met Plausible.
 		</p>
 
 		<form method="post" action="options.php">
@@ -251,12 +232,6 @@ function zw_staart_settings_page() {
 					<th scope="row">Koptekst leestips</th>
 					<td>
 						<input type="text" name="zw_staart_settings[zw_staart_top_posts_heading]" value="<?php echo esc_attr( $top_posts_heading ); ?>" class="regular-text" placeholder="Leestips voor jou" />
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">Koptekst podcast</th>
-					<td>
-						<input type="text" name="zw_staart_settings[zw_staart_podcast_heading]" value="<?php echo esc_attr( $podcast_heading ); ?>" class="regular-text" placeholder="Luister ook naar onze podcast" />
 					</td>
 				</tr>
 			</table>
@@ -295,45 +270,6 @@ function zw_staart_settings_page() {
 				</tr>
 			</table>
 
-			<hr style="margin: 40px 0;">
-
-			<!-- Podcast configuratie -->
-			<h2>Podcast-promo</h2>
-			<p>Vul onderstaande velden in om een podcast-promoblok te tonen.</p>
-
-			<table class="form-table" role="presentation">
-				<tr>
-					<th scope="row">Beschrijving</th>
-					<td>
-						<textarea name="zw_staart_settings[zw_staart_podcast_description]" rows="3" class="large-text" placeholder="Korte introductie van de podcast..."><?php echo esc_textarea( $podcast_description ); ?></textarea>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">Cover (1:1)</th>
-					<td>
-						<input type="url" name="zw_staart_settings[zw_staart_podcast_artwork_url]" value="<?php echo esc_attr( $podcast_artwork_url ); ?>" class="regular-text" placeholder="https://..." />
-						<p class="description">Vierkante afbeelding</p>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">Spotify-link</th>
-					<td>
-						<input type="url" name="zw_staart_settings[zw_staart_podcast_spotify_url]" value="<?php echo esc_attr( $podcast_spotify_url ); ?>" class="regular-text" placeholder="https://open.spotify.com/show/..." />
-					</td>
-				</tr>
-				<tr>
-					<th scope="row">Apple Podcasts-link</th>
-					<td>
-						<input type="url" name="zw_staart_settings[zw_staart_podcast_apple_url]" value="<?php echo esc_attr( $podcast_apple_url ); ?>" class="regular-text" placeholder="https://podcasts.apple.com/..." />
-					</td>
-				</tr>
-			</table>
-
-			<p style="background: #f0f0f1; padding: 15px; border-left: 4px solid #72aee6; margin-top: 30px;">
-				<strong>Tip:</strong> Als je beide blokken configureert, worden ze willekeurig afgewisseld (50/50).
-				Configureer slechts één blok als je altijd hetzelfde wilt tonen.
-			</p>
-
 			<?php submit_button( 'Opslaan' ); ?>
 		</form>
 	</div>
@@ -347,7 +283,8 @@ function zw_staart_get_top_posts() {
 	$api_key      = zw_staart_get_setting( 'plausible', 'api_key' );
 	$site_id      = zw_staart_get_setting( 'plausible', 'site_id' );
 	$api_endpoint = zw_staart_get_setting( 'plausible', 'endpoint' );
-	$days         = intval( zw_staart_get_setting( 'plausible', 'days' ) ? zw_staart_get_setting( 'plausible', 'days' ) : ZW_STAART_DEFAULT_DAYS );
+	$days         = zw_staart_get_setting( 'plausible', 'days' );
+	$days         = intval( $days ? $days : ZW_STAART_DEFAULT_DAYS );
 
 	// Validate required settings.
 	if ( empty( $api_key ) || empty( $site_id ) || empty( $api_endpoint ) ) {
@@ -446,13 +383,7 @@ function zw_staart_resolve_post_ids( $articles ) {
 		$path  = trim( $article['page'], '/' );
 		$parts = explode( '/', $path );
 		// Last part is the slug (e.g., /nieuws/article-slug -> article-slug).
-		if ( count( $parts ) > 0 ) {
-			$slugs[] = end( $parts );
-		}
-	}
-
-	if ( count( $slugs ) === 0 ) {
-		return $articles;
+		$slugs[] = end( $parts );
 	}
 
 	// Query all posts in a single database call for optimal performance.
@@ -486,7 +417,7 @@ function zw_staart_resolve_post_ids( $articles ) {
 	foreach ( $articles as &$article ) {
 		$path  = trim( $article['page'], '/' );
 		$parts = explode( '/', $path );
-		$slug  = count( $parts ) > 0 ? end( $parts ) : '';
+		$slug  = end( $parts );
 
 		$article['post_id'] = $slug_to_id[ $slug ] ?? 0;
 	}
