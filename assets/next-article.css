@@ -81,6 +81,16 @@
 	text-decoration: none;
 }
 
+/* Desktop only: a 16:9 thumbnail with rounded-sm corners, like the tiles. */
+.zw-staart-next-article .zw-staart-next-article-image {
+	flex: none;
+	width: 80px;
+	height: 45px;
+	border-radius: 0.25rem;
+	background: var(--zw-staart-next-article-track);
+	object-fit: cover;
+}
+
 .zw-staart-next-article .zw-staart-next-article-text {
 	flex: 1;
 	min-width: 0;
@@ -203,6 +213,10 @@
 
 	.zw-staart-next-article .zw-staart-next-article-link {
 		gap: 8px;
+	}
+
+	.zw-staart-next-article .zw-staart-next-article-image {
+		display: none;
 	}
 
 	.zw-staart-next-article .zw-staart-next-article-title {

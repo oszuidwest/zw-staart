@@ -87,6 +87,7 @@
 	bar.innerHTML = `
 		<div class="zw-staart-next-article-inner">
 			<a class="zw-staart-next-article-link plausible-event-name=Recirculatie+Scroll plausible-event-actie=geklikt">
+				<img class="zw-staart-next-article-image" alt="" width="80" height="45" loading="lazy" decoding="async">
 				<span class="zw-staart-next-article-text">
 					<span class="zw-staart-next-article-label">${KICKER.idle}</span>
 					<span class="zw-staart-next-article-title"></span>
@@ -102,9 +103,15 @@
 	const title = bar.querySelector('.zw-staart-next-article-title');
 	const kicker = bar.querySelector('.zw-staart-next-article-label');
 	const ringFill = bar.querySelector('.zw-staart-next-article-ring-fill');
+	const image = bar.querySelector('.zw-staart-next-article-image');
 	const render = () => {
 		link.href = next.url;
 		title.textContent = next.title;
+		// Decorative: the title next to it says the same. Mobile hides it, so lazy loading skips it.
+		image.hidden = !next.image;
+		if (next.image) {
+			image.src = next.image;
+		}
 	};
 	render();
 	document.body.appendChild(bar);

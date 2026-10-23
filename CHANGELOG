@@ -1,6 +1,6 @@
 ## [0.5.0] - 2026-10-23
 ### Toegevoegd
-- Doorscrollen: een balk onderin met de eerste ongelezen leestip. Het wiel loopt vol tijdens het lezen; wie doorscrolt tot de deelknoppen, gaat naar het volgende artikel. Standaard uit, aan te zetten onder **Instellingen → ZuidWest Staart**.
+- Doorscrollen: een balk onderin met de eerste ongelezen leestip, op desktop met afbeelding. Het wiel loopt vol tijdens het lezen; wie doorscrolt tot de deelknoppen, gaat naar het volgende artikel. Standaard uit, aan te zetten onder **Instellingen → ZuidWest Staart**.
 - Plausible event `Recirculatie+Scroll` met eigenschap `actie` en UTM-parameters `utm_source=recirculatie&utm_content=scroll` op de link.
 
 ### Verwijderd

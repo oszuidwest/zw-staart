@@ -10,6 +10,7 @@ Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hierond
 
 ### Doorscrollen
 - Halverwege het artikel schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
+- Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
 - Het wiel in de balk loopt vol tijdens het lezen en is vol zodra de deelknoppen boven de balk zichtbaar zijn; wie doorscrolt, gaat naar het volgende artikel (een gewone paginalading)
 - Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor is eerst een scrollbeweging nodig
 - Op mobiel sluit je de balk door hem omlaag te vegen, op desktop met het kruisje; daarna blijft hij de rest van de sessie weg

@@ -12,12 +12,30 @@
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 /**
+ * Returns a small 16:9 thumbnail URL for the next article bar.
+ *
+ * Uses the theme's imgproxy helper when it exists, as the theme's own tiles do.
+ *
+ * @param int $post_id Post ID.
+ * @return string Image URL, or an empty string when the post has no featured image.
+ */
+function zw_staart_next_article_image( $post_id ) {
+	$src = get_the_post_thumbnail_url( $post_id, 'full' );
+	if ( ! $src ) {
+		return '';
+	}
+
+	// Twice the 80x45 slot in the bar, for sharp images on high density screens.
+	return function_exists( 'zw_imgproxy' ) ? zw_imgproxy( $src, 160, 90 ) : (string) get_the_post_thumbnail_url( $post_id, 'medium' );
+}
+
+/**
  * Builds the candidates for the next article bar, most read first.
  *
  * The browser picks the first candidate the visitor has not read yet.
  *
  * @param int $current_id ID of the post being displayed.
- * @return array<int, array{id: int, url: string, title: string}> Candidates.
+ * @return array<int, array{id: int, url: string, title: string, image: string}> Candidates.
  */
 function zw_staart_next_article_candidates( $current_id ) {
 	$candidates = array();
@@ -38,6 +56,7 @@ function zw_staart_next_article_candidates( $current_id ) {
 				$permalink
 			),
 			'title' => html_entity_decode( wp_strip_all_tags( get_the_title( $post_id ) ), ENT_QUOTES, 'UTF-8' ),
+			'image' => zw_staart_next_article_image( $post_id ),
 		);
 	}
 
