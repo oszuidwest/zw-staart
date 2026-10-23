@@ -11,7 +11,8 @@ defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 /**
  * Gets a setting value from the serialized settings array.
  *
- * @param string $group Setting group (e.g., 'plausible', 'top_posts', 'next_article').
+ * @param string $group Setting group, such as 'plausible', 'top_posts', or
+ *                      'next_article'.
  * @param string $key Setting key.
  * @param mixed  $default_value Default value if setting doesn't exist.
  * @return mixed The setting value.
@@ -22,7 +23,9 @@ function zw_staart_get_setting( $group, $key, $default_value = '' ) {
 }
 
 /**
- * Returns the modes of the next article bar with their labels on the settings page.
+ * Returns the next article bar modes and their settings page labels.
+ *
+ * @since 0.5.0
  *
  * @return array<string, string> Labels keyed by mode.
  */
@@ -35,7 +38,9 @@ function zw_staart_next_article_modes() {
 }
 
 /**
- * Returns the submitted mode of the next article bar when it is a known one, otherwise 'off'.
+ * Returns a supported next article bar mode, or 'off' for an invalid value.
+ *
+ * @since 0.5.0
  *
  * @param mixed $mode Submitted value.
  * @return string Mode.
@@ -193,12 +198,31 @@ function zw_staart_register_settings() {
 /**
  * Sanitizes and validates plugin settings.
  *
- * @param array $input Raw form input data.
- * @return array Sanitized settings array.
+ * Accepts form input or previously sanitized settings in the stored group
+ * structure. Missing values receive defaults; unsupported modes become 'off'
+ * and lookback days outside 1-30 become ZW_STAART_DEFAULT_DAYS.
+ *
+ * @since 0.5.0 Accepts settings in the stored group structure.
+ *
+ * @param array $input {
+ *     Settings grouped by feature. All groups and keys are optional.
+ *
+ *     @type array $plausible    Contains 'api_key', 'site_id', and 'endpoint',
+ *                              each defaulting to '', and 'days', defaulting
+ *                              to ZW_STAART_DEFAULT_DAYS.
+ *     @type array $top_posts    Contains 'heading', defaulting to
+ *                              ZW_STAART_DEFAULT_HEADING.
+ *     @type array $next_article Contains 'mode': 'off', 'on', or 'test'.
+ *                              Default 'off'.
+ * }
+ * @return array Sanitized settings with the same groups and all keys populated.
  */
 function zw_staart_sanitize_settings( $input ) {
-	// The form fields use the stored shape, so sanitizing a second time gives the same result. That
-	// happens on the first save: update_option() hands a new option to add_option(), which sanitizes again.
+	/*
+	 * Keep the input and stored shapes identical so a second sanitizing pass
+	 * preserves the settings. On the first save, update_option() calls
+	 * add_option(), which sanitizes the value again.
+	 */
 	$plausible    = (array) ( $input['plausible'] ?? array() );
 	$top_posts    = (array) ( $input['top_posts'] ?? array() );
 	$next_article = (array) ( $input['next_article'] ?? array() );

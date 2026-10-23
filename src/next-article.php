@@ -1,23 +1,28 @@
 <?php
 /**
- * Next article bar for ZuidWest Staart plugin.
+ * Next article bar for ZuidWest Staart plugin
  *
- * Shows a floating bar with the next reading tip. Its wheel fills while the visitor reads
- * and opens the next article as a regular page load once the end of the text is reached.
+ * Shows a floating bar with the next reading tip. Its wheel fills while the
+ * visitor reads. Scrolling through the end of the text opens the next article
+ * as a regular page load.
  *
  * @package ZuidWest_Staart
+ * @since 0.5.0
  */
 
 // Prevent direct file access.
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 /**
- * Returns a small 16:9 thumbnail URL for the next article bar.
+ * Returns the featured image URL for the next article bar.
  *
- * Uses the theme's imgproxy helper when it exists, as the theme's own tiles do.
+ * Uses the theme's imgproxy helper to request a 160x90 image when available.
+ * Otherwise, returns the WordPress 'medium' image URL, whose dimensions vary.
+ *
+ * @since 0.5.0
  *
  * @param int $post_id Post ID.
- * @return string Image URL, or an empty string when the post has no featured image.
+ * @return string Image URL, or an empty string when no image is available.
  */
 function zw_staart_next_article_image( $post_id ) {
 	$src = get_the_post_thumbnail_url( $post_id, 'full' );
@@ -25,7 +30,7 @@ function zw_staart_next_article_image( $post_id ) {
 		return '';
 	}
 
-	// Twice the 80x45 slot in the bar, for sharp images on high density screens.
+	// Request twice the 80x45 display size when imgproxy is available.
 	return function_exists( 'zw_imgproxy' ) ? zw_imgproxy( $src, 160, 90 ) : (string) get_the_post_thumbnail_url( $post_id, 'medium' );
 }
 
@@ -34,8 +39,11 @@ function zw_staart_next_article_image( $post_id ) {
  *
  * The browser picks the first candidate the visitor has not read yet.
  *
+ * @since 0.5.0
+ *
  * @param int $current_id ID of the post being displayed.
- * @return array<int, array{id: int, url: string, title: string, image: string}> Candidates.
+ * @return array<int, array{id: int, url: string, title: string, image: string}>
+ *     Candidates in descending order of popularity.
  */
 function zw_staart_next_article_candidates( $current_id ) {
 	$candidates = array();
@@ -63,7 +71,9 @@ function zw_staart_next_article_candidates( $current_id ) {
 }
 
 /**
- * Enqueues the next article bar on eligible posts when it is on or in A/B test mode.
+ * Enqueues the next article bar on eligible posts in 'on' or 'test' mode.
+ *
+ * @since 0.5.0
  *
  * @return void
  */
@@ -98,8 +108,10 @@ function zw_staart_enqueue_next_article() {
 		)
 	);
 
-	// Logged-in users, the newsroom, see the bar during the test but do not take part in it. Cloudflare
-	// does not cache their pages, so this check reaches them.
+	/*
+	 * Logged-in users see the bar during the test without taking part in it.
+	 * Their pages must bypass the page cache for this check to apply.
+	 */
 	$in_test = 'test' === $mode && ! is_user_logged_in();
 
 	wp_add_inline_script(

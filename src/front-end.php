@@ -20,8 +20,10 @@ function zw_staart_fetch_top_posts() {
 /**
  * Returns the IDs of the cached top posts, most read first.
  *
- * Skips posts whose ID could not be resolved during the Plausible sync, and posts that were deleted or
- * unpublished since.
+ * Skips posts whose ID could not be resolved during the Plausible sync, and
+ * posts that were deleted or unpublished since.
+ *
+ * @since 0.5.0
  *
  * @param int $exclude_id Post ID to leave out, usually the post being displayed.
  * @return int[] Post IDs.
@@ -37,9 +39,12 @@ function zw_staart_top_post_ids( $exclude_id ) {
 }
 
 /**
- * Checks whether reading tips belong on this request: a single news post outside a dossier.
+ * Checks whether reading tips belong on a single post outside a dossier.
  *
- * REST API requests are skipped to avoid polluting API responses with promotional HTML.
+ * Requests that send or expect JSON are excluded to avoid adding promotional
+ * HTML to their responses.
+ *
+ * @since 0.5.0
  *
  * @param int $post_id ID of the post being displayed.
  * @return bool True if reading tips should be shown.
