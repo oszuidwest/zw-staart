@@ -9,7 +9,7 @@ De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartik
 Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hieronder).
 
 ### Doorscrollen
-- Halverwege het artikel schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
+- Na ongeveer een derde van het artikel schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
 - Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
 - Het wiel in de balk loopt vol tijdens het lezen en is vol zodra het einde van de tekst boven de balk zichtbaar is; wie doorscrolt, gaat naar het volgende artikel (een gewone paginalading). De deelknoppen onder het artikel komen dus niet meer helemaal in beeld zolang de balk actief is
 - Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor is eerst een scrollbeweging nodig

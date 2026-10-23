@@ -35,6 +35,16 @@ function zw_staart_next_article_modes() {
 }
 
 /**
+ * Returns the submitted mode of the next article bar when it is a known one, otherwise 'off'.
+ *
+ * @param mixed $mode Submitted value.
+ * @return string Mode.
+ */
+function zw_staart_sanitize_next_article_mode( $mode ) {
+	return is_string( $mode ) && isset( zw_staart_next_article_modes()[ $mode ] ) ? $mode : 'off';
+}
+
+/**
  * Migrates data from legacy plugin prefix (zwr_) to current prefix (zw_staart_).
  *
  * Handles backward compatibility for sites upgrading from version < 0.4.0.
@@ -217,7 +227,7 @@ function zw_staart_sanitize_settings( $input ) {
 			'heading' => sanitize_text_field( $input['zw_staart_top_posts_heading'] ?? 'Leestips voor jou' ),
 		),
 		'next_article' => array(
-			'mode' => isset( zw_staart_next_article_modes()[ $input['zw_staart_next_article_mode'] ?? '' ] ) ? $input['zw_staart_next_article_mode'] : 'off',
+			'mode' => zw_staart_sanitize_next_article_mode( $input['zw_staart_next_article_mode'] ?? '' ),
 		),
 	);
 

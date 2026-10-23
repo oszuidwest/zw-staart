@@ -5,8 +5,8 @@
  * Reads the events from the Plausible Stats API v2 and applies the decision rule from the README:
  * - primary metric: recirculation per article view, i.e. reading tip clicks plus bar clicks and
  *   scroll-throughs, divided by "Recirculatie Weergave" events, compared per day (paired);
- * - check: the visitors per group must split 50/50 (sample ratio mismatch), counted per day like
- *   Plausible counts visitors and like the groups are drawn;
+ * - check: the visitors per group must split 50/50 (sample ratio mismatch), tested per day like the
+ *   groups are drawn and Plausible counts visitors;
  * - guardrail: quick returns ("Recirculatie Terug") per recirculation.
  *
  * Usage: PLAUSIBLE_API_KEY=... node tools/ab-rapport.mjs --van 2026-11-02 --tot 2026-11-15
@@ -80,49 +80,67 @@ function plausible(apiKey, dateRange) {
 	};
 }
 
-/** Fetches everything the report needs, keyed by "day|variant" or "variant|...". */
+/** Fetches everything the report needs, keyed by "day|variant|..." (and "device|variant" for devices). */
 export async function collect(query) {
 	const navigated = [['is', 'event:props:actie', ['geklikt', 'doorgescrold']]];
 	const dismissed = [['is', 'event:props:actie', ['gesloten', 'weggeveegd']]];
 	const byDay = ['time:day', 'event:props:variant'];
 	const byDevice = ['visit:device', 'event:props:variant'];
-	const [views, exposed, tips, scroll, dismissals, returns, deviceViews, deviceTips, deviceScroll] = await Promise.all([
-		query('Recirculatie Weergave', byDay),
-		query('Recirculatie Weergave', byDay, ['visitors']),
+	const [views, tips, scroll, dismissals, returns, deviceViews, deviceTips, deviceScroll] = await Promise.all([
+		query('Recirculatie Weergave', byDay, ['events', 'visitors']),
 		query('Recirculatie Artikel', byDay),
 		query('Recirculatie Scroll', byDay, ['events'], navigated),
-		query('Recirculatie Scroll', ['event:props:variant'], ['events'], dismissed),
-		query('Recirculatie Terug', ['event:props:variant', 'event:props:via']),
+		query('Recirculatie Scroll', byDay, ['events'], dismissed),
+		query('Recirculatie Terug', [...byDay, 'event:props:via']),
 		query('Recirculatie Weergave', byDevice),
 		query('Recirculatie Artikel', byDevice),
 		query('Recirculatie Scroll', byDevice, ['events'], navigated),
 	]);
-	return { views, exposed, tips, scroll, dismissals, returns, deviceViews, deviceTips, deviceScroll };
+	return { views, tips, scroll, dismissals, returns, deviceViews, deviceTips, deviceScroll };
+}
+
+// Upper tail of the chi-square distribution: exact for 1 and 2 degrees of freedom, otherwise the
+// Wilson-Hilferty approximation, which is accurate to a few percent of p down to 0.001 from 10 df.
+function chiSquareP(x, df) {
+	if (df === 1) {
+		return erfc(Math.sqrt(x / 2));
+	}
+	if (df === 2) {
+		return Math.exp(-x / 2);
+	}
+	const z = (Math.cbrt(x / df) - (1 - 2 / (9 * df))) / Math.sqrt(2 / (9 * df));
+	return erfc(z / Math.SQRT2) / 2;
 }
 
 export function analyse(data) {
-	const days = [...new Set([...data.views.keys()].map((k) => k.split('|')).filter(([, v]) => VARIANTS.includes(v)).map(([day]) => day))].sort();
-	const recirculated = (day, variant) => first(data.tips, day, variant) + first(data.scroll, day, variant);
+	// One set of days for everything: the days on which both groups were seen.
+	const days = [...new Set([...data.views.keys()].map((k) => k.split('|')[0]))]
+		.filter((day) => VARIANTS.every((variant) => first(data.views, day, variant) > 0))
+		.sort();
+	const sum = (perDay, variant) => days.reduce((total, day) => total + perDay(day, variant), 0);
+	const views = (day, variant) => first(data.views, day, variant);
+	const visitors = (day, variant) => data.views.get(key(day, variant))?.[1] ?? 0;
+	const hits = (day, variant) => first(data.tips, day, variant) + first(data.scroll, day, variant);
+	const returns = (day, variant) =>
+		[...data.returns].filter(([k]) => k.startsWith(`${key(day, variant)}|`)).reduce((total, [, metrics]) => total + metrics[0], 0);
 
 	const totals = {};
 	for (const variant of VARIANTS) {
-		const views = days.reduce((sum, day) => sum + first(data.views, day, variant), 0);
-		const hits = days.reduce((sum, day) => sum + recirculated(day, variant), 0);
-		const returns = [...data.returns].filter(([k]) => k.split('|')[0] === variant).reduce((sum, [, metrics]) => sum + metrics[0], 0);
+		const recirculated = sum(hits, variant);
+		const returned = sum(returns, variant);
 		totals[variant] = {
-			views,
-			recirculated: hits,
-			rate: views ? hits / views : 0,
-			exposed: days.reduce((sum, day) => sum + first(data.exposed, day, variant), 0),
-			returns,
-			returnRate: hits ? returns / hits : 0,
+			views: sum(views, variant),
+			recirculated,
+			rate: days.length ? recirculated / sum(views, variant) : 0,
+			exposed: sum(visitors, variant),
+			returns: returned,
+			returnRate: recirculated ? returned / recirculated : 0,
+			dismissed: sum((day, v) => first(data.dismissals, day, v), variant),
 		};
 	}
 
 	// Paired per day: both groups share the same news, so the day-to-day swings cancel out.
-	const differences = days
-		.filter((day) => VARIANTS.every((variant) => first(data.views, day, variant) > 0))
-		.map((day) => recirculated(day, 'b') / first(data.views, day, 'b') - recirculated(day, 'a') / first(data.views, day, 'a'));
+	const differences = days.map((day) => hits(day, 'b') / views(day, 'b') - hits(day, 'a') / views(day, 'a'));
 	let paired = null;
 	if (differences.length >= 2) {
 		const average = mean(differences);
@@ -130,10 +148,25 @@ export function analyse(data) {
 		paired = { days: differences.length, mean: average, low: average - margin, high: average + margin };
 	}
 
-	// Sample ratio mismatch: visitors were drawn 50/50, so their counts must match that.
-	const expected = (totals.a.exposed + totals.b.exposed) / 2;
-	const chi2 = expected ? VARIANTS.reduce((sum, variant) => sum + (totals[variant].exposed - expected) ** 2 / expected, 0) : 0;
-	return { days, totals, paired, srmP: erfc(Math.sqrt(chi2 / 2)) };
+	// Sample ratio mismatch, tested per day and summed (one degree of freedom per day), so imbalances on
+	// separate days cannot cancel each other out.
+	const chi2 = days.reduce((total, day) => {
+		const counts = VARIANTS.map((variant) => visitors(day, variant));
+		const expected = (counts[0] + counts[1]) / 2;
+		return total + (expected ? counts.reduce((part, count) => part + (count - expected) ** 2 / expected, 0) : 0);
+	}, 0);
+	return { days, totals, paired, srmP: days.length ? chiSquareP(chi2, days.length) : 1, returnsByRoute: routes(data.returns, days) };
+}
+
+function routes(returns, days) {
+	const byRoute = new Map();
+	for (const [k, metrics] of returns) {
+		const [day, variant, via] = k.split('|');
+		if (days.includes(day)) {
+			byRoute.set(`${variant}/${via}`, (byRoute.get(`${variant}/${via}`) ?? 0) + metrics[0]);
+		}
+	}
+	return [...byRoute].sort();
 }
 
 export function decide({ totals, paired, srmP }) {
@@ -156,10 +189,10 @@ export function decide({ totals, paired, srmP }) {
 }
 
 export function report(data, result) {
-	const { days, totals, paired, srmP } = result;
+	const { days, totals, paired, srmP, returnsByRoute } = result;
 	const lines = [];
 	const span = days.length ? `${days[0]} t/m ${days.at(-1)}` : 'geen data';
-	lines.push(`A/B-test leestips (a) tegen doorscroll-balk (b), ${span}, ${days.length} dagen`, '');
+	lines.push(`A/B-test leestips (a) tegen doorscroll-balk (b), ${span}, ${days.length} dagen met beide groepen`, '');
 	lines.push('groep  bezoekers  weergaven  doorlezers  per weergave  snel terug');
 	for (const variant of VARIANTS) {
 		const t = totals[variant];
@@ -172,10 +205,10 @@ export function report(data, result) {
 	if (paired) {
 		lines.push(`gepaard per dag: ${signed(paired.mean)} punt, 95%-interval ${signed(paired.low)} tot ${signed(paired.high)}`);
 	}
-	lines.push(`verdeling 50/50 (SRM): p = ${srmP.toFixed(3)}`);
-	lines.push(`balk gesloten of weggeveegd: ${first(data.dismissals, 'b')}`);
-	lines.push(`snel terug per route: ${[...data.returns].sort().map(([k, metrics]) => `${k.replace('|', '/')}: ${metrics[0]}`).join(', ')}`);
-	lines.push('', 'apparaat   a per weergave  b per weergave');
+	lines.push(`verdeling 50/50 per dag (SRM): p = ${srmP.toFixed(3)}`);
+	lines.push(`balk gesloten of weggeveegd: ${totals.b.dismissed}`);
+	lines.push(`snel terug per route: ${returnsByRoute.map(([route, count]) => `${route}: ${count}`).join(', ')}`);
+	lines.push('', 'apparaat (alle dagen, ter informatie)   a per weergave  b per weergave');
 	const devices = [...new Set([...data.deviceViews.keys()].map((k) => k.split('|')[0]))].sort();
 	for (const device of devices) {
 		const rates = VARIANTS.map((variant) => {
@@ -183,7 +216,7 @@ export function report(data, result) {
 			const hits = first(data.deviceTips, device, variant) + first(data.deviceScroll, device, variant);
 			return (views ? percent(hits / views) : '-').padStart(14);
 		});
-		lines.push(`${device.padEnd(9)}  ${rates.join('  ')}`);
+		lines.push(`${device.padEnd(38)}  ${rates.join('  ')}`);
 	}
 	lines.push('', `BESLUIT: ${decide(result)}`);
 	return lines.join('\n');

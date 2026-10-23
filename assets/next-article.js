@@ -1,7 +1,7 @@
 /**
  * ZuidWest Staart: next article bar.
  *
- * Halfway through the article a bar slides in with the most read reading tip the visitor has
+ * After about a third of the article a bar slides in with the most read reading tip the visitor has
  * not read yet. Its wheel fills while reading and is full once the end of the text is visible
  * above the bar; scrolling there opens the next article as a regular page load. On mobile the
  * bar is closed by swiping it down, on desktop with a close button. Closing it keeps it away
@@ -36,7 +36,7 @@
 	// Guardrail: coming back within this time means the visitor did not want the article.
 	const QUICK_RETURN_MS = 15000;
 	const KICKER = {
-		idle: 'Volgende artikel',
+		idle: 'Lees ook',
 		almost: 'Blijf scrollen om te openen',
 		loading: 'Volgende artikel laden\u2026', // Ellipsis escaped: the file stays ASCII, whatever charset the server sends.
 	};
@@ -59,17 +59,20 @@
 		return config.candidates.find((candidate) => !visited.has(candidate.id));
 	};
 
-	// Draws a group once per day, Amsterdam time like the Plausible statistics. Without storage there
-	// is no fixed group: such a visitor stays outside the test.
+	// The test day, Amsterdam time like the Plausible statistics.
+	const today = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
+	const testDay = today();
+
+	// Draws a group once per day. Without storage there is no fixed group: such a visitor stays
+	// outside the test.
 	function drawVariant() {
-		const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
 		try {
 			const [day, drawn] = (localStorage.getItem(VARIANT_KEY) || '').split(':');
-			if (day === today && (drawn === 'a' || drawn === 'b')) {
+			if (day === testDay && (drawn === 'a' || drawn === 'b')) {
 				return drawn;
 			}
 			const group = Math.random() < 0.5 ? 'a' : 'b';
-			localStorage.setItem(VARIANT_KEY, `${today}:${group}`);
+			localStorage.setItem(VARIANT_KEY, `${testDay}:${group}`);
 			return group;
 		} catch (e) {
 			return '';
@@ -132,17 +135,25 @@
 	if (variant) {
 		// Every view counts, whether or not the visitor reaches the bar or the block (intent to treat).
 		// A page restored by the back button is a new view too, as it is for Plausible's page views.
-		send('Recirculatie Weergave', {}, { interactive: false });
-		checkReturn();
+		const countView = () => {
+			send('Recirculatie Weergave', {}, { interactive: false });
+			checkReturn();
+		};
+		countView();
+		// A page from an earlier day, restored or left open in a tab, loads again with today's group.
+		const isStale = () => today() !== testDay;
 		window.addEventListener('pageshow', (event) => {
 			if (event.persisted) {
-				// Restored from an earlier day: load the page again with today's group.
-				if (drawVariant() !== variant) {
+				if (isStale()) {
 					location.reload();
 					return;
 				}
-				send('Recirculatie Weergave', {}, { interactive: false });
-				checkReturn();
+				countView();
+			}
+		});
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'visible' && isStale()) {
+				location.reload();
 			}
 		});
 		document.querySelectorAll('#zw-staart-top-posts-list a').forEach((tip) => {
@@ -211,6 +222,8 @@
 	let dismissed = false;
 	let impressed = false;
 	let armed = false;
+	// Only a scroll opens the next article, not a resize or the first draw.
+	let scrolled = false;
 	let swiped = false;
 	let frame = 0;
 	// Set once the next article opens; from then on the page is on its way.
@@ -232,9 +245,11 @@
 		return Math.min(1, Math.max(0, (visibleBottom - top) / Math.max(1, bottom - top)));
 	}
 
-	// Hides the bar for good on this page and brings the reading tips block back.
+	// Hides the bar for good on this page and brings the reading tips block back. A next article that
+	// is still loading stays here: closing means "stop met doorladen".
 	function deactivate() {
 		dismissed = true;
+		departure++;
 		bar.classList.remove('is-visible');
 		if (readingTips) {
 			readingTips.hidden = false;
@@ -249,8 +264,9 @@
 		deactivate();
 	}
 
-	// Like swiping to the next video: the scroll-through is the switch, without a pause. Count it, then
-	// load the next article as a regular page; the closed ring and label show it is on its way.
+	// Like swiping to the next video: the scroll-through is the switch. Count it, then load the next
+	// article as a regular page as soon as analytics answers (or after a timeout); the closed ring and
+	// the label show it is on its way.
 	function openNext() {
 		leaving = true;
 		bar.classList.add('is-visible', 'is-loading');
@@ -270,6 +286,8 @@
 
 	function update() {
 		frame = 0;
+		const byScroll = scrolled;
+		scrolled = false;
 		if (dismissed || leaving) {
 			return;
 		}
@@ -292,7 +310,7 @@
 		// scrolling down does not open the next article.
 		setKicker(value >= ALMOST && armed ? KICKER.almost : KICKER.idle);
 		// Only open the next article while the bar is on screen, so a short article never jumps away unseen.
-		if (value >= 1 && armed && bar.classList.contains('is-visible')) {
+		if (byScroll && value >= 1 && armed && bar.classList.contains('is-visible')) {
 			openNext();
 		}
 	}
@@ -363,7 +381,14 @@
 	bar.addEventListener('pointerup', release);
 	bar.addEventListener('pointercancel', release);
 
-	window.addEventListener('scroll', schedule, { passive: true });
+	window.addEventListener(
+		'scroll',
+		() => {
+			scrolled = true;
+			schedule();
+		},
+		{ passive: true }
+	);
 	window.addEventListener('resize', schedule);
 	['wheel', 'touchstart', 'keydown', 'pointerdown'].forEach((type) => window.addEventListener(type, onInteract, { passive: true }));
 	// Back via the bfcache: the page is restored as it was left, loading state included. Reset it and
