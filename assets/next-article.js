@@ -29,7 +29,7 @@
 	const SWIPE_START_PX = 6;
 	const SWIPE_CLOSE_PX = 60;
 	const KICKER = {
-		idle: 'Leestip',
+		idle: 'Volgende artikel',
 		almost: 'Blijf scrollen om te openen',
 		loading: 'Volgende artikel laden\u2026', // Ellipsis escaped: the file stays ASCII, whatever charset the server sends.
 	};
@@ -94,7 +94,7 @@
 				</span>
 				<span class="zw-staart-next-article-wheel" aria-hidden="true">
 					<svg class="zw-staart-next-article-ring" viewBox="0 0 48 48"><circle class="zw-staart-next-article-ring-track" cx="24" cy="24" r="21"/><circle class="zw-staart-next-article-ring-fill" cx="24" cy="24" r="21" pathLength="100"/></svg>
-					<svg class="zw-staart-next-article-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg>
+					<svg class="zw-staart-next-article-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6.41 16.59 5 12 9.58 7.41 5 6 6.41l6 6z"/><path d="m18 13-1.41-1.41L12 16.17l-4.59-4.58L6 13l6 6z"/></svg>
 				</span>
 			</a>
 			<button class="zw-staart-next-article-close" type="button" aria-label="Stop met doorladen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
@@ -212,7 +212,9 @@
 		}
 
 		ringFill.style.strokeDashoffset = String(100 - value * 100);
-		setKicker(value >= ALMOST ? KICKER.almost : KICKER.idle);
+		// Only promise what scrolling does: unarmed, as on a short article or a page restored at its end,
+		// scrolling down does not open the next article.
+		setKicker(value >= ALMOST && armed ? KICKER.almost : KICKER.idle);
 		// Only open the next article while the bar is on screen, so a short article never jumps away unseen.
 		if (value >= 1 && armed && bar.classList.contains('is-visible')) {
 			openNext();
@@ -228,8 +230,9 @@
 	// Only a real scroll action by the reader may open the next article. A page that the back button
 	// restores at the bottom must not immediately load the next article again.
 	function onInteract() {
-		if (!dismissed && !triggered && progress() < 1) {
+		if (!dismissed && !triggered && !armed && progress() < 1) {
 			armed = true;
+			schedule(); // The label may now promise the next article.
 		}
 	}
 
