@@ -1,3 +1,9 @@
+## [0.5.0] - 2026-10-23
+### Verwijderd
+- Podcast-promoblok onder artikelen, inclusief de 50/50-verdeling met de leestips. Het leestipsblok wordt niet meer willekeurig verborgen; het verschijnt zodra er minimaal 5 ongelezen leestips zijn.
+- Podcast-instellingen (koptekst, beschrijving, cover, Spotify- en Apple Podcasts-link) uit de instellingenpagina. Eerder opgeslagen podcastwaarden worden niet meer gebruikt en verdwijnen bij de volgende keer opslaan van de instellingen.
+- Plausible events `Recirculatie+Podcast+Spotify` en `Recirculatie+Podcast+Apple`.
+
 ## [0.4.2] - 2026-05-19
 ### Veranderd
 - Beperkt `zw_staart_visited_posts` tot maximaal 100 recente artikel-IDs, zodat de cookie-header niet onbeperkt groeit.

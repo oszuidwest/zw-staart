@@ -1,18 +1,10 @@
 # ZuidWest Staart (van artikel)
 
-WordPress-plugin voor het WordPress-thema van Streekomroep ZuidWest die promotionele content onder artikelen toont voor betere recirculatie en engagement.
+WordPress-plugin voor het WordPress-thema van Streekomroep ZuidWest die leestips onder artikelen toont voor betere recirculatie en engagement.
 
 ## Wat doet deze plugin?
 
-De plugin voegt automatisch promotionele content toe onder elk artikel:
-
-- **Leestips voor jou** (50% kans): Toont de top 5 meest gelezen artikelen die de bezoeker nog niet heeft gelezen
-- **Podcast-promo** (50% kans): Promoot de podcast met artwork en directe links naar Spotify en Apple Podcasts
-
-De plugin gebruikt een 50/50 verdeling waarbij bij elke pageview willekeurig wordt bepaald welk blok wordt getoond. Podcast-links openen automatisch in een nieuw tabblad.
-
-### Fallback
-Als slechts één van de twee blokken is geconfigureerd, wordt die altijd getoond. Dit zorgt ervoor dat de plugin blijft werken zelfs als je alleen leestips óf alleen de podcast-promo wilt gebruiken.
+De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartikelen (niet bij dossier-artikelen): de top 5 meest gelezen artikelen die de bezoeker nog niet heeft gelezen.
 
 ## Installatie
 
@@ -22,6 +14,10 @@ Als slechts één van de twee blokken is geconfigureerd, wordt die altijd getoon
 
 ## Configuratie
 
+### Weergave
+
+- **Koptekst leestips**: Standaard "Leestips voor jou"
+
 ### Plausible Analytics (voor leestips)
 
 Configureer de verbinding met Plausible Analytics:
@@ -30,14 +26,6 @@ Configureer de verbinding met Plausible Analytics:
 - **Site-ID**: bijvoorbeeld `zuidwestupdate.nl`
 - **API Endpoint**: bijvoorbeeld `https://stats.zuidwesttv.nl/api/v2/query`
 - **Aantal dagen terug**: Standaard 5 dagen
-
-### Podcast-promo
-
-- **Koptekst**: Standaard "Luister ook naar onze podcast"
-- **Beschrijving**: Korte introductie van de podcast
-- **Artwork URL**: Vierkante afbeelding (1:1)
-- **Spotify-link**: Link naar de podcast op Spotify
-- **Apple Podcasts-link**: Link naar de podcast op Apple Podcasts
 
 ## Hoe het werkt
 
@@ -53,23 +41,19 @@ Configureer de verbinding met Plausible Analytics:
 - Als er minder dan 5 ongelezen artikelen beschikbaar zijn, wordt het leestips-blok verborgen
 
 ### Techniek
-- **Cache-compatibel**: Beide blokken worden server-side gerenderd, JavaScript bepaalt client-side welke getoond wordt
+- **Cache-compatibel**: Het blok wordt server-side gerenderd, JavaScript verbergt client-side de al gelezen artikelen
 - **Performance**: Minimale impact door slimme caching en efficiënte queries
 - **Privacy-vriendelijk**: Gebruikt alleen functionele cookies voor het bijhouden van gelezen artikelen
 
 ## Tracking & Analytics
 
-Alle klikken worden geregistreerd in Plausible Analytics:
+Klikken worden geregistreerd in Plausible Analytics:
 
 - **Recirculatie+Artikel**: Klikken op artikelen in leestips (met `?utm_source=recirculatie`)
-- **Recirculatie+Podcast+Spotify**: Klikken op Spotify-knop (zonder UTM)
-- **Recirculatie+Podcast+Apple**: Klikken op Apple Podcasts-knop (zonder UTM)
-
-Alleen artikel-links bevatten UTM-parameters voor campagne-tracking. Podcast-links zijn schoon voor een betere gebruikerservaring.
 
 ## Vereisten
 
 - WordPress 7.0 of hoger
 - PHP 8.3 of hoger
-- JavaScript voor 50/50 selectie en cookie tracking
+- JavaScript voor het filteren van gelezen artikelen en cookie tracking
 - Plausible Analytics account (voor leestips functionaliteit)
