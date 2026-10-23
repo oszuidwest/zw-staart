@@ -1,3 +1,7 @@
+## [0.5.2] - 2026-10-23
+### Opgelost
+- De prefetch uit 0.5.1 bereikte bezoekers niet: Cloudflare bleef het doorscroll-script van vóór de prefetch serveren onder dezelfde versie. Het nieuwe versienummer ververst die cache.
+
 ## [0.5.1] - 2026-10-23
 ### Toegevoegd
 - Prefetch van het volgende artikel zodra de doorscroll-balk verschijnt, waar de browser dat ondersteunt, zodat het sneller kan openen.
