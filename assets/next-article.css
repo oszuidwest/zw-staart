@@ -162,7 +162,7 @@
 	color: #fff;
 }
 
-/* Ring: text progress. Inner disc: progress to regional news. */
+/* Ring: text progress. Inner disc: progress to regional news. No transition, so both track the scroll. */
 .zw-staart-next-article .zw-staart-next-article-wheel {
 	position: relative;
 	flex: none;
@@ -178,7 +178,6 @@
 	background: var(--zw-staart-next-article-green);
 	content: "";
 	clip-path: inset(0 0 calc((1 - var(--zw-staart-next-article-fill, 0)) * 100%) 0);
-	transition: clip-path 0.2s linear;
 }
 
 .zw-staart-next-article .zw-staart-next-article-ring {
@@ -202,7 +201,6 @@
 	stroke: var(--zw-staart-next-article-green);
 	stroke-dasharray: 100;
 	stroke-dashoffset: 100;
-	transition: stroke-dashoffset 0.2s linear;
 }
 
 .zw-staart-next-article .zw-staart-next-article-arrow {
@@ -276,9 +274,7 @@
 @media (prefers-reduced-motion: reduce) {
 
 	.zw-staart-next-article,
-	.zw-staart-next-article.is-visible,
-	.zw-staart-next-article .zw-staart-next-article-wheel::before,
-	.zw-staart-next-article .zw-staart-next-article-ring-fill {
+	.zw-staart-next-article.is-visible {
 		transition: none;
 	}
 

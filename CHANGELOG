@@ -1,3 +1,16 @@
+## [0.5.6] - 2026-10-26
+### Veranderd
+- Doorscrollen opent het volgende artikel meteen, zonder eerst op Plausible te wachten; het event gaat met `keepalive` mee, net als bij een klik.
+- Het wiel volgt het scrollen direct, zonder vertraging van 0,2 seconde.
+- Na een snelle veeg is de balk na 150 ms rust klaar om te openen, in plaats van na 300 ms.
+- End en toetsen met Cmd, Ctrl, Alt of Shift openen het volgende artikel niet meer, zodat de footer bereikbaar blijft.
+- Het A/B-rapport toont als secundaire cijfers de artikelweergaven per bezoeker en hoe vaak de balk gesloten wordt per keer getoond.
+
+### Opgelost
+- Zijwaarts vegen of scrollen, zoals terugvegen met twee vingers op een trackpad, kon het volgende artikel openen.
+- Sluiten tijdens het laden telde als doorscrollen terwijl er niet genavigeerd werd, en een verborgen tab kon nog navigeren.
+- Na terugkomen via de terugknop stond de bol vol met het label "Volgend artikel", terwijl doorscrollen pas weer werkt als de lezer terug omhoog scrollt. Tot dan blijft de bol nu leeg en zegt het label "Lees ook".
+
 ## [0.5.5] - 2026-10-26
 ### Opgelost
 - Het wiel was al vol bij de deelknoppen, omdat het blok "Laatste nieuws uit ..." daar direct onder begint. Het is nu pas vol als de helft van dat blok boven de balk staat.
