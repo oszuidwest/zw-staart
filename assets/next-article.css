@@ -29,7 +29,7 @@
 /**
  * In dark mode the page itself is gray-800, so the bar steps up to
  * gray-700, like the theme's dark tabs and embed blocks. Label, close
- * button and track step up with it to keep their contrast.
+ * tab and track step up with it to keep their contrast.
  */
 .dark .zw-staart-next-article {
 	--zw-staart-next-article-surface: var(--color-gray-700, #364153);
@@ -55,6 +55,7 @@
 }
 
 .zw-staart-next-article .zw-staart-next-article-inner {
+	position: relative;
 	display: flex;
 	align-items: center;
 	gap: 4px;
@@ -97,22 +98,27 @@
 	min-width: 0;
 }
 
-/* The kicker style, shared by the label and the close button. */
-.zw-staart-next-article .zw-staart-next-article-label,
-.zw-staart-next-article .zw-staart-next-article-close {
-	font: 700 12px/1.3333 Nunito, sans-serif;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
-}
-
 /* Cut off on the narrowest screens rather than run into the wheel. */
 .zw-staart-next-article .zw-staart-next-article-label {
 	display: block;
 	overflow: hidden;
 	margin-bottom: 2px;
 	color: var(--zw-staart-next-article-muted);
+	font: 700 12px/1.3333 Nunito, sans-serif;
+	letter-spacing: 0.05em;
 	text-overflow: ellipsis;
+	text-transform: uppercase;
 	white-space: nowrap;
+}
+
+/* In phase 2 the label stands out; green once scrolling on opens the next article. */
+.zw-staart-next-article.is-phase2 .zw-staart-next-article-label {
+	color: #fff;
+}
+
+.zw-staart-next-article.is-ready .zw-staart-next-article-label,
+.zw-staart-next-article.is-loading .zw-staart-next-article-label {
+	color: var(--zw-staart-next-article-green);
 }
 
 .zw-staart-next-article .zw-staart-next-article-title {
@@ -137,36 +143,51 @@
 }
 
 /**
- * Close button: the cross with a label, so readers see they can stop.
- * Flat with rounded-sm corners, hovering like the theme header buttons;
- * at least 44px high, a comfortable tap target.
+ * Close button: a tab on top of the bar, above the wheel, so readers see
+ * they can stop. Same surface and edge as the bar, covering its top border,
+ * with rounded-sm top corners. The tap target reaches 44px around the tab.
  */
 .zw-staart-next-article .zw-staart-next-article-close {
+	position: absolute;
+	right: 8px;
+	bottom: 100%;
 	display: flex;
-	flex: none;
 	align-items: center;
-	gap: 2px;
-	min-width: 44px;
-	min-height: 44px;
-	margin-left: 4px;
-	padding: 0 8px 0 6px;
-	border: 0;
-	border-radius: 0.25rem;
-	background: none;
+	justify-content: center;
+	width: 36px;
+	height: 24px;
+	padding: 0;
+	border: 1px solid var(--zw-staart-next-article-edge);
+	border-bottom: 0;
+	border-radius: 0.25rem 0.25rem 0 0;
+	background: var(--zw-staart-next-article-surface);
 	color: var(--zw-staart-next-article-muted);
 	cursor: pointer;
-	transition: background-color 0.15s, color 0.15s;
+	transition: color 0.15s;
+}
+
+.zw-staart-next-article .zw-staart-next-article-close::before {
+	position: absolute;
+	inset: -21px -5px 0;
+	content: "";
+}
+
+.zw-staart-next-article .zw-staart-next-article-close svg {
+	width: 18px;
+	height: 18px;
 }
 
 .zw-staart-next-article .zw-staart-next-article-close:hover {
-	background: var(--zw-staart-next-article-track);
 	color: #fff;
 }
 
 /**
- * Wheel: fills while reading and closes into a full ring when the next
- * article loads. The fill follows the scrolling with a short delay, so the
- * last step visibly closes the ring.
+ * Wheel, in two phases. The ring fills while reading and is full at the
+ * last paragraph; then the inside fills with green from top to bottom, in
+ * the direction of scrolling, until the regional news block below the
+ * post. Full and at rest, the arrow turns dark: scrolling on opens the next
+ * article. The fills follow the scrolling with a short delay, so the last
+ * step visibly closes them.
  */
 .zw-staart-next-article .zw-staart-next-article-wheel {
 	position: relative;
@@ -174,6 +195,17 @@
 	width: 44px;
 	height: 44px;
 	margin-left: 8px;
+}
+
+/* The ring paints over the edge of the green disc. */
+.zw-staart-next-article .zw-staart-next-article-wheel::before {
+	position: absolute;
+	inset: 4px;
+	border-radius: 50%;
+	background: var(--zw-staart-next-article-green);
+	content: "";
+	clip-path: inset(0 0 calc((1 - var(--zw-staart-next-article-fill, 0)) * 100%) 0);
+	transition: clip-path 0.2s linear;
 }
 
 .zw-staart-next-article .zw-staart-next-article-ring {
@@ -207,8 +239,41 @@
 	margin: -12px 0 0 -12px;
 }
 
+.zw-staart-next-article.is-ready .zw-staart-next-article-arrow,
 .zw-staart-next-article.is-loading .zw-staart-next-article-arrow {
-	fill: var(--zw-staart-next-article-green);
+	fill: var(--color-gray-900, #101828);
+}
+
+/**
+ * The moment it is ready, the wheel swells once and the arrow nudges down
+ * twice: noticeable from the corner of the eye, also after a fast scroll,
+ * without reading the label.
+ */
+.zw-staart-next-article.is-ready .zw-staart-next-article-wheel {
+	animation: zw-staart-next-article-swell 0.4s ease-out;
+}
+
+.zw-staart-next-article.is-ready .zw-staart-next-article-arrow {
+	animation: zw-staart-next-article-nudge 0.9s ease-in-out;
+}
+
+@keyframes zw-staart-next-article-swell {
+
+	30% {
+		transform: scale(1.12);
+	}
+}
+
+@keyframes zw-staart-next-article-nudge {
+
+	25%,
+	75% {
+		transform: translateY(4px);
+	}
+
+	50% {
+		transform: none;
+	}
 }
 
 .zw-staart-next-article a:focus-visible,
@@ -238,21 +303,19 @@
 		height: 40px;
 		margin-left: 4px;
 	}
-
-	.zw-staart-next-article .zw-staart-next-article-close {
-		flex-direction: column;
-		gap: 0;
-		margin-left: 0;
-		padding: 2px 4px;
-		font-size: 10px;
-	}
 }
 
 @media (prefers-reduced-motion: reduce) {
 
 	.zw-staart-next-article,
 	.zw-staart-next-article.is-visible,
+	.zw-staart-next-article .zw-staart-next-article-wheel::before,
 	.zw-staart-next-article .zw-staart-next-article-ring-fill {
 		transition: none;
+	}
+
+	.zw-staart-next-article.is-ready .zw-staart-next-article-wheel,
+	.zw-staart-next-article.is-ready .zw-staart-next-article-arrow {
+		animation: none;
 	}
 }

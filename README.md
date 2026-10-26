@@ -9,14 +9,15 @@ De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartik
 Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hieronder).
 
 ### Doorscrollen
-- Na ongeveer een derde van het artikel schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
+- Na ongeveer een derde van de tekst schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
 - Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
 - Zodra de balk verschijnt, vraagt hij een prefetch van het volgende artikel aan, waar de browser dat ondersteunt. Die draait geen scripts, dus telt niet als paginaweergave of gelezen artikel
-- Het wiel in de balk loopt vol tijdens het lezen en is vol zodra de deelknoppen onder het artikel boven de balk zichtbaar zijn
-- Pas als het einde van het artikel 2 seconden in beeld is en de pagina stilstaat, verandert het label in "Scroll opnieuw om te openen". Een nieuwe veeg, scrollbeweging of scrolltoets omlaag opent dan het volgende artikel (een gewone paginalading). Zolang de veeg waarmee je het einde bereikt nog naloopt, opent er niets, zodat je de laatste alinea rustig kunt lezen; een tik telt niet als veeg
-- Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug omhoog scrollen, tot vóór het einde van het artikel
+- Het wiel in de balk loopt in twee fases vol. De groene ring loopt vol tijdens het lezen en is vol zodra de laatste alinea van de tekst boven de balk staat (foto's, bijschriften en "Lees ook"-links daarna tellen niet mee). Daarna vult de binnenkant van het wiel zich van boven naar beneden met groen, tot het blok "Laatste nieuws uit ..." onder het artikel de balk bereikt; zonder dat blok tot het einde van het artikel. Het label zegt dan "Volgend artikel"
+- Wie rustig doorscrollt, met de vinger op het scherm, het scrollwiel of de pijltoetsen, gaat meteen door naar het volgende artikel (een gewone paginalading) zodra het wiel vol is
+- Na een snelle veeg of draai aan het scrollwiel loopt de pagina na; dan opent er niets. Pas als de pagina stilstaat, wordt de pijl donker, wipt hij twee keer omlaag en zegt het label "Scroll opnieuw om te openen". Een nieuwe veeg, scrollbeweging of scrolltoets omlaag opent dan het volgende artikel, ook helemaal onderaan de pagina, waar niets meer scrolt. Een tik telt niet als veeg, en scrollen dat de lezer niet zelf doet opent nooit iets
+- Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug omhoog scrollen, tot vóór de laatste alinea
 - Omhoog scrollen opent het volgende artikel nooit; klikken op de balk werkt altijd meteen
-- De balk sluit je met de knop **Sluiten** (kruisje), op mobiel ook door hem omlaag te vegen; daarna blijft hij de rest van de sessie weg
+- De balk sluit je met het kruisje op het lipje rechtsboven de balk, op mobiel ook door hem omlaag te vegen; daarna blijft hij de rest van de sessie weg
 - Zolang de balk actief is, wordt het leestipsblok onder het artikel verborgen; na sluiten komt het terug (als er minstens 5 ongelezen leestips zijn, zoals altijd)
 
 ## Installatie
