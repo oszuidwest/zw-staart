@@ -13,7 +13,7 @@ Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hierond
 - Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
 - Zodra de balk verschijnt, vraagt hij een prefetch van het volgende artikel aan, waar de browser dat ondersteunt. Die draait geen scripts, dus telt niet als paginaweergave of gelezen artikel
 - Het wiel in de balk loopt vol tijdens het lezen en is vol zodra de deelknoppen onder het artikel boven de balk zichtbaar zijn
-- Pas als het einde van het artikel 2 seconden in beeld is en de pagina stilstaat, verandert het label in "Scroll opnieuw om te openen". Een nieuwe veeg, scrollbeweging of scrolltoets omlaag opent dan het volgende artikel (een gewone paginalading). De naloop van de veeg waarmee je het einde bereikt, opent dus nooit iets, zodat je de laatste alinea rustig kunt lezen
+- Pas als het einde van het artikel 2 seconden in beeld is en de pagina stilstaat, verandert het label in "Scroll opnieuw om te openen". Een nieuwe veeg, scrollbeweging of scrolltoets omlaag opent dan het volgende artikel (een gewone paginalading). Zolang de veeg waarmee je het einde bereikt nog naloopt, opent er niets, zodat je de laatste alinea rustig kunt lezen; een tik telt niet als veeg
 - Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug omhoog scrollen, tot vóór het einde van het artikel
 - Omhoog scrollen opent het volgende artikel nooit; klikken op de balk werkt altijd meteen
 - De balk sluit je met de knop **Sluiten** (kruisje), op mobiel ook door hem omlaag te vegen; daarna blijft hij de rest van de sessie weg

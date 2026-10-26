@@ -97,13 +97,21 @@
 	min-width: 0;
 }
 
-.zw-staart-next-article .zw-staart-next-article-label {
-	display: block;
-	margin-bottom: 2px;
-	color: var(--zw-staart-next-article-muted);
+/* The kicker style, shared by the label and the close button. */
+.zw-staart-next-article .zw-staart-next-article-label,
+.zw-staart-next-article .zw-staart-next-article-close {
 	font: 700 12px/1.3333 Nunito, sans-serif;
 	letter-spacing: 0.05em;
 	text-transform: uppercase;
+}
+
+/* Cut off on the narrowest screens rather than run into the wheel. */
+.zw-staart-next-article .zw-staart-next-article-label {
+	display: block;
+	overflow: hidden;
+	margin-bottom: 2px;
+	color: var(--zw-staart-next-article-muted);
+	text-overflow: ellipsis;
 	white-space: nowrap;
 }
 
@@ -146,9 +154,6 @@
 	border-radius: 0.25rem;
 	background: none;
 	color: var(--zw-staart-next-article-muted);
-	font: 700 12px/1.3333 Nunito, sans-serif;
-	letter-spacing: 0.05em;
-	text-transform: uppercase;
 	cursor: pointer;
 	transition: background-color 0.15s, color 0.15s;
 }

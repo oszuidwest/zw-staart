@@ -226,6 +226,9 @@
 	// Set when a gesture starts while scrolling through is ready, and cleared once that gesture is over:
 	// only that gesture may open the next article, not the momentum of the one that reached the end.
 	let intent = false;
+	// A touch that starts while ready grants intent only once the finger moves up, so a tap never does.
+	let touchReady = false;
+	let touchStartY = 0;
 	let settleTimer = 0;
 	// Only a scroll down opens the next article, not a resize, the first draw or a scroll back up.
 	let scrolled = false;
@@ -361,11 +364,12 @@
 			openNext();
 			return;
 		}
-		// Look again once the dwell is over or the current gesture settles, also when nothing scrolls.
+		// Look again once the dwell is over and the page has come to rest, also when nothing scrolls. While
+		// a finger is down, its touchend looks again.
 		window.clearTimeout(settleTimer);
-		const due = [endSince + DWELL_MS, lastMotion + SETTLE_MS].filter((at) => at > now);
-		if (endSince && due.length) {
-			settleTimer = window.setTimeout(schedule, Math.min(...due) - now);
+		const delay = Math.max(endSince + DWELL_MS, lastMotion + SETTLE_MS) - now;
+		if (endSince && touches === 0 && delay > 0) {
+			settleTimer = window.setTimeout(schedule, delay);
 		}
 	}
 
@@ -377,15 +381,25 @@
 
 	const isReady = () => endSince > 0 && Date.now() - endSince >= DWELL_MS && Date.now() - lastMotion >= SETTLE_MS && touches === 0;
 
-	// A swipe, wheel or scroll key by the reader. Before the end of the post it marks this view as read;
-	// started once the end has been in view long enough and the page has come to rest, it is the
-	// deliberate scroll that may open the next article.
-	function onGesture() {
+	// A swipe, wheel or scroll key by the reader. Before the end of the post it marks this view as read.
+	// Returns whether it started once the end had been in view long enough and the page had come to
+	// rest: then it is the deliberate scroll that may open the next article.
+	function startGesture() {
 		reading = reading || progress() < 1;
-		intent = intent || isReady();
+		const ready = isReady();
 		lastMotion = Date.now();
 		schedule();
+		return ready;
 	}
+
+	function onScrollGesture() {
+		if (startGesture()) {
+			intent = true;
+		}
+	}
+
+	// Keys typed into a field or handled by the page do not scroll it.
+	const isFieldKey = (event) => event.defaultPrevented || event.target.closest?.('input, textarea, select, button, [contenteditable]');
 
 	function onTouchEnd(event) {
 		touches = event.touches.length;
@@ -458,16 +472,26 @@
 	window.addEventListener(
 		'touchstart',
 		(event) => {
-			onGesture();
+			touchReady = startGesture();
+			touchStartY = event.touches[0].clientY;
 			touches = event.touches.length;
+		},
+		{ passive: true }
+	);
+	window.addEventListener(
+		'touchmove',
+		(event) => {
+			if (touchReady && event.touches[0].clientY < touchStartY - SWIPE_START_PX) {
+				intent = true;
+			}
 		},
 		{ passive: true }
 	);
 	window.addEventListener('touchend', onTouchEnd, { passive: true });
 	window.addEventListener('touchcancel', onTouchEnd, { passive: true });
-	window.addEventListener('wheel', onGesture, { passive: true });
+	window.addEventListener('wheel', onScrollGesture, { passive: true });
 	// A held key repeats, but it is still the press that started before the end was ready.
-	window.addEventListener('keydown', (event) => !event.repeat && SCROLL_KEYS.has(event.key) && onGesture());
+	window.addEventListener('keydown', (event) => !event.repeat && SCROLL_KEYS.has(event.key) && !isFieldKey(event) && onScrollGesture());
 	// A hidden tab is not reading: the end has to be in view for the whole dwell again.
 	document.addEventListener('visibilitychange', () => {
 		endSince = 0;
