@@ -1,3 +1,7 @@
+## [0.5.4] - 2026-10-26
+### Veranderd
+- Nieuwe cacheversie voor CSS en JavaScript.
+
 ## [0.5.3] - 2026-10-26
 ### Veranderd
 - Het wiel loopt in twee fases vol. De ring is vol bij de laatste alinea van de tekst; daarna vult de binnenkant van het wiel zich met groen tot het blok "Laatste nieuws uit ..." onder het artikel. Het label zegt dan "Volgend artikel".
