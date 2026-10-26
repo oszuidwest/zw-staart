@@ -71,7 +71,7 @@ function plausible(apiKey, dateRange) {
 /** Returns metric maps keyed by "day|variant|..." or "device|variant". */
 export async function collect(query) {
 	const navigated = [['is', 'event:props:actie', ['geklikt', 'doorgescrold']]];
-	const dismissed = [['is', 'event:props:actie', ['gesloten', 'weggeveegd']]];
+	const dismissed = [['is', 'event:props:actie', ['gesloten']]];
 	const shownOnly = [['is', 'event:props:actie', ['getoond']]];
 	const byDay = ['time:day', 'event:props:variant'];
 	const byDevice = ['visit:device', 'event:props:variant'];
@@ -218,7 +218,7 @@ export function report(data, result) {
 		lines.push(`  gepaard per dag: ${fixed(pairedPerVisitor.mean)}, 95%-interval ${fixed(pairedPerVisitor.low)} tot ${fixed(pairedPerVisitor.high)}`);
 	}
 	const dismissRate = totals.b.shown ? ` (${percent(totals.b.dismissed / totals.b.shown, 1)})` : '';
-	lines.push(`balk gesloten of weggeveegd: ${totals.b.dismissed} van ${totals.b.shown} keer getoond${dismissRate}`);
+	lines.push(`balk gesloten: ${totals.b.dismissed} van ${totals.b.shown} keer getoond${dismissRate}`);
 	lines.push('', 'apparaat (alle dagen, ter informatie)   a per weergave  b per weergave');
 	const devices = [...new Set([...data.deviceViews.keys()].map((k) => k.split('|')[0]))].sort();
 	for (const device of devices) {

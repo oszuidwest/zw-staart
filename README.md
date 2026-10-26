@@ -20,7 +20,7 @@ Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hierond
 - Het volgende artikel opent meteen; het Plausible-event gaat met `keepalive` mee, net als bij een klik
 - Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug omhoog scrollen, tot vóór de laatste alinea. Tot dan blijft de bol leeg en zegt het label "Lees ook"; klikken op de balk werkt wel
 - Omhoog scrollen opent het volgende artikel nooit; klikken op de balk werkt altijd meteen
-- De balk sluit je met het kruisje op het lipje rechtsboven de balk, op mobiel ook door hem omlaag te vegen; daarna blijft hij de rest van de sessie weg
+- De balk sluit je met het kruisje op het lipje rechtsboven de balk; daarna blijft hij de rest van de sessie weg
 - Zolang de balk actief is, wordt het leestipsblok onder het artikel verborgen; na sluiten komt het terug (als er minstens 5 ongelezen leestips zijn, zoals altijd)
 
 ## Installatie
@@ -68,7 +68,7 @@ Configureer de verbinding met Plausible Analytics:
 Klikken worden geregistreerd in Plausible Analytics:
 
 - **Recirculatie+Artikel**: Klikken op artikelen in leestips (met `?utm_source=recirculatie`)
-- **Recirculatie+Scroll**: Balk van Doorscrollen, met eigenschap `actie`: `getoond`, `geklikt`, `doorgescrold`, `gesloten` (kruisje) of `weggeveegd` (mobiel). De link naar het volgende artikel krijgt `?utm_source=recirculatie&utm_content=scroll`
+- **Recirculatie+Scroll**: Balk van Doorscrollen, met eigenschap `actie`: `getoond`, `geklikt`, `doorgescrold` of `gesloten` (kruisje). De link naar het volgende artikel krijgt `?utm_source=recirculatie&utm_content=scroll`
 
 Alleen tijdens de A/B-test, en daar krijgt elk event hierboven ook de eigenschap `variant` (`a` of `b`):
 
@@ -87,7 +87,7 @@ Vooraf vastgelegd, zodat het besluit niet achteraf wordt bijgesteld.
 - **Analyse**: per dag het verschil tussen b en a, met een 95%-interval over de dagen (beide groepen krijgen hetzelfde nieuws, dus de schommelingen per dag vallen weg).
 - **Controle**: het aantal bezoekers per groep, per dag geteld, moet 50/50 zijn (chi-kwadraat, p ≥ 0,001); anders is de test ongeldig.
 - **Guardrail**: het aandeel doorlezers dat snel terugkomt (`Recirculatie Terug`) mag bij b hooguit 5 procentpunt hoger zijn dan bij a.
-- **Secundair, telt niet mee voor het besluit**: artikelweergaven per bezoeker (`Recirculatie Weergave`, per dag gepaard zoals de primaire maatstaf). De primaire maatstaf telt alleen recirculatie van deze plugin; dit cijfer laat zien of de balk echt extra lezen oplevert of klikken overneemt van bijvoorbeeld "Laatste nieuws uit ...". Daarnaast hoe vaak de balk gesloten of weggeveegd wordt per keer dat hij getoond is.
+- **Secundair, telt niet mee voor het besluit**: artikelweergaven per bezoeker (`Recirculatie Weergave`, per dag gepaard zoals de primaire maatstaf). De primaire maatstaf telt alleen recirculatie van deze plugin; dit cijfer laat zien of de balk echt extra lezen oplevert of klikken overneemt van bijvoorbeeld "Laatste nieuws uit ...". Daarnaast hoe vaak de balk gesloten wordt per keer dat hij getoond is.
 - **Duur**: 42 dagen, zes volle weken, zonder tussentijds te stoppen; alleen dagen met beide groepen tellen. Met ongeveer 4.700 artikelweergaven per groep per dag en terugkerende lezers die elk hun eigen klikgedrag hebben, vindt de test een echt verschil van 10% in ongeveer 98% en van 5% in ongeveer 60% van de gevallen; zonder echt verschil wijst hij in ongeveer 5% van de gevallen toch een winnaar aan (simulatie op basis van de Plausible-cijfers van september en oktober 2026). Met een vaste groep per bezoeker zou dat laatste bijna de helft zijn, daarom wordt per dag geloot.
 - **Besluit**: b als het interval boven 0 ligt en de guardrail houdt; a als het interval onder 0 ligt of de guardrail breekt; anders geen aantoonbaar verschil en blijft Doorscrollen uit.
 

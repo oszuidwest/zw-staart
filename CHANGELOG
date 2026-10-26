@@ -5,6 +5,10 @@
 - Na een snelle veeg is de balk na 150 ms rust klaar om te openen, in plaats van na 300 ms.
 - End en toetsen met Cmd, Ctrl, Alt of Shift openen het volgende artikel niet meer, zodat de footer bereikbaar blijft.
 - Het A/B-rapport toont als secundaire cijfers de artikelweergaven per bezoeker en hoe vaak de balk gesloten wordt per keer getoond.
+- Vegen op de balk werkt zoals overal op de pagina: het scrollt en kan doorscrollen naar het volgende artikel. Alleen een veeg die op het kruisje begint, opent niets.
+
+### Verwijderd
+- Omlaag vegen om de balk te sluiten. Het kruisje staat altijd in beeld; het event `weggeveegd` vervalt.
 
 ### Opgelost
 - Zijwaarts vegen of scrollen, zoals terugvegen met twee vingers op een trackpad, kon het volgende artikel openen.
