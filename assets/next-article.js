@@ -14,13 +14,12 @@
 	const SHOW_AT = 0.35;
 	const HIDE_ABOVE_PX = 200;
 	// A gesture ends after this pause with no fingers down.
-	const SETTLE_MS = 300;
+	const SETTLE_MS = 150;
 	const FAST_PX_PER_MS = 1.5;
 	// Input expires even if scroll events continue.
 	const STEER_MS = 250;
-	const SCROLL_KEYS = new Set(['ArrowDown', 'PageDown', 'End', ' ']);
-	// Navigate even if analytics never calls back.
-	const NAVIGATE_TIMEOUT_MS = 1500;
+	// End and modified keys jump to the footer or select text, so they never open.
+	const SCROLL_KEYS = new Set(['ArrowDown', 'PageDown', ' ']);
 	const SWIPE_START_PX = 6;
 	const SWIPE_CLOSE_PX = 60;
 	const VARIANT_KEY = 'zw_staart_ab_variant';
@@ -73,14 +72,10 @@
 	const variant = config.test ? drawVariant() : '';
 
 	// Non-interactive events preserve bounce rate; analytics failure must not block navigation.
-	function send(name, props, { callback, interactive = true } = {}) {
+	function send(name, props, { interactive = true } = {}) {
 		try {
-			window.plausible(name, { props: variant ? { variant, ...props } : props, callback, interactive });
-		} catch (e) {
-			if (callback) {
-				callback();
-			}
-		}
+			window.plausible(name, { props: variant ? { variant, ...props } : props, interactive });
+		} catch (e) {}
 	}
 
 	function track(action, options) {
@@ -229,15 +224,18 @@
 	let movedDown = false;
 	let touchSteers = false;
 	let touchY = 0;
-	let touchStartY = null;
+	let touchX = 0;
+	let armed = false;
+	// Direction of the current gesture: '' until decided, then 'down' or 'other'.
+	let heading = 'other';
+	let swipeX = 0;
+	let swipeY = 0;
 	let touchFromFull = false;
 	let settleTimer = 0;
 	let swiped = false;
 	let frame = 0;
 	let prefetchRule = null;
 	let leaving = false;
-	// Invalidate pending navigation callbacks on departure, dismissal and bfcache restore.
-	let departure = 0;
 
 	// Prefetch without running scripts; unsupported browsers ignore the rules.
 	function prefetch(url) {
@@ -275,7 +273,6 @@
 
 	function deactivate() {
 		dismissed = true;
-		departure++;
 		bar.classList.remove('is-visible');
 		document.documentElement.classList.remove(ACTIVE_CLASS);
 		prefetchRule?.remove();
@@ -298,17 +295,10 @@
 		ringFill.style.strokeDashoffset = '0';
 		bar.style.setProperty('--zw-staart-next-article-fill', '1');
 		setKicker(KICKER.loading);
-		const current = ++departure;
-		// Record departure only when navigation actually starts.
-		const leave = () => {
-			if (current === departure) {
-				departure++;
-				markLeave('doorgescrold');
-				window.location.href = next.url;
-			}
-		};
-		track('doorgescrold', { callback: leave });
-		window.setTimeout(leave, NAVIGATE_TIMEOUT_MS);
+		// Plausible sends with keepalive, so the event survives the navigation, as with clicks.
+		track('doorgescrold');
+		markLeave('doorgescrold');
+		window.location.href = next.url;
 	}
 
 	function update() {
@@ -341,13 +331,14 @@
 			}
 		}
 
+		ringFull = phase.p1 >= 1;
+		// After a history restore the disc stays empty until scrolling through works again.
+		const phase2 = ringFull && reading;
 		ringFill.style.strokeDashoffset = String(100 - phase.p1 * 100);
-		bar.style.setProperty('--zw-staart-next-article-fill', phase.p2.toFixed(3));
+		bar.style.setProperty('--zw-staart-next-article-fill', phase2 ? phase.p2.toFixed(3) : '0');
 
 		// Open on downward steering or a coast from a push begun with the ring full.
 		// A fast flick begun in the text needs a rest and a new gesture.
-		const phase2 = phase.p1 >= 1;
-		ringFull = phase2;
 		const steered = Date.now() - lastInput < STEER_MS && (touches > 0 || !coasting);
 		if (down && (steered || pushedOn) && atEnd(phase)) {
 			openNext();
@@ -405,7 +396,34 @@
 		return true;
 	}
 
+	// A gesture's first SWIPE_START_PX lock its direction, like the browser's axis lock.
+	// Only a clearly downward gesture steers, and opens if it began while ready.
+	function startSwipe(ready) {
+		armed = ready;
+		heading = '';
+		swipeX = 0;
+		swipeY = 0;
+	}
+
+	function endSwipe() {
+		armed = false;
+		heading = 'other';
+	}
+
+	function swipe(dx, dy) {
+		swipeX += dx;
+		swipeY += dy;
+		if (!heading && Math.hypot(swipeX, swipeY) > SWIPE_START_PX) {
+			heading = swipeY > Math.abs(swipeX) ? 'down' : 'other';
+			if (armed && heading === 'down') {
+				openNext();
+			}
+			armed = false;
+		}
+	}
+
 	function onTouchEnd(event) {
+		endSwipe();
 		touches = event.touches.length;
 		lastMotion = Date.now();
 		schedule();
@@ -491,8 +509,9 @@
 			if (event.touches.length > 1) {
 				pushedOn = false;
 			}
+			touchX = event.touches[0].clientX;
 			touchY = event.touches[0].clientY;
-			touchStartY = ready && touchSteers ? touchY : null;
+			startSwipe(ready && touchSteers);
 			touchFromFull = ringFull;
 			touches = event.touches.length;
 		},
@@ -503,19 +522,18 @@
 		(event) => {
 			if (event.defaultPrevented) {
 				touchSteers = false;
-				touchStartY = null;
+				endSwipe();
 			}
-			const y = event.touches[0].clientY;
-			const oneFinger = event.touches.length === 1;
-			if (oneFinger && touchSteers && y < touchY) {
-				lastInput = Date.now();
-				pushedOn = pushedOn || touchFromFull;
+			const { clientX: x, clientY: y } = event.touches[0];
+			if (event.touches.length === 1) {
+				swipe(x - touchX, touchY - y);
+				if (touchSteers && y < touchY && heading === 'down') {
+					lastInput = Date.now();
+					pushedOn = pushedOn || touchFromFull;
+				}
 			}
+			touchX = x;
 			touchY = y;
-			if (oneFinger && touchStartY !== null && y < touchStartY - SWIPE_START_PX) {
-				touchStartY = null;
-				openNext();
-			}
 		},
 		{ passive: true }
 	);
@@ -537,19 +555,35 @@
 			// Trackpad inertia emits wheel events; only a turn after a rest starts a new push.
 			const isNew = Date.now() - lastMotion >= SETTLE_MS;
 			const ready = startGesture();
-			if (event.deltaY > 0 && !event.ctrlKey && scrollsPage(event)) {
+			if (event.ctrlKey || !scrollsPage(event)) {
+				endSwipe();
+				return;
+			}
+			if (isNew) {
+				startSwipe(ready);
+			}
+			// Mouse wheels may report lines or pages; trackpads report pixels.
+			const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+			swipe(event.deltaX * scale, event.deltaY * scale);
+			if (event.deltaY > 0 && heading === 'down') {
 				lastInput = Date.now();
 				pushedOn = pushedOn || (isNew && ringFull);
-				if (ready) {
-					openNext();
-				}
 			}
 		},
 		{ passive: true }
 	);
 	// Key repeats continue the original gesture.
 	window.addEventListener('keydown', (event) => {
-		if (!SCROLL_KEYS.has(event.key) || (event.key === ' ' && event.shiftKey) || isFieldKey(event)) {
+		if (isFieldKey(event)) {
+			return;
+		}
+		// Jumps to the footer must not inherit an earlier push either.
+		if (event.key === 'End' || (SCROLL_KEYS.has(event.key) && (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey))) {
+			lastInput = 0;
+			pushedOn = false;
+			return;
+		}
+		if (!SCROLL_KEYS.has(event.key)) {
 			return;
 		}
 		const ready = !event.repeat && startGesture();
@@ -571,7 +605,6 @@
 		if (!event.persisted) {
 			return;
 		}
-		departure++;
 		if (dismissed) {
 			return;
 		}
@@ -580,7 +613,7 @@
 		reading = false;
 		lastMotion = Date.now();
 		touches = 0;
-		touchStartY = null;
+		endSwipe();
 		touchFromFull = false;
 		lastInput = 0;
 		coasting = false;

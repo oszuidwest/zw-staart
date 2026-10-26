@@ -16,7 +16,9 @@ Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hierond
 - Wie rustig doorscrollt, met de vinger op het scherm, het scrollwiel of de pijltoetsen, gaat meteen door naar het volgende artikel (een gewone paginalading) zodra het wiel vol is
 - Een veeg, draai aan het scrollwiel of scrolltoets die begint als de ring al vol is (de laatste alinea is dan helemaal in beeld geweest), gaat ook door als de pagina daarna naloopt
 - Alleen de naloop van een snelle veeg of draai die nog in de tekst begon, opent niets. Pas als de pagina stilstaat, wordt de pijl donker, wipt hij twee keer omlaag en zegt het label "Scroll om te openen". Een nieuwe veeg, scrollbeweging of scrolltoets omlaag opent dan het volgende artikel, ook helemaal onderaan de pagina, waar niets meer scrolt. Een tik telt niet als veeg, en scrollen dat de lezer niet zelf doet opent nooit iets
-- Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug omhoog scrollen, tot vóór de laatste alinea
+- Alleen een beweging die duidelijk omlaag gaat telt: zijwaarts vegen of scrollen (zoals terugvegen met twee vingers op een trackpad) opent niets. End en toetsen met Cmd, Ctrl, Alt of Shift openen ook niets, zodat de footer met het toetsenbord bereikbaar blijft
+- Het volgende artikel opent meteen; het Plausible-event gaat met `keepalive` mee, net als bij een klik
+- Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug omhoog scrollen, tot vóór de laatste alinea. Tot dan blijft de bol leeg en zegt het label "Lees ook"; klikken op de balk werkt wel
 - Omhoog scrollen opent het volgende artikel nooit; klikken op de balk werkt altijd meteen
 - De balk sluit je met het kruisje op het lipje rechtsboven de balk, op mobiel ook door hem omlaag te vegen; daarna blijft hij de rest van de sessie weg
 - Zolang de balk actief is, wordt het leestipsblok onder het artikel verborgen; na sluiten komt het terug (als er minstens 5 ongelezen leestips zijn, zoals altijd)
@@ -85,6 +87,7 @@ Vooraf vastgelegd, zodat het besluit niet achteraf wordt bijgesteld.
 - **Analyse**: per dag het verschil tussen b en a, met een 95%-interval over de dagen (beide groepen krijgen hetzelfde nieuws, dus de schommelingen per dag vallen weg).
 - **Controle**: het aantal bezoekers per groep, per dag geteld, moet 50/50 zijn (chi-kwadraat, p ≥ 0,001); anders is de test ongeldig.
 - **Guardrail**: het aandeel doorlezers dat snel terugkomt (`Recirculatie Terug`) mag bij b hooguit 5 procentpunt hoger zijn dan bij a.
+- **Secundair, telt niet mee voor het besluit**: artikelweergaven per bezoeker (`Recirculatie Weergave`, per dag gepaard zoals de primaire maatstaf). De primaire maatstaf telt alleen recirculatie van deze plugin; dit cijfer laat zien of de balk echt extra lezen oplevert of klikken overneemt van bijvoorbeeld "Laatste nieuws uit ...". Daarnaast hoe vaak de balk gesloten of weggeveegd wordt per keer dat hij getoond is.
 - **Duur**: 42 dagen, zes volle weken, zonder tussentijds te stoppen; alleen dagen met beide groepen tellen. Met ongeveer 4.700 artikelweergaven per groep per dag en terugkerende lezers die elk hun eigen klikgedrag hebben, vindt de test een echt verschil van 10% in ongeveer 98% en van 5% in ongeveer 60% van de gevallen; zonder echt verschil wijst hij in ongeveer 5% van de gevallen toch een winnaar aan (simulatie op basis van de Plausible-cijfers van september en oktober 2026). Met een vaste groep per bezoeker zou dat laatste bijna de helft zijn, daarom wordt per dag geloot.
 - **Besluit**: b als het interval boven 0 ligt en de guardrail houdt; a als het interval onder 0 ligt of de guardrail breekt; anders geen aantoonbaar verschil en blijft Doorscrollen uit.
 
@@ -100,7 +103,7 @@ Na afloop, met een Plausible-sleutel voor de Stats API en Node.js 18 of hoger:
 PLAUSIBLE_API_KEY=... node tools/ab-rapport.mjs --van 2026-11-02 --tot 2026-12-13
 ```
 
-Het script toont per groep de bezoekers, weergaven, doorlezers en snel-terugkomers, het verschil per dag met interval, de 50/50-controle, de uitsplitsing naar apparaat en het besluit volgens de regel hierboven. Een venster van meer dan 42 dagen weigert het; een korter venster mag voor een tussentijdse controle van de verdeling, maar geeft geen besluit. Het staat niet in de plugin-zip.
+Het script toont per groep de bezoekers, weergaven, doorlezers en snel-terugkomers, het verschil per dag met interval, de 50/50-controle, de secundaire cijfers, de uitsplitsing naar apparaat en het besluit volgens de regel hierboven. Een venster van meer dan 42 dagen weigert het; een korter venster mag voor een tussentijdse controle van de verdeling, maar geeft geen besluit. Het staat niet in de plugin-zip.
 
 ## Vereisten
 
