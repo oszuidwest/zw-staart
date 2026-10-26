@@ -15,8 +15,16 @@
 	const VISITED_COOKIE = 'zw_staart_visited_posts=';
 	const EVENT_NAME = 'Recirculatie Scroll';
 	const SHOW_AT = 0.35;
-	const ALMOST = 0.9;
 	const HIDE_ABOVE_PX = 200;
+	// A gesture is over once the page has not moved this long and no finger touches the screen.
+	const SETTLE_MS = 300;
+	// Faster than this (1,500 pixels a second) the page coasts after a flick or a spin of the wheel,
+	// rather than being steered by the reader.
+	const FAST_PX_PER_MS = 1.5;
+	// A scroll this soon after a turn of the wheel or a scroll key is steered by it.
+	const STEER_MS = 250;
+	// Keys that scroll the page down; only these can start a scroll-through by keyboard.
+	const SCROLL_KEYS = new Set(['ArrowDown', 'PageDown', 'End', ' ']);
 	// Leave this long after the scroll-through at the latest, also when analytics does not answer.
 	const NAVIGATE_TIMEOUT_MS = 1500;
 	const SWIPE_START_PX = 6;
@@ -27,7 +35,8 @@
 	const QUICK_RETURN_MS = 15000;
 	const KICKER = {
 		idle: 'Lees ook',
-		almost: 'Blijf scrollen om te openen',
+		phase2: 'Volgend artikel',
+		ready: 'Scroll om te openen',
 		loading: 'Volgende artikel laden\u2026', // Ellipsis escaped: the file stays ASCII, whatever charset the server sends.
 	};
 
@@ -168,6 +177,18 @@
 
 	// The post ends after the share buttons, which the theme puts at the end of its article element.
 	const post = article.closest('article') || article;
+	// Phase 1 of the wheel ends at the last paragraph of the text: not a caption, an embed, the reading
+	// tips or the "Lees ook" links some articles end with.
+	const lastParagraph = [...article.querySelectorAll('p')]
+		.reverse()
+		.find((p) => !p.closest('aside, figure, .not-prose, [hidden]') && p.textContent.trim() && p.offsetHeight > 0);
+	// Phase 2 ends at the theme's regional news block below the post ("Laatste nieuws uit Zundert"),
+	// or without it at the end of the post.
+	const isLatest = (el) => el.matches('aside') && /^laatste\s+nieuws\s+uit\b/i.test(el.querySelector('h2')?.textContent.trim() ?? '');
+	let latest = post.nextElementSibling;
+	while (latest && !isLatest(latest)) {
+		latest = latest.nextElementSibling;
+	}
 
 	const bar = document.createElement('div');
 	bar.className = 'zw-staart-next-article';
@@ -196,6 +217,7 @@
 	const title = bar.querySelector('.zw-staart-next-article-title');
 	const kicker = bar.querySelector('.zw-staart-next-article-label');
 	const ringFill = bar.querySelector('.zw-staart-next-article-ring-fill');
+	const closeTab = bar.querySelector('.zw-staart-next-article-close');
 	const image = bar.querySelector('.zw-staart-next-article-image');
 	const render = () => {
 		link.href = next.url;
@@ -209,12 +231,36 @@
 
 	let dismissed = false;
 	let impressed = false;
-	let armed = false;
-	// Set by any interaction before the end of the post on this view, so not by a restore at the bottom.
-	let reading = false;
-	// Only a scroll down opens the next article, not a resize, the first draw or a scroll back up.
-	let scrolled = false;
+	// Whether this view may scroll through. A page the back button restores starts without it, so it
+	// does not load the next article unseen; the reader then first scrolls back to before the end.
+	let reading = performance.getEntriesByType?.('navigation')[0]?.type !== 'back_forward';
+	// The last activity that postpones the ready state (scroll, gesture, return to the page), and the
+	// fingers on the screen.
+	let lastMotion = 0;
+	let touches = 0;
+	// The last turn of the wheel, scroll key or finger moving up, and whether the page moved fast since
+	// the last rest.
+	let lastInput = 0;
+	let coasting = false;
+	// Whether the ring was full at the last frame, and whether the reader pushed on since then in the
+	// current movement: the last paragraph has been in view, so also the coast of that push opens the
+	// next article.
+	let ringFull = false;
+	let pushedOn = false;
+	// Where and when the page last scrolled, to measure the speed, and whether it moved down since the
+	// last frame.
 	let lastY = window.scrollY;
+	let lastScrollAt = performance.now();
+	let movedDown = false;
+	// Whether the current touch can steer the page (not an inner panel, not handled by the page), where
+	// the finger was at the last move, and where a touch that started while ready began (null when it
+	// did not): moving up from there opens the next article, so a tap never does.
+	let touchSteers = false;
+	let touchY = 0;
+	let touchStartY = null;
+	// Whether the current touch began with the ring full: only then is its push one that may coast on.
+	let touchFromFull = false;
+	let settleTimer = 0;
 	let swiped = false;
 	let frame = 0;
 	// The prefetch rule for the current next article; next can change after a bfcache restore.
@@ -243,15 +289,24 @@
 		}
 	}
 
-	// 0 at the start of the text, 1 once the end of the post is visible above the bar. The reading tips
-	// block does not count, so the wheel barely moves when it hides; looked up each time, as the reading
-	// tips script may remove it.
-	function progress() {
+	const clamp = (value) => Math.min(1, Math.max(0, value));
+
+	// The wheel in two phases, measured each time as the page may still change. Phase 1 (the ring) runs
+	// from the start of the text to the last paragraph: full once that is above the bar and its close
+	// tab. Phase 2 (the inside of the wheel) runs from there to the regional news block. A page that
+	// cannot scroll that far ends phase 2 at the bottom.
+	function phases() {
 		const { top } = article.getBoundingClientRect();
-		const tips = document.getElementById('zw-staart-top-posts-list');
-		const bottom = post.getBoundingClientRect().bottom - (tips ? tips.offsetHeight : 0);
-		const visibleBottom = window.innerHeight - bar.offsetHeight;
-		return Math.min(1, Math.max(0, (visibleBottom - top) / Math.max(1, bottom - top)));
+		const textEnd = (lastParagraph || article).getBoundingClientRect().bottom;
+		const phaseEnd = latest ? latest.getBoundingClientRect().top : post.getBoundingClientRect().bottom;
+		const visibleBottom = window.innerHeight - bar.offsetHeight - closeTab.offsetHeight;
+		const atBottom = window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 1;
+		const p1 = clamp((visibleBottom - top) / Math.max(1, textEnd - top));
+		let p2 = 0;
+		if (p1 >= 1) {
+			p2 = atBottom || phaseEnd <= textEnd ? 1 : clamp((visibleBottom - textEnd) / (phaseEnd - textEnd));
+		}
+		return { p1, p2 };
 	}
 
 	// Hides the bar for good on this page and brings the reading tips block back. A next article that
@@ -273,12 +328,16 @@
 	}
 
 	// Like swiping to the next video: the scroll-through is the switch. Count it, then load the next
-	// article as a regular page as soon as analytics answers (or after a timeout); the closed ring and
+	// article as a regular page as soon as analytics answers (or after a timeout); the full wheel and
 	// the label show it is on its way.
 	function openNext() {
+		if (dismissed || leaving || document.hidden) {
+			return;
+		}
 		leaving = true;
 		bar.classList.add('is-visible', 'is-loading');
 		ringFill.style.strokeDashoffset = '0';
+		bar.style.setProperty('--zw-staart-next-article-fill', '1');
 		setKicker(KICKER.loading);
 		const current = ++departure;
 		// Recorded only when the page really leaves, so a cancelled scroll-through leaves no departure.
@@ -295,15 +354,14 @@
 
 	function update() {
 		frame = 0;
-		const byScroll = scrolled && window.scrollY > lastY;
-		scrolled = false;
-		lastY = window.scrollY;
 		if (dismissed || leaving) {
 			return;
 		}
-		const value = progress();
+		const phase = phases();
+		const down = movedDown;
+		movedDown = false;
 
-		if (value >= SHOW_AT && window.scrollY >= HIDE_ABOVE_PX) {
+		if (phase.p1 >= SHOW_AT && window.scrollY >= HIDE_ABOVE_PX) {
 			if (!bar.classList.contains('is-visible')) {
 				bar.classList.add('is-visible');
 				if (!impressed) {
@@ -326,12 +384,34 @@
 			}
 		}
 
-		ringFill.style.strokeDashoffset = String(100 - value * 100);
-		// Only promise what scrolling does: unarmed, scrolling down does not open the next article.
-		setKicker(value >= ALMOST && armed ? KICKER.almost : KICKER.idle);
-		// Only open the next article while the bar is on screen, so a short article never jumps away unseen.
-		if (byScroll && value >= 1 && armed && bar.classList.contains('is-visible')) {
+		ringFill.style.strokeDashoffset = String(100 - phase.p1 * 100);
+		bar.style.setProperty('--zw-staart-next-article-fill', phase.p2.toFixed(3));
+
+		// Scrolling on into the full wheel opens the next article right away while the reader steers: a
+		// finger moving on the screen, or a turn of the wheel or a scroll key just now without a fast spin;
+		// and also the coast of a push that began once the ring was full. Only the coast of a fast flick
+		// that began in the text waits for the page to come to rest and a new gesture (see
+		// startGesture()). A scroll the reader did not make, also under a finger resting on the screen,
+		// never opens anything.
+		const phase2 = phase.p1 >= 1;
+		ringFull = phase2;
+		const steered = Date.now() - lastInput < STEER_MS && (touches > 0 || !coasting);
+		if (down && (steered || pushedOn) && atEnd(phase)) {
 			openNext();
+			return;
+		}
+
+		// Only promise what scrolling does: not while the gesture that reached the end still moves the page.
+		const ready = isReady(phase);
+		bar.classList.toggle('is-phase2', phase2);
+		bar.classList.toggle('is-ready', ready);
+		setKicker(ready ? KICKER.ready : phase2 ? KICKER.phase2 : KICKER.idle);
+		// Look again once the page has come to rest, also when nothing scrolls. While a finger is down,
+		// its touchend looks again.
+		window.clearTimeout(settleTimer);
+		const delay = lastMotion + SETTLE_MS - Date.now();
+		if (atEnd(phase) && touches === 0 && delay > 0) {
+			settleTimer = window.setTimeout(schedule, delay);
 		}
 	}
 
@@ -341,18 +421,53 @@
 		}
 	}
 
-	// Only a real scroll action by the reader, with the bar in view, may open the next article: a page
-	// that the back button restores at the bottom must not load it unseen. After one swipe past the end
-	// of a short article, the next touch iOS reports arms the bar.
-	function onInteract() {
-		if (armed) {
-			return;
+	// The end of phase 2 counts only while the bar is on screen, so a short article never jumps away
+	// unseen.
+	const atEnd = ({ p2 }) => p2 >= 1 && reading && !document.hidden && bar.classList.contains('is-visible');
+	const isReady = (phase) => touches === 0 && Date.now() - lastMotion >= SETTLE_MS && atEnd(phase);
+
+	// A swipe, wheel or scroll key by the reader. Before the last paragraph it marks this view as read.
+	// Returns whether it started at the end of phase 2 with the page at rest: then a gesture down is the
+	// deliberate scroll that opens the next article. It opens on the gesture itself, not on the scroll
+	// it causes, so it also works at the bottom of the page, where nothing scrolls any more, and a scroll
+	// the reader did not make never opens anything. Measured afresh, as the page may have changed since
+	// the last frame.
+	function startGesture() {
+		const phase = phases();
+		reading = reading || phase.p1 < 1;
+		const ready = isReady(phase);
+		// A gesture after a rest starts steered again.
+		if (Date.now() - lastMotion >= SETTLE_MS) {
+			coasting = false;
+			pushedOn = false;
 		}
-		reading = reading || progress() < 1;
-		if (reading && bar.classList.contains('is-visible')) {
-			armed = true;
-			schedule(); // The label may now promise the next article.
+		lastMotion = Date.now();
+		schedule();
+		return ready;
+	}
+
+	// Keys typed into a field or pressed on a button do not scroll the page.
+	const isFieldKey = (event) => event.target.closest?.('input, textarea, select, button, [contenteditable]');
+
+	// A gesture the page handles itself, or one that scrolls a panel inside the page further down (an
+	// embed, a wide table), does not scroll the page.
+	function scrollsPage(event) {
+		if (event.defaultPrevented) {
+			return false;
 		}
+		for (let el = event.target; el instanceof Element && el !== document.body; el = el.parentElement) {
+			const { overflowY } = getComputedStyle(el);
+			if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollTop + el.clientHeight < el.scrollHeight - 1) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	function onTouchEnd(event) {
+		touches = event.touches.length;
+		lastMotion = Date.now();
+		schedule();
 	}
 
 	link.addEventListener('click', (event) => {
@@ -365,14 +480,15 @@
 			markLeave('geklikt');
 		}
 	});
-	bar.querySelector('.zw-staart-next-article-close').addEventListener('click', () => dismiss('gesloten'));
+	closeTab.addEventListener('click', () => dismiss('gesloten'));
 
 	// Mobile: swiping the bar down closes it, like a notification. A short swipe springs back.
 	let startY = null;
 	let distance = 0;
 	bar.addEventListener('pointerdown', (event) => {
 		swiped = false;
-		if (event.pointerType === 'touch') {
+		// A tap on the close button must close, not start a swipe that swallows the click.
+		if (event.pointerType === 'touch' && !closeTab.contains(event.target)) {
 			startY = event.clientY;
 			distance = 0;
 		}
@@ -409,13 +525,118 @@
 	window.addEventListener(
 		'scroll',
 		() => {
-			scrolled = true;
+			// The speed since the last scroll, over at most 100 ms: one turn of the wheel without smooth
+			// scrolling counts as steered, a jump of a page or the coast after a flick as fast. Measured
+			// precisely, as screens at 120 Hz scroll every 8 ms.
+			const now = performance.now();
+			const speed = (window.scrollY - lastY) / Math.min(100, Math.max(4, now - lastScrollAt));
+			coasting = coasting || speed >= FAST_PX_PER_MS;
+			movedDown = movedDown || window.scrollY > lastY;
+			lastY = window.scrollY;
+			lastScrollAt = now;
+			// A scroll after a rest that no gesture started is not the reader pushing on.
+			if (Date.now() - lastMotion >= SETTLE_MS) {
+				pushedOn = false;
+			}
+			lastMotion = Date.now();
 			schedule();
 		},
 		{ passive: true }
 	);
 	window.addEventListener('resize', schedule);
-	['wheel', 'keydown', 'pointerdown'].forEach((type) => window.addEventListener(type, onInteract, { passive: true }));
+	window.addEventListener(
+		'touchstart',
+		(event) => {
+			const ready = startGesture();
+			// The bar does not scroll the page (touch-action: none): a touch on it neither steers nor
+			// opens; its own handlers open or close it. A new touch steers only once it moves itself, and a
+			// second finger pinches.
+			touchSteers = scrollsPage(event) && !(event.target instanceof Node && bar.contains(event.target));
+			lastInput = 0;
+			if (event.touches.length > 1) {
+				pushedOn = false;
+			}
+			touchY = event.touches[0].clientY;
+			touchStartY = ready && touchSteers ? touchY : null;
+			touchFromFull = ringFull;
+			touches = event.touches.length;
+		},
+		{ passive: true }
+	);
+	window.addEventListener(
+		'touchmove',
+		(event) => {
+			// A move the page handles itself does not scroll the page.
+			if (event.defaultPrevented) {
+				touchSteers = false;
+				touchStartY = null;
+			}
+			// One finger moving up scrolls the page down: the reader steers. Two fingers pinch.
+			const y = event.touches[0].clientY;
+			const oneFinger = event.touches.length === 1;
+			if (oneFinger && touchSteers && y < touchY) {
+				lastInput = Date.now();
+				pushedOn = pushedOn || touchFromFull;
+			}
+			touchY = y;
+			if (oneFinger && touchStartY !== null && y < touchStartY - SWIPE_START_PX) {
+				touchStartY = null;
+				openNext();
+			}
+		},
+		{ passive: true }
+	);
+	window.addEventListener('touchend', onTouchEnd, { passive: true });
+	// A touch the browser or the page cancels loses its steering, also for the coast after it.
+	window.addEventListener(
+		'touchcancel',
+		(event) => {
+			lastInput = 0;
+			pushedOn = false;
+			onTouchEnd(event);
+		},
+		{ passive: true }
+	);
+	// Only a turn down that scrolls the page steers; a pinch on a trackpad arrives as a wheel with Ctrl
+	// and zooms instead.
+	window.addEventListener(
+		'wheel',
+		(event) => {
+			// A trackpad keeps sending wheel events while the page coasts: only a turn after a rest starts
+			// a new push.
+			const isNew = Date.now() - lastMotion >= SETTLE_MS;
+			const ready = startGesture();
+			if (event.deltaY > 0 && !event.ctrlKey && scrollsPage(event)) {
+				lastInput = Date.now();
+				pushedOn = pushedOn || (isNew && ringFull);
+				if (ready) {
+					openNext();
+				}
+			}
+		},
+		{ passive: true }
+	);
+	// Shift+Space scrolls up. A held key repeats and steers, but it is still the press that started
+	// before the end was ready.
+	window.addEventListener('keydown', (event) => {
+		if (!SCROLL_KEYS.has(event.key) || (event.key === ' ' && event.shiftKey) || isFieldKey(event)) {
+			return;
+		}
+		const ready = !event.repeat && startGesture();
+		if (scrollsPage(event)) {
+			lastInput = Date.now();
+			// A key held since before the ring filled is not a new push.
+			pushedOn = pushedOn || (!event.repeat && ringFull);
+			if (ready) {
+				openNext();
+			}
+		}
+	});
+	// Back in a hidden tab, the page first comes to rest again.
+	document.addEventListener('visibilitychange', () => {
+		lastMotion = Date.now();
+		schedule();
+	});
 	// Back via the bfcache: the page is restored as it was left, loading state included. Reset it and
 	// re-check the cookie and session, as the visitor may have read the tip or closed the bar since.
 	window.addEventListener('pageshow', (event) => {
@@ -428,8 +649,17 @@
 		}
 		leaving = false;
 		bar.classList.remove('is-loading');
-		armed = false;
 		reading = false;
+		lastMotion = Date.now();
+		touches = 0;
+		touchStartY = null;
+		touchFromFull = false;
+		lastInput = 0;
+		coasting = false;
+		pushedOn = false;
+		movedDown = false;
+		lastY = window.scrollY;
+		lastScrollAt = performance.now();
 		next = pickNext();
 		if (!next || isDismissed()) {
 			deactivate();
