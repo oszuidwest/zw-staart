@@ -1,7 +1,7 @@
 ## [0.5.3] - 2026-10-26
 ### Veranderd
 - Het wiel loopt in twee fases vol. De ring is vol bij de laatste alinea van de tekst; daarna vult de binnenkant van het wiel zich met groen tot het blok "Laatste nieuws uit ..." onder het artikel. Het label zegt dan "Volgend artikel".
-- Doorscrollen opent het volgende artikel zodra het wiel helemaal groen is, als de lezer rustig doorscrollt (vinger op het scherm, scrollwiel of pijltoetsen). De naloop van een snelle veeg opent niets: dan wacht de balk tot de pagina stilstaat, wordt de pijl donker en wipt hij omlaag, en zegt het label "Scroll opnieuw om te openen"; de volgende veeg opent het artikel.
+- Doorscrollen opent het volgende artikel zodra het wiel helemaal groen is, als de lezer rustig doorscrollt (vinger op het scherm, scrollwiel of pijltoetsen) of de veeg begon toen de ring al vol was. Alleen de naloop van een snelle veeg die nog in de tekst begon, opent niets: dan wacht de balk tot de pagina stilstaat, wordt de pijl donker en wipt hij omlaag, en zegt het label "Scroll om te openen"; de volgende veeg opent het artikel.
 - De sluitknop is nu ook op mobiel zichtbaar: een kruisje op een lipje rechtsboven de balk, met een tikvlak van 44 bij 44 px. Vegen om te sluiten blijft werken.
 - Na stilstand opent de nieuwe beweging omlaag zelf het artikel, niet het scrollen dat erop volgt. Zo werkt het ook helemaal onderaan de pagina, waar niets meer scrolt. Scrollen dat de lezer niet zelf doet, zoals verspringende inhoud, opent nooit iets; knijpen om te zoomen en scrollen in een blok binnen de pagina ook niet.
 

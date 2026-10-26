@@ -36,7 +36,7 @@
 	const KICKER = {
 		idle: 'Lees ook',
 		phase2: 'Volgend artikel',
-		ready: 'Scroll opnieuw om te openen',
+		ready: 'Scroll om te openen',
 		loading: 'Volgende artikel laden\u2026', // Ellipsis escaped: the file stays ASCII, whatever charset the server sends.
 	};
 
@@ -242,6 +242,11 @@
 	// the last rest.
 	let lastInput = 0;
 	let coasting = false;
+	// Whether the ring was full at the last frame, and whether the reader pushed on since then in the
+	// current movement: the last paragraph has been in view, so also the coast of that push opens the
+	// next article.
+	let ringFull = false;
+	let pushedOn = false;
 	// Where and when the page last scrolled, to measure the speed, and whether it moved down since the
 	// last frame.
 	let lastY = window.scrollY;
@@ -381,19 +386,21 @@
 		bar.style.setProperty('--zw-staart-next-article-fill', phase.p2.toFixed(3));
 
 		// Scrolling on into the full wheel opens the next article right away while the reader steers: a
-		// finger moving on the screen, or a turn of the wheel or a scroll key just now without a fast spin.
-		// The coast after a fast flick does not; it waits for the page to come to rest and a new gesture
-		// (see startGesture()). A scroll the reader did not make, also under a finger resting on the
-		// screen, never opens anything.
+		// finger moving on the screen, or a turn of the wheel or a scroll key just now without a fast spin;
+		// and also the coast of a push that began once the ring was full. Only the coast of a fast flick
+		// that began in the text waits for the page to come to rest and a new gesture (see
+		// startGesture()). A scroll the reader did not make, also under a finger resting on the screen,
+		// never opens anything.
+		const phase2 = phase.p1 >= 1;
+		ringFull = phase2;
 		const steered = Date.now() - lastInput < STEER_MS && (touches > 0 || !coasting);
-		if (down && steered && atEnd(phase)) {
+		if (down && (steered || pushedOn) && atEnd(phase)) {
 			openNext();
 			return;
 		}
 
 		// Only promise what scrolling does: not while the gesture that reached the end still moves the page.
 		const ready = isReady(phase);
-		const phase2 = phase.p1 >= 1;
 		bar.classList.toggle('is-phase2', phase2);
 		bar.classList.toggle('is-ready', ready);
 		setKicker(ready ? KICKER.ready : phase2 ? KICKER.phase2 : KICKER.idle);
@@ -430,6 +437,7 @@
 		// A gesture after a rest starts steered again.
 		if (Date.now() - lastMotion >= SETTLE_MS) {
 			coasting = false;
+			pushedOn = false;
 		}
 		lastMotion = Date.now();
 		schedule();
@@ -524,6 +532,10 @@
 			movedDown = movedDown || window.scrollY > lastY;
 			lastY = window.scrollY;
 			lastScrollAt = now;
+			// A scroll after a rest that no gesture started is not the reader pushing on.
+			if (Date.now() - lastMotion >= SETTLE_MS) {
+				pushedOn = false;
+			}
 			lastMotion = Date.now();
 			schedule();
 		},
@@ -549,6 +561,7 @@
 			const oneFinger = event.touches.length === 1;
 			if (oneFinger && touchSteers && y < touchY) {
 				lastInput = Date.now();
+				pushedOn = pushedOn || ringFull;
 			}
 			touchY = y;
 			if (oneFinger && touchStartY !== null && y < touchStartY - SWIPE_START_PX) {
@@ -565,9 +578,13 @@
 	window.addEventListener(
 		'wheel',
 		(event) => {
+			// A trackpad keeps sending wheel events while the page coasts: only a turn after a rest starts
+			// a new push.
+			const isNew = Date.now() - lastMotion >= SETTLE_MS;
 			const ready = startGesture();
 			if (event.deltaY > 0 && !event.ctrlKey && scrollsPage(event)) {
 				lastInput = Date.now();
+				pushedOn = pushedOn || (isNew && ringFull);
 				if (ready) {
 					openNext();
 				}
@@ -584,6 +601,7 @@
 		const ready = !event.repeat && startGesture();
 		if (scrollsPage(event)) {
 			lastInput = Date.now();
+			pushedOn = pushedOn || ringFull;
 			if (ready) {
 				openNext();
 			}
@@ -612,6 +630,7 @@
 		touchStartY = null;
 		lastInput = 0;
 		coasting = false;
+		pushedOn = false;
 		movedDown = false;
 		lastY = window.scrollY;
 		lastScrollAt = performance.now();
