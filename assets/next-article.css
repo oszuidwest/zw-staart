@@ -9,7 +9,6 @@
 	--zw-staart-next-article-surface: var(--color-gray-800, #1e2939);
 	--zw-staart-next-article-edge: var(--color-gray-900, #101828);
 	--zw-staart-next-article-muted: var(--color-gray-400, #99a1af);
-	--zw-staart-next-article-quiet: var(--color-gray-500, #6a7282);
 	--zw-staart-next-article-track: var(--color-gray-700, #364153);
 	--zw-staart-next-article-green: #00de01;
 	--zw-staart-next-article-blue: #009fe3;
@@ -35,7 +34,6 @@
 .dark .zw-staart-next-article {
 	--zw-staart-next-article-surface: var(--color-gray-700, #364153);
 	--zw-staart-next-article-muted: var(--color-gray-300, #d1d5dc);
-	--zw-staart-next-article-quiet: var(--color-gray-400, #99a1af);
 	--zw-staart-next-article-edge: var(--color-gray-600, #4a5565);
 	--zw-staart-next-article-track: var(--color-gray-600, #4a5565);
 }
@@ -131,24 +129,28 @@
 }
 
 /**
- * Close button on desktop: a small cross next to the wheel, hovering like
- * the theme header buttons.
+ * Close button: the cross with a label, so readers see they can stop.
+ * Flat with rounded-sm corners, hovering like the theme header buttons;
+ * at least 44px high, a comfortable tap target.
  */
 .zw-staart-next-article .zw-staart-next-article-close {
+	display: flex;
 	flex: none;
+	align-items: center;
+	gap: 2px;
+	min-width: 44px;
+	min-height: 44px;
 	margin-left: 4px;
-	padding: 6px;
+	padding: 0 8px 0 6px;
 	border: 0;
 	border-radius: 0.25rem;
 	background: none;
-	color: var(--zw-staart-next-article-quiet);
+	color: var(--zw-staart-next-article-muted);
+	font: 700 12px/1.3333 Nunito, sans-serif;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
 	cursor: pointer;
 	transition: background-color 0.15s, color 0.15s;
-}
-
-.zw-staart-next-article .zw-staart-next-article-close svg {
-	width: 16px;
-	height: 16px;
 }
 
 .zw-staart-next-article .zw-staart-next-article-close:hover {
@@ -232,27 +234,12 @@
 		margin-left: 4px;
 	}
 
-	/**
-	 * On mobile the bar is closed by swiping it down. The button stays
-	 * available for keyboard and screen reader users, but only becomes
-	 * visible when it receives focus.
-	 */
-	.zw-staart-next-article .zw-staart-next-article-close:not(:focus-visible) {
-		position: absolute;
-		overflow: hidden;
-		width: 1px;
-		height: 1px;
-		margin: -1px;
-		padding: 0;
-		white-space: nowrap;
-		clip-path: inset(50%);
-	}
-
-	.zw-staart-next-article .zw-staart-next-article-close:focus-visible {
-		position: absolute;
-		top: 4px;
-		right: 4px;
-		background: var(--zw-staart-next-article-surface);
+	.zw-staart-next-article .zw-staart-next-article-close {
+		flex-direction: column;
+		gap: 0;
+		margin-left: 0;
+		padding: 2px 4px;
+		font-size: 10px;
 	}
 }
 

@@ -1,3 +1,11 @@
+## [0.5.3] - 2026-10-26
+### Veranderd
+- Doorscrollen opent het volgende artikel pas als het einde van het artikel 2 seconden in beeld is en de lezer daarna opnieuw omlaag scrolt. De naloop van een veeg opent niets meer, zodat de laatste alinea leesbaar blijft. Het label zegt dan "Scroll opnieuw om te openen".
+- De sluitknop is nu ook op mobiel zichtbaar, groter en met het woord "Sluiten". Vegen om te sluiten blijft werken.
+
+### Opgelost
+- Doorscrollen werkt weer bij artikelen die in één scherm passen.
+
 ## [0.5.2] - 2026-10-24
 ### Veranderd
 - Doorscrollen opent het volgende artikel pas na de deelknoppen onder het artikel, niet meer direct na de tekst. Het wiel loopt tot daar vol.

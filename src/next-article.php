@@ -3,8 +3,9 @@
  * Next article bar for ZuidWest Staart plugin
  *
  * Shows a floating bar with the next reading tip. Its wheel fills while the
- * visitor reads. Scrolling through the end of the article, past the share
- * buttons, opens the next article as a regular page load.
+ * visitor reads. Once the end of the article, past the share buttons, has
+ * been in view for a moment, scrolling on opens the next article as a
+ * regular page load.
  *
  * @package ZuidWest_Staart
  * @since 0.5.0

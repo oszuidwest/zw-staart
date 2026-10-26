@@ -12,10 +12,11 @@ Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hierond
 - Na ongeveer een derde van het artikel schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
 - Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
 - Zodra de balk verschijnt, vraagt hij een prefetch van het volgende artikel aan, waar de browser dat ondersteunt. Die draait geen scripts, dus telt niet als paginaweergave of gelezen artikel
-- Het wiel in de balk loopt vol tijdens het lezen en is vol zodra de deelknoppen onder het artikel boven de balk zichtbaar zijn; wie doorscrolt, gaat naar het volgende artikel (een gewone paginalading)
+- Het wiel in de balk loopt vol tijdens het lezen en is vol zodra de deelknoppen onder het artikel boven de balk zichtbaar zijn
+- Pas als het einde van het artikel 2 seconden in beeld is en de pagina stilstaat, verandert het label in "Scroll opnieuw om te openen". Een nieuwe veeg, scrollbeweging of scrolltoets omlaag opent dan het volgende artikel (een gewone paginalading). De naloop van de veeg waarmee je het einde bereikt, opent dus nooit iets, zodat je de laatste alinea rustig kunt lezen
 - Een pagina die via de terugknop onderaan wordt hersteld, laadt niet vanzelf opnieuw door; daarvoor moet de lezer eerst terug omhoog scrollen, tot vóór het einde van het artikel
-- Na één veeg voorbij het einde van een kort artikel opent de volgende veeg omlaag het volgende artikel; omhoog scrollen nooit
-- Op mobiel sluit je de balk door hem omlaag te vegen, op desktop met het kruisje; daarna blijft hij de rest van de sessie weg
+- Omhoog scrollen opent het volgende artikel nooit; klikken op de balk werkt altijd meteen
+- De balk sluit je met de knop **Sluiten** (kruisje), op mobiel ook door hem omlaag te vegen; daarna blijft hij de rest van de sessie weg
 - Zolang de balk actief is, wordt het leestipsblok onder het artikel verborgen; na sluiten komt het terug (als er minstens 5 ongelezen leestips zijn, zoals altijd)
 
 ## Installatie

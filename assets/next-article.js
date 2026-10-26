@@ -15,8 +15,14 @@
 	const VISITED_COOKIE = 'zw_staart_visited_posts=';
 	const EVENT_NAME = 'Recirculatie Scroll';
 	const SHOW_AT = 0.35;
-	const ALMOST = 0.9;
 	const HIDE_ABOVE_PX = 200;
+	// The end of the post stays in view this long before scrolling on can open the next article, so the
+	// reader has time for the last paragraph.
+	const DWELL_MS = 2000;
+	// A gesture is over once the page has not moved this long and no finger touches the screen.
+	const SETTLE_MS = 300;
+	// Keys that scroll the page down; only these can start a scroll-through by keyboard.
+	const SCROLL_KEYS = new Set(['ArrowDown', 'PageDown', 'End', ' ']);
 	// Leave this long after the scroll-through at the latest, also when analytics does not answer.
 	const NAVIGATE_TIMEOUT_MS = 1500;
 	const SWIPE_START_PX = 6;
@@ -27,7 +33,7 @@
 	const QUICK_RETURN_MS = 15000;
 	const KICKER = {
 		idle: 'Lees ook',
-		almost: 'Blijf scrollen om te openen',
+		ready: 'Scroll opnieuw om te openen',
 		loading: 'Volgende artikel laden\u2026', // Ellipsis escaped: the file stays ASCII, whatever charset the server sends.
 	};
 
@@ -187,7 +193,7 @@
 					<svg class="zw-staart-next-article-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6.41 16.59 5 12 9.58 7.41 5 6 6.41l6 6z"/><path d="m18 13-1.41-1.41L12 16.17l-4.59-4.58L6 13l6 6z"/></svg>
 				</span>
 			</a>
-			<button class="zw-staart-next-article-close" type="button" aria-label="Stop met doorladen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+			<button class="zw-staart-next-article-close" type="button" aria-label="Stop met doorladen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg><span aria-hidden="true">Sluiten</span></button>
 		</div>`;
 	const link = bar.querySelector('.zw-staart-next-article-link');
 	if (variant) {
@@ -209,9 +215,18 @@
 
 	let dismissed = false;
 	let impressed = false;
-	let armed = false;
-	// Set by any interaction before the end of the post on this view, so not by a restore at the bottom.
-	let reading = false;
+	// Whether this view may scroll through. A page the back button restores starts without it, so it
+	// does not load the next article unseen; the reader then first scrolls back to before the end.
+	let reading = performance.getEntriesByType?.('navigation')[0]?.type !== 'back_forward';
+	// When the end of the post came into view, or 0 while it is not in view.
+	let endSince = 0;
+	// The last scroll or wheel movement, and the fingers on the screen.
+	let lastMotion = 0;
+	let touches = 0;
+	// Set when a gesture starts while scrolling through is ready, and cleared once that gesture is over:
+	// only that gesture may open the next article, not the momentum of the one that reached the end.
+	let intent = false;
+	let settleTimer = 0;
 	// Only a scroll down opens the next article, not a resize, the first draw or a scroll back up.
 	let scrolled = false;
 	let lastY = window.scrollY;
@@ -259,6 +274,7 @@
 	function deactivate() {
 		dismissed = true;
 		departure++;
+		window.clearTimeout(settleTimer);
 		bar.classList.remove('is-visible');
 		document.documentElement.classList.remove(ACTIVE_CLASS);
 		prefetchRule?.remove();
@@ -327,11 +343,29 @@
 		}
 
 		ringFill.style.strokeDashoffset = String(100 - value * 100);
-		// Only promise what scrolling does: unarmed, scrolling down does not open the next article.
-		setKicker(value >= ALMOST && armed ? KICKER.almost : KICKER.idle);
-		// Only open the next article while the bar is on screen, so a short article never jumps away unseen.
-		if (byScroll && value >= 1 && armed && bar.classList.contains('is-visible')) {
+
+		// The end counts only while the bar is on screen, so a short article never jumps away unseen.
+		const now = Date.now();
+		if (value < 1 || !reading || !bar.classList.contains('is-visible')) {
+			endSince = 0;
+			intent = false;
+		} else if (!endSince) {
+			endSince = now;
+		}
+		if (touches === 0 && now - lastMotion >= SETTLE_MS) {
+			intent = false;
+		}
+		// Only promise what scrolling does: not while the gesture that reached the end still moves the page.
+		setKicker(intent || isReady() ? KICKER.ready : KICKER.idle);
+		if (byScroll && intent) {
 			openNext();
+			return;
+		}
+		// Look again once the dwell is over or the current gesture settles, also when nothing scrolls.
+		window.clearTimeout(settleTimer);
+		const due = [endSince + DWELL_MS, lastMotion + SETTLE_MS].filter((at) => at > now);
+		if (endSince && due.length) {
+			settleTimer = window.setTimeout(schedule, Math.min(...due) - now);
 		}
 	}
 
@@ -341,18 +375,22 @@
 		}
 	}
 
-	// Only a real scroll action by the reader, with the bar in view, may open the next article: a page
-	// that the back button restores at the bottom must not load it unseen. After one swipe past the end
-	// of a short article, the next touch iOS reports arms the bar.
-	function onInteract() {
-		if (armed) {
-			return;
-		}
+	const isReady = () => endSince > 0 && Date.now() - endSince >= DWELL_MS && Date.now() - lastMotion >= SETTLE_MS && touches === 0;
+
+	// A swipe, wheel or scroll key by the reader. Before the end of the post it marks this view as read;
+	// started once the end has been in view long enough and the page has come to rest, it is the
+	// deliberate scroll that may open the next article.
+	function onGesture() {
 		reading = reading || progress() < 1;
-		if (reading && bar.classList.contains('is-visible')) {
-			armed = true;
-			schedule(); // The label may now promise the next article.
-		}
+		intent = intent || isReady();
+		lastMotion = Date.now();
+		schedule();
+	}
+
+	function onTouchEnd(event) {
+		touches = event.touches.length;
+		lastMotion = Date.now();
+		schedule();
 	}
 
 	link.addEventListener('click', (event) => {
@@ -372,7 +410,8 @@
 	let distance = 0;
 	bar.addEventListener('pointerdown', (event) => {
 		swiped = false;
-		if (event.pointerType === 'touch') {
+		// A tap on the close button must close, not start a swipe that swallows the click.
+		if (event.pointerType === 'touch' && !event.target.closest('.zw-staart-next-article-close')) {
 			startY = event.clientY;
 			distance = 0;
 		}
@@ -410,12 +449,31 @@
 		'scroll',
 		() => {
 			scrolled = true;
+			lastMotion = Date.now();
 			schedule();
 		},
 		{ passive: true }
 	);
 	window.addEventListener('resize', schedule);
-	['wheel', 'keydown', 'pointerdown'].forEach((type) => window.addEventListener(type, onInteract, { passive: true }));
+	window.addEventListener(
+		'touchstart',
+		(event) => {
+			onGesture();
+			touches = event.touches.length;
+		},
+		{ passive: true }
+	);
+	window.addEventListener('touchend', onTouchEnd, { passive: true });
+	window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+	window.addEventListener('wheel', onGesture, { passive: true });
+	// A held key repeats, but it is still the press that started before the end was ready.
+	window.addEventListener('keydown', (event) => !event.repeat && SCROLL_KEYS.has(event.key) && onGesture());
+	// A hidden tab is not reading: the end has to be in view for the whole dwell again.
+	document.addEventListener('visibilitychange', () => {
+		endSince = 0;
+		intent = false;
+		schedule();
+	});
 	// Back via the bfcache: the page is restored as it was left, loading state included. Reset it and
 	// re-check the cookie and session, as the visitor may have read the tip or closed the bar since.
 	window.addEventListener('pageshow', (event) => {
@@ -428,8 +486,12 @@
 		}
 		leaving = false;
 		bar.classList.remove('is-loading');
-		armed = false;
 		reading = false;
+		endSince = 0;
+		intent = false;
+		touches = 0;
+		scrolled = false;
+		lastY = window.scrollY;
 		next = pickNext();
 		if (!next || isDismissed()) {
 			deactivate();
