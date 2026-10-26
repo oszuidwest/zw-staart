@@ -546,7 +546,14 @@
 		'touchstart',
 		(event) => {
 			const ready = startGesture();
-			touchSteers = scrollsPage(event);
+			// The bar does not scroll the page (touch-action: none): a touch on it neither steers nor
+			// opens; its own handlers open or close it. A new touch steers only once it moves itself, and a
+			// second finger pinches.
+			touchSteers = scrollsPage(event) && !bar.contains(event.target);
+			lastInput = 0;
+			if (event.touches.length > 1) {
+				pushedOn = false;
+			}
 			touchY = event.touches[0].clientY;
 			touchStartY = ready && touchSteers ? touchY : null;
 			touches = event.touches.length;
@@ -556,6 +563,11 @@
 	window.addEventListener(
 		'touchmove',
 		(event) => {
+			// A move the page handles itself does not scroll the page.
+			if (event.defaultPrevented) {
+				touchSteers = false;
+				touchStartY = null;
+			}
 			// One finger moving up scrolls the page down: the reader steers. Two fingers pinch.
 			const y = event.touches[0].clientY;
 			const oneFinger = event.touches.length === 1;
@@ -572,7 +584,16 @@
 		{ passive: true }
 	);
 	window.addEventListener('touchend', onTouchEnd, { passive: true });
-	window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+	// A touch the browser or the page cancels loses its steering, also for the coast after it.
+	window.addEventListener(
+		'touchcancel',
+		(event) => {
+			lastInput = 0;
+			pushedOn = false;
+			onTouchEnd(event);
+		},
+		{ passive: true }
+	);
 	// Only a turn down that scrolls the page steers; a pinch on a trackpad arrives as a wheel with Ctrl
 	// and zooms instead.
 	window.addEventListener(
@@ -601,7 +622,8 @@
 		const ready = !event.repeat && startGesture();
 		if (scrollsPage(event)) {
 			lastInput = Date.now();
-			pushedOn = pushedOn || ringFull;
+			// A key held since before the ring filled is not a new push.
+			pushedOn = pushedOn || (!event.repeat && ringFull);
 			if (ready) {
 				openNext();
 			}
