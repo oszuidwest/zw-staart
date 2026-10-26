@@ -21,7 +21,6 @@
 	// End and modified keys jump to the footer or select text, so they never open.
 	const SCROLL_KEYS = new Set(['ArrowDown', 'PageDown', ' ']);
 	const SWIPE_START_PX = 6;
-	const SWIPE_CLOSE_PX = 60;
 	const VARIANT_KEY = 'zw_staart_ab_variant';
 	const RETURN_KEY = 'zw_staart_ab_return';
 	const QUICK_RETURN_MS = 15000;
@@ -232,7 +231,6 @@
 	let swipeY = 0;
 	let touchFromFull = false;
 	let settleTimer = 0;
-	let swiped = false;
 	let frame = 0;
 	let prefetchRule = null;
 	let leaving = false;
@@ -430,54 +428,15 @@
 	}
 
 	link.addEventListener('click', (event) => {
-		// Suppress the click synthesized after a swipe, including its analytics event.
-		if (swiped) {
+		// A tap that slipped into a scroll-through already navigates; skip its analytics event.
+		if (leaving) {
 			event.preventDefault();
 			event.stopPropagation();
-			swiped = false;
 		} else if (isPlainClick(event)) {
 			markLeave('geklikt');
 		}
 	});
 	closeTab.addEventListener('click', () => dismiss('gesloten'));
-
-	let startY = null;
-	let distance = 0;
-	bar.addEventListener('pointerdown', (event) => {
-		swiped = false;
-		if (event.pointerType === 'touch' && !closeTab.contains(event.target)) {
-			startY = event.clientY;
-			distance = 0;
-		}
-	});
-	bar.addEventListener('pointermove', (event) => {
-		if (startY === null) {
-			return;
-		}
-		distance = Math.max(0, event.clientY - startY);
-		if (distance > SWIPE_START_PX && !bar.classList.contains('is-dragging')) {
-			// Capture only after a swipe starts, preserving ordinary link taps.
-			bar.setPointerCapture(event.pointerId);
-			bar.classList.add('is-dragging');
-		}
-		if (bar.classList.contains('is-dragging')) {
-			bar.style.transform = `translateY(${distance}px)`;
-		}
-	});
-	const release = () => {
-		if (startY === null) {
-			return;
-		}
-		startY = null;
-		swiped = bar.classList.contains('is-dragging');
-		bar.classList.remove('is-dragging');
-		bar.style.transform = '';
-		if (distance > Math.min(SWIPE_CLOSE_PX, bar.offsetHeight / 2)) {
-			dismiss('weggeveegd');
-		}
-	};
-	bar.addEventListener('pointerup', release);
-	bar.addEventListener('pointercancel', release);
 
 	window.addEventListener(
 		'scroll',
@@ -503,10 +462,11 @@
 		'touchstart',
 		(event) => {
 			const ready = startGesture();
-			// The bar handles its own touches; only a moving finger outside it may steer.
-			touchSteers = scrollsPage(event) && !(event.target instanceof Node && bar.contains(event.target));
+			// A slipping tap on the close tab must not open the next article.
+			const onClose = event.target instanceof Node && closeTab.contains(event.target);
+			touchSteers = scrollsPage(event) && !onClose;
 			lastInput = 0;
-			if (event.touches.length > 1) {
+			if (event.touches.length > 1 || onClose) {
 				pushedOn = false;
 			}
 			touchX = event.touches[0].clientX;

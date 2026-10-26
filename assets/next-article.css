@@ -16,7 +16,6 @@
 	font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
 	visibility: hidden;
 	transform: translateY(100%);
-	touch-action: none;
 	transition: transform 0.25s ease-out, visibility 0s 0.25s;
 }
 
@@ -36,10 +35,6 @@
 	visibility: visible;
 	transform: none;
 	transition: transform 0.25s ease-out, visibility 0s;
-}
-
-.zw-staart-next-article.is-dragging {
-	transition: none;
 }
 
 .zw-staart-next-article .zw-staart-next-article-inner {
