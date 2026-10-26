@@ -171,7 +171,8 @@
 	const lastParagraph = [...article.querySelectorAll('p')]
 		.reverse()
 		.find((p) => !p.closest('aside, figure, .not-prose, [hidden]') && p.textContent.trim() && p.offsetHeight > 0);
-	// End phase 2 at regional news, falling back to the post end.
+	// End phase 2 halfway through regional news, falling back to the post end.
+	// The block starts right below the share buttons, so its top would end phase 2 there.
 	const isLatest = (el) => el.matches('aside') && /^laatste\s+nieuws\s+uit\b/i.test(el.querySelector('h2')?.textContent.trim() ?? '');
 	let latest = post.nextElementSibling;
 	while (latest && !isLatest(latest)) {
@@ -265,11 +266,12 @@
 
 	const clamp = (value) => Math.min(1, Math.max(0, value));
 
-	// Recompute for layout shifts: ring to last paragraph, disc to regional news or page bottom.
+	// Recompute for layout shifts: ring to last paragraph, disc to the middle of regional news or page bottom.
 	function phases() {
 		const { top } = article.getBoundingClientRect();
 		const textEnd = (lastParagraph || article).getBoundingClientRect().bottom;
-		const phaseEnd = latest ? latest.getBoundingClientRect().top : post.getBoundingClientRect().bottom;
+		const end = (latest || post).getBoundingClientRect();
+		const phaseEnd = latest ? (end.top + end.bottom) / 2 : end.bottom;
 		const visibleBottom = window.innerHeight - bar.offsetHeight - closeTab.offsetHeight;
 		const atBottom = window.scrollY >= document.documentElement.scrollHeight - window.innerHeight - 1;
 		const p1 = clamp((visibleBottom - top) / Math.max(1, textEnd - top));

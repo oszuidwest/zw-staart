@@ -1,3 +1,7 @@
+## [0.5.5] - 2026-10-26
+### Opgelost
+- Het wiel was al vol bij de deelknoppen, omdat het blok "Laatste nieuws uit ..." daar direct onder begint. Het is nu pas vol als de helft van dat blok boven de balk staat.
+
 ## [0.5.4] - 2026-10-26
 ### Veranderd
 - Nieuwe cacheversie voor CSS en JavaScript.
