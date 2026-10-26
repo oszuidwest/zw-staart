@@ -1,6 +1,6 @@
 <?php
 /**
- * Front-end functionality for ZuidWest Staart plugin.
+ * Reading tips rendering and eligibility.
  *
  * @package ZuidWest_Staart
  */
@@ -8,9 +8,9 @@
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 /**
- * Retrieves top posts from the WordPress options table.
+ * Returns cached popular articles.
  *
- * @return array An array of top posts or an empty array if not set.
+ * @return array Articles, or an empty array if unset.
  */
 function zw_staart_fetch_top_posts() {
 	return (array) get_option( 'zw_staart_top_posts', array() );
@@ -21,7 +21,7 @@ function zw_staart_fetch_top_posts() {
  *
  * @since 0.5.0
  *
- * @param int $exclude_id Post ID to leave out, usually the post being displayed.
+ * @param int $exclude_id Post ID to omit.
  * @return int[] Post IDs.
  */
 function zw_staart_top_post_ids( $exclude_id ) {
@@ -47,9 +47,9 @@ function zw_staart_is_eligible_post( $post_id ) {
 }
 
 /**
- * Generates the HTML markup for displaying the top posts list.
+ * Renders reading tips for browser filtering.
  *
- * @return string The HTML output for the top posts list.
+ * @return string Markup, or an empty string if no candidates remain.
  */
 function zw_staart_top_posts_list() {
 	$heading = zw_staart_get_setting( 'top_posts', 'heading', ZW_STAART_DEFAULT_HEADING );
@@ -134,7 +134,7 @@ function zw_staart_top_posts_list() {
  * Appends cacheable reading tips; the browser filters visited posts.
  *
  * @param string $content The post content.
- * @return string Modified content with the reading tips block appended.
+ * @return string Content with reading tips on eligible posts.
  */
 add_filter(
 	hook_name: 'the_content',
