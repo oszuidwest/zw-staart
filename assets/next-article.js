@@ -258,6 +258,8 @@
 	let touchSteers = false;
 	let touchY = 0;
 	let touchStartY = null;
+	// Whether the current touch began with the ring full: only then is its push one that may coast on.
+	let touchFromFull = false;
 	let settleTimer = 0;
 	let swiped = false;
 	let frame = 0;
@@ -549,13 +551,14 @@
 			// The bar does not scroll the page (touch-action: none): a touch on it neither steers nor
 			// opens; its own handlers open or close it. A new touch steers only once it moves itself, and a
 			// second finger pinches.
-			touchSteers = scrollsPage(event) && !bar.contains(event.target);
+			touchSteers = scrollsPage(event) && !(event.target instanceof Node && bar.contains(event.target));
 			lastInput = 0;
 			if (event.touches.length > 1) {
 				pushedOn = false;
 			}
 			touchY = event.touches[0].clientY;
 			touchStartY = ready && touchSteers ? touchY : null;
+			touchFromFull = ringFull;
 			touches = event.touches.length;
 		},
 		{ passive: true }
@@ -573,7 +576,7 @@
 			const oneFinger = event.touches.length === 1;
 			if (oneFinger && touchSteers && y < touchY) {
 				lastInput = Date.now();
-				pushedOn = pushedOn || ringFull;
+				pushedOn = pushedOn || touchFromFull;
 			}
 			touchY = y;
 			if (oneFinger && touchStartY !== null && y < touchStartY - SWIPE_START_PX) {
@@ -650,6 +653,7 @@
 		lastMotion = Date.now();
 		touches = 0;
 		touchStartY = null;
+		touchFromFull = false;
 		lastInput = 0;
 		coasting = false;
 		pushedOn = false;
