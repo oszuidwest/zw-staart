@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin functionality for ZuidWest Staart plugin.
+ * Settings and Plausible sync.
  *
  * @package ZuidWest_Staart
  */
@@ -8,12 +8,11 @@
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 /**
- * Gets a setting value from the serialized settings array.
+ * Returns a grouped setting or its default.
  *
- * @param string $group Setting group, such as 'plausible', 'top_posts', or
- *                      'next_article'.
+ * @param string $group Setting group.
  * @param string $key Setting key.
- * @param mixed  $default_value Default value if setting doesn't exist.
+ * @param mixed  $default_value Fallback value.
  * @return mixed The setting value.
  */
 function zw_staart_get_setting( $group, $key, $default_value = '' ) {
@@ -22,7 +21,7 @@ function zw_staart_get_setting( $group, $key, $default_value = '' ) {
 }
 
 /**
- * Returns the next article bar modes and their settings page labels.
+ * Returns next article modes and labels.
  *
  * @since 0.5.0
  *
@@ -49,9 +48,7 @@ function zw_staart_sanitize_next_article_mode( $mode ) {
 }
 
 /**
- * Migrates pre-0.4.0 settings, cached posts and cron from the zwr_ prefix.
- *
- * Migrates Plausible settings only when that group is empty.
+ * Migrates pre-0.4.0 options and removes the legacy cron event.
  *
  * @since 0.4.0
  */
@@ -99,7 +96,7 @@ function zw_staart_migrate_from_old_version() {
 }
 
 /**
- * Schedules the event to fetch top posts on plugin activation.
+ * Migrates options and schedules the hourly sync.
  *
  * @return void
  */
@@ -185,7 +182,7 @@ function zw_staart_register_settings() {
 /**
  * Sanitizes and validates plugin settings.
  *
- * @since 0.5.0 Accepts settings in the stored group structure.
+ * @since 0.5.0
  *
  * @param array $input Settings grouped by plausible, top_posts and next_article.
  * @return array Sanitized settings with defaults for missing or invalid values.
@@ -323,7 +320,7 @@ function zw_staart_settings_page() {
 }
 
 /**
- * Fetches the top posts data from Plausible Analytics API.
+ * Fetches and caches popular articles from Plausible.
  */
 function zw_staart_get_top_posts() {
 	$api_key      = zw_staart_get_setting( 'plausible', 'api_key' );
@@ -407,8 +404,8 @@ function zw_staart_get_top_posts() {
 /**
  * Resolves article paths to post IDs.
  *
- * @param array $articles Array of articles with 'page' keys containing URL paths.
- * @return array Articles with 'post_id' added to each item.
+ * @param array $articles Articles with URL paths in 'page'.
+ * @return array Articles with 'post_id' added; 0 if unresolved.
  */
 function zw_staart_resolve_post_ids( $articles ) {
 	if ( empty( $articles ) ) {
@@ -461,9 +458,9 @@ function zw_staart_resolve_post_ids( $articles ) {
 }
 
 /**
- * Saves the top posts data in the WordPress options table.
+ * Caches popular articles.
  *
- * @param array $top_posts_details Array of top post details to be saved.
+ * @param array $top_posts_details Articles to cache.
  */
 function zw_staart_save_top_posts( $top_posts_details ) {
 	update_option( 'zw_staart_top_posts', $top_posts_details );

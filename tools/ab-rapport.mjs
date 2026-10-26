@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** A/B report using the prespecified decision rule. Usage and test design: README. */
+/* A/B report; usage and decision rule: README. */
 
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
@@ -7,10 +7,9 @@ import { pathToFileURL } from 'node:url';
 const ENDPOINT = 'https://stats.zuidwesttv.nl/api/v2/query';
 const SITE_ID = 'zuidwestupdate.nl';
 const MIN_DAYS = 42;
-// Allowed increase in b's quick-return rate relative to a.
+// Quick-return guardrail: 5 percentage points above a.
 const MAX_EXTRA_RETURNS = 0.05;
-// Two-sided 95% critical values of Student's t for 1..30 degrees of freedom; above that the
-// Cornish-Fisher expansion around the normal quantile is accurate to about 1e-4.
+// Student's t, two-sided 95%, df 1..30; Cornish-Fisher expansion for higher df.
 const T_975 = [12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131,
 	2.12, 2.11, 2.101, 2.093, 2.086, 2.08, 2.074, 2.069, 2.064, 2.06, 2.056, 2.052, 2.048, 2.045, 2.042];
 const VARIANTS = ['a', 'b'];
@@ -28,7 +27,7 @@ const first = (rows, ...parts) => rows.get(key(...parts))?.[0] ?? 0;
 const percent = (value, digits = 2) => `${(value * 100).toFixed(digits)}%`;
 const signed = (value, digits = 2) => `${value >= 0 ? '+' : ''}${percent(value, digits)}`;
 
-// Complementary error function (Numerical Recipes, accurate to about 1e-7), for the chi-square p-value.
+// Numerical Recipes approximation for the chi-square p-value.
 function erfc(x) {
 	const t = 1 / (1 + 0.5 * Math.abs(x));
 	const y = t * Math.exp(-x * x - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 +
@@ -60,7 +59,7 @@ function plausible(apiKey, dateRange) {
 			}),
 		});
 		if (!response.ok) {
-			// Proxy errors may lack a JSON body; fall back to the HTTP status.
+			// Proxy errors may lack a JSON body.
 			const detail = await response.json().then((body) => body.error, () => null);
 			throw new Error(`Plausible: ${detail ?? response.status}`);
 		}
@@ -69,7 +68,7 @@ function plausible(apiKey, dateRange) {
 	};
 }
 
-/** Fetches everything the report needs, keyed by "day|variant|..." (and "device|variant" for devices). */
+/** Returns metric maps keyed by "day|variant|..." or "device|variant". */
 export async function collect(query) {
 	const navigated = [['is', 'event:props:actie', ['geklikt', 'doorgescrold']]];
 	const dismissed = [['is', 'event:props:actie', ['gesloten', 'weggeveegd']]];
@@ -88,8 +87,7 @@ export async function collect(query) {
 	return { views, tips, scroll, dismissals, returns, deviceViews, deviceTips, deviceScroll };
 }
 
-// Upper tail of the chi-square distribution: exact for 1 and 2 degrees of freedom, otherwise the
-// Wilson-Hilferty approximation, which is accurate to a few percent of p down to 0.001 from 10 df.
+// Chi-square upper tail: closed forms for df 1 and 2, Wilson-Hilferty otherwise.
 function chiSquareP(x, df) {
 	if (df === 1) {
 		return erfc(Math.sqrt(x / 2));
@@ -102,7 +100,6 @@ function chiSquareP(x, df) {
 }
 
 export function analyse(data) {
-	// Compare only days with views in both groups.
 	const days = [...new Set([...data.views.keys()].map((k) => k.split('|')[0]))]
 		.filter((day) => VARIANTS.every((variant) => first(data.views, day, variant) > 0))
 		.sort();
@@ -215,7 +212,7 @@ async function main() {
 	if (!values.van || !values.tot) {
 		throw new Error('Gebruik: node tools/ab-rapport.mjs --van JJJJ-MM-DD --tot JJJJ-MM-DD');
 	}
-	// Cap at the prespecified 42 days to prevent optional stopping; shorter windows give no decision.
+	// Enforce the prespecified test window; shorter windows give no decision.
 	// Round-trip dates: Date.parse() normalizes invalid dates such as February 30.
 	const isDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().startsWith(value);
 	const windowDays = (Date.parse(values.tot) - Date.parse(values.van)) / 86400000 + 1;

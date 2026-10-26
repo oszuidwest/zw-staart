@@ -1,4 +1,4 @@
-/** Next article bar and A/B test. Behaviour and test design: README. */
+/* Scroll behaviour and A/B test design: README. */
 (() => {
 	'use strict';
 
@@ -15,9 +15,8 @@
 	const HIDE_ABOVE_PX = 200;
 	// A gesture ends after this pause with no fingers down.
 	const SETTLE_MS = 300;
-	// Treat faster movement as coasting after a flick or wheel spin.
 	const FAST_PX_PER_MS = 1.5;
-	// Window in which input can steer a scroll event.
+	// Input expires even if scroll events continue.
 	const STEER_MS = 250;
 	const SCROLL_KEYS = new Set(['ArrowDown', 'PageDown', 'End', ' ']);
 	// Navigate even if analytics never calls back.
@@ -26,7 +25,6 @@
 	const SWIPE_CLOSE_PX = 60;
 	const VARIANT_KEY = 'zw_staart_ab_variant';
 	const RETURN_KEY = 'zw_staart_ab_return';
-	// Quick returns are the A/B-test guardrail.
 	const QUICK_RETURN_MS = 15000;
 	const KICKER = {
 		idle: 'Lees ook',
@@ -74,7 +72,7 @@
 
 	const variant = config.test ? drawVariant() : '';
 
-	// Passive events preserve bounce rate; analytics failure must not block navigation.
+	// Non-interactive events preserve bounce rate; analytics failure must not block navigation.
 	function send(name, props, { callback, interactive = true } = {}) {
 		try {
 			window.plausible(name, { props: variant ? { variant, ...props } : props, callback, interactive });
@@ -125,7 +123,7 @@
 	}
 
 	if (variant) {
-		// Count every view, including bfcache restores, whether the tips are reached or not.
+		// Include unreached tips and bfcache restores in the denominator.
 		const countView = () => {
 			send('Recirculatie Weergave', {}, { interactive: false });
 			checkReturn();
@@ -162,17 +160,15 @@
 		return;
 	}
 
-	// Hide the tips block only once the bar appears.
 	const ACTIVE_CLASS = 'zw-staart-has-next-article';
 
 	// The theme places share buttons at the end of the article element.
 	const post = article.closest('article') || article;
-	// End phase 1 at the last visible text paragraph, excluding embeds and related links.
+	// Exclude trailing embeds and related links from text progress.
 	const lastParagraph = [...article.querySelectorAll('p')]
 		.reverse()
 		.find((p) => !p.closest('aside, figure, .not-prose, [hidden]') && p.textContent.trim() && p.offsetHeight > 0);
-	// End phase 2 halfway through regional news, falling back to the post end.
-	// The block starts right below the share buttons, so its top would end phase 2 there.
+	// End phase 2 halfway through regional news to avoid opening at the share buttons.
 	const isLatest = (el) => el.matches('aside') && /^laatste\s+nieuws\s+uit\b/i.test(el.querySelector('h2')?.textContent.trim() ?? '');
 	let latest = post.nextElementSibling;
 	while (latest && !isLatest(latest)) {
@@ -220,21 +216,17 @@
 
 	let dismissed = false;
 	let impressed = false;
-	// Restored pages must scroll back into the text before they can scroll through again.
+	// History restores must return to the text before scrolling through again.
 	let reading = performance.getEntriesByType?.('navigation')[0]?.type !== 'back_forward';
-	// Motion or page return postpones readiness; fingers down prevent it.
 	let lastMotion = 0;
 	let touches = 0;
-	// Recent downward input steers unless a fast scroll has started coasting.
 	let lastInput = 0;
 	let coasting = false;
-	// A push begun with the ring full may coast into the next article.
 	let ringFull = false;
 	let pushedOn = false;
 	let lastY = window.scrollY;
 	let lastScrollAt = performance.now();
 	let movedDown = false;
-	// Only page-scrolling touches steer. touchStartY arms a swipe from the ready state.
 	let touchSteers = false;
 	let touchY = 0;
 	let touchStartY = null;
@@ -242,13 +234,12 @@
 	let settleTimer = 0;
 	let swiped = false;
 	let frame = 0;
-	// The candidate can change after a bfcache restore.
 	let prefetchRule = null;
 	let leaving = false;
 	// Invalidate pending navigation callbacks on departure, dismissal and bfcache restore.
 	let departure = 0;
 
-	// Prefetch HTML without running scripts; replace stale rules. Unsupported browsers ignore it.
+	// Prefetch without running scripts; unsupported browsers ignore the rules.
 	function prefetch(url) {
 		prefetchRule?.remove();
 		prefetchRule = document.createElement('script');
@@ -266,7 +257,7 @@
 
 	const clamp = (value) => Math.min(1, Math.max(0, value));
 
-	// Recompute for layout shifts: ring to last paragraph, disc to the middle of regional news or page bottom.
+	// Recompute progress after layout shifts; use the post end when regional news is absent.
 	function phases() {
 		const { top } = article.getBoundingClientRect();
 		const textEnd = (lastParagraph || article).getBoundingClientRect().bottom;
@@ -282,7 +273,6 @@
 		return { p1, p2 };
 	}
 
-	// Dismissal also cancels pending navigation and withdraws the prefetch.
 	function deactivate() {
 		dismissed = true;
 		departure++;
@@ -342,7 +332,6 @@
 		} else if (window.scrollY < HIDE_ABOVE_PX) {
 			bar.classList.remove('is-visible');
 		}
-		// Start requests when visible; CSS hides the lazy image on mobile.
 		if (bar.classList.contains('is-visible')) {
 			if (next.image && !image.hasAttribute('src')) {
 				image.src = next.image;
@@ -365,7 +354,6 @@
 			return;
 		}
 
-		// Show the ready prompt only when a new gesture can open the article.
 		const ready = isReady(phase);
 		bar.classList.toggle('is-phase2', phase2);
 		bar.classList.toggle('is-ready', ready);
@@ -388,8 +376,7 @@
 	const atEnd = ({ p2 }) => p2 >= 1 && reading && !document.hidden && bar.classList.contains('is-visible');
 	const isReady = (phase) => touches === 0 && Date.now() - lastMotion >= SETTLE_MS && atEnd(phase);
 
-	// A new gesture can open at rest, even at page bottom where no scroll event follows.
-	// Recompute phases because layout may have shifted since the last frame.
+	// At page bottom a new gesture may open without a scroll event.
 	function startGesture() {
 		const phase = phases();
 		reading = reading || phase.p1 < 1;
@@ -405,7 +392,6 @@
 
 	const isFieldKey = (event) => event.target.closest?.('input, textarea, select, button, [contenteditable]');
 
-	// Ignore handled gestures and nested panels that can still scroll down.
 	function scrollsPage(event) {
 		if (event.defaultPrevented) {
 			return false;
@@ -441,7 +427,6 @@
 	let distance = 0;
 	bar.addEventListener('pointerdown', (event) => {
 		swiped = false;
-		// Leave close-button taps out of the swipe gesture.
 		if (event.pointerType === 'touch' && !closeTab.contains(event.target)) {
 			startY = event.clientY;
 			distance = 0;
@@ -479,7 +464,7 @@
 	window.addEventListener(
 		'scroll',
 		() => {
-			// Cap the sample window at 100 ms; retain precision for 120 Hz scroll events.
+			// Bound the sample window without rounding high-frequency scroll intervals.
 			const now = performance.now();
 			const speed = (window.scrollY - lastY) / Math.min(100, Math.max(4, now - lastScrollAt));
 			coasting = coasting || speed >= FAST_PX_PER_MS;
@@ -520,7 +505,6 @@
 				touchSteers = false;
 				touchStartY = null;
 			}
-			// One finger steers; two fingers pinch.
 			const y = event.touches[0].clientY;
 			const oneFinger = event.touches.length === 1;
 			if (oneFinger && touchSteers && y < touchY) {
@@ -563,7 +547,7 @@
 		},
 		{ passive: true }
 	);
-	// Shift+Space scrolls up; key repeats continue the original gesture.
+	// Key repeats continue the original gesture.
 	window.addEventListener('keydown', (event) => {
 		if (!SCROLL_KEYS.has(event.key) || (event.key === ' ' && event.shiftKey) || isFieldKey(event)) {
 			return;
@@ -582,7 +566,7 @@
 		lastMotion = Date.now();
 		schedule();
 	});
-	// Reset the bfcache-restored loading state; recheck visited posts and dismissal.
+	// bfcache retains the loading state and stale reading history.
 	window.addEventListener('pageshow', (event) => {
 		if (!event.persisted) {
 			return;

@@ -1,6 +1,6 @@
 <?php
 /**
- * Visitor tracking functionality for ZuidWest Staart plugin.
+ * Reading history cookie.
  *
  * @package ZuidWest_Staart
  */
@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Adds a footer script that remembers visited post IDs in a cookie.
+ * Prints the reading history script in the footer.
  *
  * @return void
  */

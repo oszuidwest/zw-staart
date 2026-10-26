@@ -1,6 +1,6 @@
 <?php
 /**
- * Next article bar for ZuidWest Staart plugin
+ * Next article bar.
  *
  * @package ZuidWest_Staart
  * @since 0.5.0
@@ -26,13 +26,11 @@ function zw_staart_next_article_image( $post_id ) {
 }
 
 /**
- * Builds the candidates for the next article bar, most read first.
- *
- * The browser picks the first candidate the visitor has not read yet.
+ * Builds candidates for the browser to filter by reading history.
  *
  * @since 0.5.0
  *
- * @param int $current_id ID of the post being displayed.
+ * @param int $current_id Current post ID to omit.
  * @return array<int, array{id: int, url: string, title: string, image: string}>
  *     Candidates in descending order of popularity.
  */
@@ -40,7 +38,7 @@ function zw_staart_next_article_candidates( $current_id ) {
 	$candidates = array();
 	$post_ids   = zw_staart_top_post_ids( $current_id );
 
-	// Prime attachments as well as posts to avoid per-image queries.
+	// Prime attachments to avoid per-image queries.
 	_prime_post_caches( array_filter( array_map( 'get_post_thumbnail_id', $post_ids ) ), false, true );
 
 	foreach ( $post_ids as $post_id ) {
@@ -99,10 +97,7 @@ function zw_staart_enqueue_next_article() {
 		)
 	);
 
-	/*
-	 * Logged-in users see the bar during the test without taking part in it.
-	 * Their pages must bypass the page cache for this check to apply.
-	 */
+	// Exclude logged-in users from the test; their pages must bypass the page cache.
 	$in_test = 'test' === $mode && ! is_user_logged_in();
 
 	wp_add_inline_script(
