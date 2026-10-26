@@ -18,7 +18,7 @@
 	const HIDE_ABOVE_PX = 200;
 	// A gesture is over once the page has not moved this long and no finger touches the screen.
 	const SETTLE_MS = 300;
-	// Faster than this (about 1.5 screens a second) the page coasts after a flick or a spin of the wheel,
+	// Faster than this (1,500 pixels a second) the page coasts after a flick or a spin of the wheel,
 	// rather than being steered by the reader.
 	const FAST_PX_PER_MS = 1.5;
 	// A scroll this soon after a turn of the wheel or a scroll key is steered by it.
@@ -184,8 +184,9 @@
 		.find((p) => !p.closest('aside, figure, .not-prose, [hidden]') && p.textContent.trim() && p.offsetHeight > 0);
 	// Phase 2 ends at the theme's regional news block below the post ("Laatste nieuws uit Zundert"),
 	// or without it at the end of the post.
+	const isLatest = (el) => el.matches('aside') && /^laatste\s+nieuws\s+uit\b/i.test(el.querySelector('h2')?.textContent.trim() ?? '');
 	let latest = post.nextElementSibling;
-	while (latest && !(latest.matches('aside') && /^laatste\s+nieuws\s+uit\b/i.test(latest.querySelector('h2')?.textContent.trim() ?? ''))) {
+	while (latest && !isLatest(latest)) {
 		latest = latest.nextElementSibling;
 	}
 
@@ -233,7 +234,8 @@
 	// Whether this view may scroll through. A page the back button restores starts without it, so it
 	// does not load the next article unseen; the reader then first scrolls back to before the end.
 	let reading = performance.getEntriesByType?.('navigation')[0]?.type !== 'back_forward';
-	// The last scroll or wheel movement, and the fingers on the screen.
+	// The last activity that postpones the ready state (scroll, gesture, return to the page), and the
+	// fingers on the screen.
 	let lastMotion = 0;
 	let touches = 0;
 	// The last turn of the wheel, scroll key or finger moving up, and whether the page moved fast since
@@ -245,10 +247,12 @@
 	let lastY = window.scrollY;
 	let lastScrollAt = performance.now();
 	let movedDown = false;
-	// A touch that starts while ready opens the next article once the finger moves up, so a tap never does.
-	let touchReady = false;
-	let touchStartY = 0;
+	// Whether the current touch can steer the page (not an inner panel, not handled by the page), where
+	// the finger was at the last move, and where a touch that started while ready began (null when it
+	// did not): moving up from there opens the next article, so a tap never does.
+	let touchSteers = false;
 	let touchY = 0;
+	let touchStartY = null;
 	let settleTimer = 0;
 	let swiped = false;
 	let frame = 0;
@@ -303,7 +307,6 @@
 	function deactivate() {
 		dismissed = true;
 		departure++;
-		window.clearTimeout(settleTimer);
 		bar.classList.remove('is-visible');
 		document.documentElement.classList.remove(ACTIVE_CLASS);
 		prefetchRule?.remove();
@@ -321,6 +324,9 @@
 	// article as a regular page as soon as analytics answers (or after a timeout); the full wheel and
 	// the label show it is on its way.
 	function openNext() {
+		if (dismissed || leaving || document.hidden) {
+			return;
+		}
 		leaving = true;
 		bar.classList.add('is-visible', 'is-loading');
 		ringFill.style.strokeDashoffset = '0';
@@ -380,16 +386,17 @@
 		// (see startGesture()). A scroll the reader did not make, also under a finger resting on the
 		// screen, never opens anything.
 		const steered = Date.now() - lastInput < STEER_MS && (touches > 0 || !coasting);
-		if (down && steered && !document.hidden && atEnd(phase)) {
+		if (down && steered && atEnd(phase)) {
 			openNext();
 			return;
 		}
 
 		// Only promise what scrolling does: not while the gesture that reached the end still moves the page.
 		const ready = isReady(phase);
-		bar.classList.toggle('is-phase2', phase.p1 >= 1);
+		const phase2 = phase.p1 >= 1;
+		bar.classList.toggle('is-phase2', phase2);
 		bar.classList.toggle('is-ready', ready);
-		setKicker(ready ? KICKER.ready : phase.p1 >= 1 ? KICKER.phase2 : KICKER.idle);
+		setKicker(ready ? KICKER.ready : phase2 ? KICKER.phase2 : KICKER.idle);
 		// Look again once the page has come to rest, also when nothing scrolls. While a finger is down,
 		// its touchend looks again.
 		window.clearTimeout(settleTimer);
@@ -407,9 +414,8 @@
 
 	// The end of phase 2 counts only while the bar is on screen, so a short article never jumps away
 	// unseen.
-	const atEnd = ({ p2 }) => p2 >= 1 && reading && bar.classList.contains('is-visible');
-	const isReady = (phase) =>
-		!dismissed && !leaving && !document.hidden && touches === 0 && Date.now() - lastMotion >= SETTLE_MS && atEnd(phase);
+	const atEnd = ({ p2 }) => p2 >= 1 && reading && !document.hidden && bar.classList.contains('is-visible');
+	const isReady = (phase) => touches === 0 && Date.now() - lastMotion >= SETTLE_MS && atEnd(phase);
 
 	// A swipe, wheel or scroll key by the reader. Before the last paragraph it marks this view as read.
 	// Returns whether it started at the end of phase 2 with the page at rest: then a gesture down is the
@@ -464,7 +470,7 @@
 			markLeave('geklikt');
 		}
 	});
-	bar.querySelector('.zw-staart-next-article-close').addEventListener('click', () => dismiss('gesloten'));
+	closeTab.addEventListener('click', () => dismiss('gesloten'));
 
 	// Mobile: swiping the bar down closes it, like a notification. A short swipe springs back.
 	let startY = null;
@@ -472,7 +478,7 @@
 	bar.addEventListener('pointerdown', (event) => {
 		swiped = false;
 		// A tap on the close button must close, not start a swipe that swallows the click.
-		if (event.pointerType === 'touch' && !event.target.closest('.zw-staart-next-article-close')) {
+		if (event.pointerType === 'touch' && !closeTab.contains(event.target)) {
 			startY = event.clientY;
 			distance = 0;
 		}
@@ -527,9 +533,10 @@
 	window.addEventListener(
 		'touchstart',
 		(event) => {
-			touchReady = startGesture() && scrollsPage(event);
-			touchStartY = event.touches[0].clientY;
-			touchY = touchStartY;
+			const ready = startGesture();
+			touchSteers = scrollsPage(event);
+			touchY = event.touches[0].clientY;
+			touchStartY = ready && touchSteers ? touchY : null;
 			touches = event.touches.length;
 		},
 		{ passive: true }
@@ -537,30 +544,34 @@
 	window.addEventListener(
 		'touchmove',
 		(event) => {
-			// A finger moving up scrolls the page down: the reader steers.
-			if (event.touches[0].clientY < touchY) {
+			// One finger moving up scrolls the page down: the reader steers. Two fingers pinch.
+			const y = event.touches[0].clientY;
+			const oneFinger = event.touches.length === 1;
+			if (oneFinger && touchSteers && y < touchY) {
 				lastInput = Date.now();
 			}
-			touchY = event.touches[0].clientY;
-			if (touchReady && event.touches[0].clientY < touchStartY - SWIPE_START_PX) {
-				touchReady = false;
-				if (!dismissed && !leaving) {
-					openNext();
-				}
+			touchY = y;
+			if (oneFinger && touchStartY !== null && y < touchStartY - SWIPE_START_PX) {
+				touchStartY = null;
+				openNext();
 			}
 		},
 		{ passive: true }
 	);
 	window.addEventListener('touchend', onTouchEnd, { passive: true });
 	window.addEventListener('touchcancel', onTouchEnd, { passive: true });
-	// A pinch on a trackpad arrives as a wheel with Ctrl and zooms instead.
+	// Only a turn down that scrolls the page steers; a pinch on a trackpad arrives as a wheel with Ctrl
+	// and zooms instead.
 	window.addEventListener(
 		'wheel',
 		(event) => {
-			if (!event.ctrlKey) {
+			const ready = startGesture();
+			if (event.deltaY > 0 && !event.ctrlKey && scrollsPage(event)) {
 				lastInput = Date.now();
+				if (ready) {
+					openNext();
+				}
 			}
-			return startGesture() && event.deltaY > 0 && !event.ctrlKey && scrollsPage(event) && openNext();
 		},
 		{ passive: true }
 	);
@@ -570,9 +581,12 @@
 		if (!SCROLL_KEYS.has(event.key) || (event.key === ' ' && event.shiftKey) || isFieldKey(event)) {
 			return;
 		}
-		lastInput = Date.now();
-		if (!event.repeat && startGesture() && scrollsPage(event)) {
-			openNext();
+		const ready = !event.repeat && startGesture();
+		if (scrollsPage(event)) {
+			lastInput = Date.now();
+			if (ready) {
+				openNext();
+			}
 		}
 	});
 	// Back in a hidden tab, the page first comes to rest again.
@@ -595,7 +609,7 @@
 		reading = false;
 		lastMotion = Date.now();
 		touches = 0;
-		touchReady = false;
+		touchStartY = null;
 		lastInput = 0;
 		coasting = false;
 		movedDown = false;

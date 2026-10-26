@@ -4,8 +4,9 @@
  *
  * Shows a floating bar with the next reading tip. Its wheel fills in two
  * phases: the ring up to the last paragraph, then the inside up to the
- * regional news block below the article. Once it is full and the page is at
- * rest, scrolling on opens the next article as a regular page load.
+ * regional news block below the article. Scrolling on into the full wheel
+ * opens the next article as a regular page load; after a fast flick, only
+ * once the page has come to rest and the reader scrolls again.
  *
  * @package ZuidWest_Staart
  * @since 0.5.0
