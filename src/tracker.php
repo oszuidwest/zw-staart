@@ -8,9 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Adds visitor tracking script to footer.
- *
- * Tracks visited post IDs in a cookie for personalized content filtering.
+ * Adds a footer script that remembers visited post IDs in a cookie.
  *
  * @return void
  */
@@ -29,7 +27,7 @@ function zw_staart_add_postid_tracker_script(): void {
 				function updatePostIdCookie(postId) {
 					var postIds = getCookie('zw_staart_visited_posts');
 					postIds = postIds ? parsePostIds(postIds) : [];
-					// Move re-visited IDs to the tail so slice(-maxVisitedPosts) keeps the most recent visits.
+					// Keep the most recently visited IDs, including revisits.
 					postIds = postIds.filter(function(id) {
 						return id !== postId;
 					});
@@ -53,7 +51,6 @@ function zw_staart_add_postid_tracker_script(): void {
 						date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
 						expires = ";expires=" + date.toUTCString();
 					}
-					// Add Secure flag if on HTTPS, and SameSite for CSRF protection
 					var secure = window.location.protocol === 'https:' ? ';Secure' : '';
 					document.cookie = name + "=" + (value || "") + expires + ";path=/;SameSite=Lax" + secure;
 				}

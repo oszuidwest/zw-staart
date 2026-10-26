@@ -5,7 +5,6 @@
  * @package ZuidWest_Staart
  */
 
-// Prevent direct file access.
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 /**
@@ -18,10 +17,7 @@ function zw_staart_fetch_top_posts() {
 }
 
 /**
- * Returns the IDs of the cached top posts, most read first.
- *
- * Skips posts whose ID could not be resolved during the Plausible sync, and
- * posts that were deleted or unpublished since.
+ * Returns cached, published post IDs in popularity order.
  *
  * @since 0.5.0
  *
@@ -32,7 +28,7 @@ function zw_staart_top_post_ids( $exclude_id ) {
 	$post_ids = array_map( static fn( $p ) => (int) ( $p['post_id'] ?? 0 ), zw_staart_fetch_top_posts() );
 	$post_ids = array_filter( $post_ids, static fn( $post_id ) => 0 !== $post_id && $post_id !== $exclude_id );
 
-	// Load the posts with their terms and meta in a few queries instead of a few per post.
+	// Prime posts, terms and meta to avoid per-post queries.
 	_prime_post_caches( $post_ids );
 
 	return array_values( array_filter( $post_ids, static fn( $post_id ) => 'publish' === get_post_status( $post_id ) ) );
@@ -40,9 +36,6 @@ function zw_staart_top_post_ids( $exclude_id ) {
 
 /**
  * Checks whether reading tips belong on a single post outside a dossier.
- *
- * Requests that send or expect JSON are excluded to avoid adding promotional
- * HTML to their responses.
  *
  * @since 0.5.0
  *
@@ -59,19 +52,16 @@ function zw_staart_is_eligible_post( $post_id ) {
  * @return string The HTML output for the top posts list.
  */
 function zw_staart_top_posts_list() {
-	// Get heading from settings.
 	$heading = zw_staart_get_setting( 'top_posts', 'heading', ZW_STAART_DEFAULT_HEADING );
 
 	global $post;
 
-	// Post IDs are pre-resolved during API fetch to avoid N+1 queries.
 	$post_ids = zw_staart_top_post_ids( $post->ID );
 
 	if ( empty( $post_ids ) ) {
 		return '';
 	}
 
-	// Start output buffering to capture HTML output.
 	ob_start();
 	?>
 	<aside id="zw-staart-top-posts-list" style="margin-top: 20px">
@@ -107,7 +97,6 @@ function zw_staart_top_posts_list() {
 				}) : [];
 			}
 
-			// Display only the top posts not visited, up to the minimum required.
 			topPostItems.forEach(function (item) {
 				var postId = parseInt(item.getAttribute('data-post-id'));
 				if (!visitedPostIds.includes(postId) && displayedTopPostUrls.length < minPostsDisplay) {
@@ -119,12 +108,11 @@ function zw_staart_top_posts_list() {
 				}
 			});
 
-			// Remove the entire aside element if less than minimum posts are displayed.
 			if (displayedTopPostUrls.length < minPostsDisplay) {
 				document.getElementById('zw-staart-top-posts-list').remove();
 			}
 
-		// Remove "Read this too" blocks if they match any of the displayed top posts.
+		// Remove duplicate "Lees ook" links.
 		document.querySelectorAll('a.block').forEach(function (block) {
 			var span = block.querySelector('span');
 			if (span && span.textContent.includes('Lees ook:')) {
@@ -143,10 +131,7 @@ function zw_staart_top_posts_list() {
 }
 
 /**
- * Appends the reading tips block to post content.
- *
- * The block is rendered server-side for caching efficiency; client-side JavaScript
- * hides articles the visitor has already read.
+ * Appends cacheable reading tips; the browser filters visited posts.
  *
  * @param string $content The post content.
  * @return string Modified content with the reading tips block appended.
@@ -159,6 +144,6 @@ add_filter(
 		}
 		return $content;
 	},
-	priority: 99, // Run late to ensure other plugins have added their content first.
+	priority: 99,
 	accepted_args: 1
 );

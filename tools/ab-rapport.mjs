@@ -1,13 +1,5 @@
 #!/usr/bin/env node
-/**
- * Report for the ZuidWest Staart A/B test: reading tips block (a) against the next article bar (b).
- *
- * Reads the events from the Plausible Stats API v2 and applies the decision rule from the README
- * (section "A/B-test"), which was fixed before the test started.
- *
- * Usage: PLAUSIBLE_API_KEY=... node tools/ab-rapport.mjs --van 2026-11-02 --tot 2026-12-13
- * Needs Node.js 18 or later and nothing else.
- */
+/** A/B report using the prespecified decision rule. Usage and test design: README. */
 
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
@@ -15,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 const ENDPOINT = 'https://stats.zuidwesttv.nl/api/v2/query';
 const SITE_ID = 'zuidwestupdate.nl';
 const MIN_DAYS = 42;
-// Guardrail from the README: b may not have more quick returns per recirculation than a plus this.
+// Allowed increase in b's quick-return rate relative to a.
 const MAX_EXTRA_RETURNS = 0.05;
 // Two-sided 95% critical values of Student's t for 1..30 degrees of freedom; above that the
 // Cornish-Fisher expansion around the normal quantile is accurate to about 1e-4.
@@ -68,8 +60,7 @@ function plausible(apiKey, dateRange) {
 			}),
 		});
 		if (!response.ok) {
-			// Plausible explains what is wrong, e.g. a goal that is not configured yet; an error page from
-			// a proxy is no JSON, then the status has to do.
+			// Proxy errors may lack a JSON body; fall back to the HTTP status.
 			const detail = await response.json().then((body) => body.error, () => null);
 			throw new Error(`Plausible: ${detail ?? response.status}`);
 		}
@@ -111,7 +102,7 @@ function chiSquareP(x, df) {
 }
 
 export function analyse(data) {
-	// One set of days for everything: the days on which both groups were seen.
+	// Compare only days with views in both groups.
 	const days = [...new Set([...data.views.keys()].map((k) => k.split('|')[0]))]
 		.filter((day) => VARIANTS.every((variant) => first(data.views, day, variant) > 0))
 		.sort();
@@ -137,7 +128,7 @@ export function analyse(data) {
 		};
 	}
 
-	// Paired per day: both groups share the same news, so the day-to-day swings cancel out.
+	// Pair by day to cancel variation in the news mix.
 	const differences = days.map((day) => hits(day, 'b') / views(day, 'b') - hits(day, 'a') / views(day, 'a'));
 	let paired = null;
 	if (differences.length >= 2) {
@@ -146,8 +137,7 @@ export function analyse(data) {
 		paired = { days: differences.length, mean: average, low: average - margin, high: average + margin };
 	}
 
-	// Sample ratio mismatch, tested per day and summed (one degree of freedom per day), so imbalances on
-	// separate days cannot cancel each other out.
+	// Sum daily SRM statistics so opposite imbalances cannot cancel out (one df per day).
 	const chi2 = days.reduce((total, day) => {
 		const counts = VARIANTS.map((variant) => visitors(day, variant));
 		const expected = (counts[0] + counts[1]) / 2;
@@ -225,16 +215,14 @@ async function main() {
 	if (!values.van || !values.tot) {
 		throw new Error('Gebruik: node tools/ab-rapport.mjs --van JJJJ-MM-DD --tot JJJJ-MM-DD');
 	}
-	// The test runs a fixed 42 days: a longer window would let the decision wait for a lucky result. A
-	// shorter one is fine for checking the split along the way; it gives no decision. With at most 42
-	// days, a decision on 42 days with both groups means 42 complete, consecutive days.
-	// A real calendar date as YYYY-MM-DD: Date.parse() would turn 2026-02-30 into 2 March.
+	// Cap at the prespecified 42 days to prevent optional stopping; shorter windows give no decision.
+	// Round-trip dates: Date.parse() normalizes invalid dates such as February 30.
 	const isDate = (value) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().startsWith(value);
 	const windowDays = (Date.parse(values.tot) - Date.parse(values.van)) / 86400000 + 1;
 	if (!isDate(values.van) || !isDate(values.tot) || !(windowDays >= 1 && windowDays <= MIN_DAYS)) {
 		throw new Error(`Kies --van en --tot als JJJJ-MM-DD, binnen ${MIN_DAYS} dagen: de vastgelegde duur van de test.`);
 	}
-	// A day that is not over yet would count as a full day with too few views.
+	// Exclude partial days from the fixed-duration test.
 	const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Amsterdam' }).format(new Date());
 	if (values.tot >= today) {
 		throw new Error(`De laatste dag (${values.tot}) is nog niet voorbij; gebruik uiterlijk gisteren.`);
@@ -246,7 +234,6 @@ async function main() {
 	console.log(report(data, analyse(data)));
 }
 
-// Run only when started directly, not when imported (e.g. by a test).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 	main().catch((error) => {
 		console.error(error.message);

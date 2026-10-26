@@ -5,7 +5,6 @@
  * @package ZuidWest_Staart
  */
 
-// Prevent direct file access.
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 /**
@@ -50,19 +49,13 @@ function zw_staart_sanitize_next_article_mode( $mode ) {
 }
 
 /**
- * Migrates data from legacy plugin prefix (zwr_) to current prefix (zw_staart_).
+ * Migrates pre-0.4.0 settings, cached posts and cron from the zwr_ prefix.
  *
- * Handles backward compatibility for sites upgrading from version < 0.4.0.
- * Converts individual option entries to serialized settings structure and
- * cleans up legacy cron jobs and database entries.
- *
- * Safe to run multiple times - only migrates if new structure is not populated.
+ * Migrates Plausible settings only when that group is empty.
  *
  * @since 0.4.0
  */
 function zw_staart_migrate_from_old_version() {
-	// Migrate individual option entries to serialized settings array.
-	// Legacy: Multiple get_option('zwr_*') calls -> Current: Single get_option('zw_staart_settings').
 	$new_settings = get_option( 'zw_staart_settings', array() );
 
 	if ( empty( $new_settings['plausible'] ) ) {
@@ -75,25 +68,21 @@ function zw_staart_migrate_from_old_version() {
 			),
 		);
 
-		// Prevent overwriting existing settings with empty migration data.
 		if ( ! empty( array_filter( $migrated_settings['plausible'] ) ) ) {
 			update_option( 'zw_staart_settings', $migrated_settings );
 		}
 	}
 
-	// Migrate cached top posts data to new option name.
 	$old_top_posts = get_option( 'zwr_top_posts' );
 	if ( $old_top_posts && ! get_option( 'zw_staart_top_posts' ) ) {
 		update_option( 'zw_staart_top_posts', $old_top_posts );
 	}
 
-	// Clean up legacy cron job.
 	$old_timestamp = wp_next_scheduled( 'zwr_event_hook' );
 	if ( $old_timestamp ) {
 		wp_unschedule_event( $old_timestamp, 'zwr_event_hook' );
 	}
 
-	// Delete legacy individual option entries, including the retired podcast promo options.
 	$old_options = array(
 		'zwr_plausible_api_key',
 		'zwr_plausible_site_id',
@@ -117,13 +106,11 @@ function zw_staart_migrate_from_old_version() {
 function zw_staart_activate() {
 	zw_staart_migrate_from_old_version();
 
-	// Clear any existing event to ensure clean scheduling.
 	$timestamp = wp_next_scheduled( 'zw_staart_event_hook' );
 	if ( $timestamp ) {
 		wp_unschedule_event( $timestamp, 'zw_staart_event_hook' );
 	}
 
-	// Schedule the new event.
 	wp_schedule_event( time(), 'hourly', 'zw_staart_event_hook' );
 }
 
@@ -198,31 +185,13 @@ function zw_staart_register_settings() {
 /**
  * Sanitizes and validates plugin settings.
  *
- * Accepts form input or previously sanitized settings in the stored group
- * structure. Missing values receive defaults; unsupported modes become 'off'
- * and lookback days outside 1-30 become ZW_STAART_DEFAULT_DAYS.
- *
  * @since 0.5.0 Accepts settings in the stored group structure.
  *
- * @param array $input {
- *     Settings grouped by feature. All groups and keys are optional.
- *
- *     @type array $plausible    Contains 'api_key', 'site_id', and 'endpoint',
- *                              each defaulting to '', and 'days', defaulting
- *                              to ZW_STAART_DEFAULT_DAYS.
- *     @type array $top_posts    Contains 'heading', defaulting to
- *                              ZW_STAART_DEFAULT_HEADING.
- *     @type array $next_article Contains 'mode': 'off', 'on', or 'test'.
- *                              Default 'off'.
- * }
- * @return array Sanitized settings with the same groups and all keys populated.
+ * @param array $input Settings grouped by plausible, top_posts and next_article.
+ * @return array Sanitized settings with defaults for missing or invalid values.
  */
 function zw_staart_sanitize_settings( $input ) {
-	/*
-	 * Keep the input and stored shapes identical so a second sanitizing pass
-	 * preserves the settings. On the first save, update_option() calls
-	 * add_option(), which sanitizes the value again.
-	 */
+	// Keep the stored shape: WordPress sanitizes twice on the first save.
 	$plausible    = (array) ( $input['plausible'] ?? array() );
 	$top_posts    = (array) ( $input['top_posts'] ?? array() );
 	$next_article = (array) ( $input['next_article'] ?? array() );
@@ -254,12 +223,10 @@ function zw_staart_sanitize_settings( $input ) {
  * @return void
  */
 function zw_staart_settings_page() {
-	// Check user capabilities.
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 
-	// Show error/update messages.
 	settings_errors( 'zw_staart_messages' );
 
 	$plausible_api_key  = zw_staart_get_setting( 'plausible', 'api_key' );
@@ -281,7 +248,6 @@ function zw_staart_settings_page() {
 		<form method="post" action="options.php">
 			<?php settings_fields( 'zw_staart_settings_group' ); ?>
 
-			<!-- Weergave-instellingen -->
 			<h2>Weergave</h2>
 			<table class="form-table" role="presentation">
 				<tr>
@@ -319,7 +285,6 @@ function zw_staart_settings_page() {
 
 			<hr style="margin: 40px 0;">
 
-			<!-- Leestips configuratie -->
 			<h2>Leestips</h2>
 			<p>Vul onderstaande velden in om leestips te tonen op basis van Plausible Analytics-data.</p>
 
@@ -367,16 +332,14 @@ function zw_staart_get_top_posts() {
 	$days         = zw_staart_get_setting( 'plausible', 'days' );
 	$days         = intval( $days ? $days : ZW_STAART_DEFAULT_DAYS );
 
-	// Validate required settings.
 	if ( empty( $api_key ) || empty( $site_id ) || empty( $api_endpoint ) ) {
 		return;
 	}
 
-	// Calculate date range using wp_date() to respect WordPress timezone settings.
-	$end_date   = wp_date( 'Y-m-d' ); // Today.
-	$start_date = wp_date( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days' ) ); // X days ago (for a total of X days including today).
+	// Include today in the lookback.
+	$end_date   = wp_date( 'Y-m-d' );
+	$start_date = wp_date( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days' ) );
 
-	// Create the request data.
 	$request_data = array(
 		'site_id'    => $site_id,
 		'metrics'    => array( 'pageviews' ),
@@ -389,7 +352,6 @@ function zw_staart_get_top_posts() {
 		),
 	);
 
-	// Get the response via the WordPress HTTP API.
 	$response = wp_remote_post(
 		$api_endpoint,
 		array(
@@ -402,7 +364,6 @@ function zw_staart_get_top_posts() {
 		)
 	);
 
-	// Check for WP_Error or a non-200 response code.
 	if ( is_wp_error( $response ) ) {
 		return;
 	}
@@ -412,10 +373,8 @@ function zw_staart_get_top_posts() {
 		return;
 	}
 
-	// Decode the response.
 	$data = json_decode( wp_remote_retrieve_body( $response ), true );
 
-	// Parse Plausible Analytics API response.
 	$articles = array();
 	if ( ! empty( $data['results'] ) ) {
 		foreach ( $data['results'] as $result ) {
@@ -429,7 +388,6 @@ function zw_staart_get_top_posts() {
 		}
 	}
 
-	// Filter articles to include only news and background posts with valid paths.
 	$filtered_articles = array_filter(
 		$articles,
 		static fn( $article ) => ( str_starts_with( $article['page'] ?? '', '/nieuws/' )
@@ -441,14 +399,13 @@ function zw_staart_get_top_posts() {
 
 	$top_articles = array_slice( $filtered_articles, 0, ZW_STAART_MAX_TOP_ARTICLES );
 
-	// Resolve post IDs in batch to avoid N+1 queries later.
 	$top_articles = zw_staart_resolve_post_ids( $top_articles );
 
 	zw_staart_save_top_posts( $top_articles );
 }
 
 /**
- * Resolves post IDs for article URLs in batch to avoid N+1 query problem.
+ * Resolves article paths to post IDs.
  *
  * @param array $articles Array of articles with 'page' keys containing URL paths.
  * @return array Articles with 'post_id' added to each item.
@@ -458,16 +415,14 @@ function zw_staart_resolve_post_ids( $articles ) {
 		return array();
 	}
 
-	// Extract slugs from URLs.
 	$slugs = array();
 	foreach ( $articles as $article ) {
 		$path  = trim( $article['page'], '/' );
 		$parts = explode( '/', $path );
-		// Last part is the slug (e.g., /nieuws/article-slug -> article-slug).
+
 		$slugs[] = end( $parts );
 	}
 
-	// Query all posts in a single database call for optimal performance.
 	$query = new WP_Query(
 		array(
 			'post_type'              => 'post',
@@ -479,11 +434,10 @@ function zw_staart_resolve_post_ids( $articles ) {
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'ignore_sticky_posts'    => true,
-			'orderby'                => 'post_name__in', // Preserve order from post_name__in array.
+			'orderby'                => 'post_name__in',
 		)
 	);
 
-	// Create a map of slug -> post_id.
 	$slug_to_id = array();
 	if ( $query->have_posts() ) {
 		foreach ( $query->posts as $post_id ) {
@@ -494,7 +448,6 @@ function zw_staart_resolve_post_ids( $articles ) {
 		}
 	}
 
-	// Add post IDs to articles.
 	foreach ( $articles as &$article ) {
 		$path  = trim( $article['page'], '/' );
 		$parts = explode( '/', $path );

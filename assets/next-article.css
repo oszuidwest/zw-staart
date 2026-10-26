@@ -1,10 +1,4 @@
-/**
- * ZuidWest Staart: next article bar.
- *
- * Follows the theme header: gray-800 surface, rounded-sm corners,
- * filled Material icons and the green accent. Colours use the theme's
- * Tailwind variables, with fallbacks.
- */
+/* Next article bar; theme colours with standalone fallbacks. */
 .zw-staart-next-article {
 	--zw-staart-next-article-surface: var(--color-gray-800, #1e2939);
 	--zw-staart-next-article-edge: var(--color-gray-900, #101828);
@@ -26,11 +20,7 @@
 	transition: transform 0.25s ease-out, visibility 0s 0.25s;
 }
 
-/**
- * In dark mode the page itself is gray-800, so the bar steps up to
- * gray-700, like the theme's dark tabs and embed blocks. Label, close
- * tab and track step up with it to keep their contrast.
- */
+/* Lift the bar above the gray-800 page in dark mode. */
 .dark .zw-staart-next-article {
 	--zw-staart-next-article-surface: var(--color-gray-700, #364153);
 	--zw-staart-next-article-muted: var(--color-gray-300, #d1d5dc);
@@ -38,7 +28,6 @@
 	--zw-staart-next-article-track: var(--color-gray-600, #4a5565);
 }
 
-/* The bar replaces the reading tips block while it is active. */
 .zw-staart-has-next-article #zw-staart-top-posts-list {
 	display: none;
 }
@@ -49,7 +38,6 @@
 	transition: transform 0.25s ease-out, visibility 0s;
 }
 
-/* While swiping, the bar follows the finger directly. */
 .zw-staart-next-article.is-dragging {
 	transition: none;
 }
@@ -83,7 +71,6 @@
 	text-decoration: none;
 }
 
-/* Desktop only: a 16:9 thumbnail with rounded-sm corners, like the tiles. */
 .zw-staart-next-article .zw-staart-next-article-image {
 	flex: none;
 	width: 80px;
@@ -98,7 +85,6 @@
 	min-width: 0;
 }
 
-/* Cut off on the narrowest screens rather than run into the wheel. */
 .zw-staart-next-article .zw-staart-next-article-label {
 	display: block;
 	overflow: hidden;
@@ -111,7 +97,6 @@
 	white-space: nowrap;
 }
 
-/* In phase 2 the label stands out; green once scrolling on opens the next article. */
 .zw-staart-next-article.is-phase2 .zw-staart-next-article-label {
 	color: #fff;
 }
@@ -136,17 +121,12 @@
 	color: var(--zw-staart-next-article-blue);
 }
 
-/* Blue lacks contrast on the dark mode bar; underline, like the dossier list. */
+/* Underlining keeps hover contrast on the lighter dark-mode surface. */
 .dark .zw-staart-next-article .zw-staart-next-article-link:hover .zw-staart-next-article-title {
 	color: #fff;
 	text-decoration: underline;
 }
 
-/**
- * Close button: a tab on top of the bar, above the wheel, so readers see
- * they can stop. Same surface and edge as the bar, covering its top border,
- * with rounded-sm top corners. The tap target reaches 44px around the tab.
- */
 .zw-staart-next-article .zw-staart-next-article-close {
 	position: absolute;
 	right: 8px;
@@ -166,6 +146,7 @@
 	transition: color 0.15s;
 }
 
+/* Extend the tab's tap target to at least 44px. */
 .zw-staart-next-article .zw-staart-next-article-close::before {
 	position: absolute;
 	inset: -21px -5px 0;
@@ -181,14 +162,7 @@
 	color: #fff;
 }
 
-/**
- * Wheel, in two phases. The ring fills while reading and is full at the
- * last paragraph; then the inside fills with green from top to bottom, in
- * the direction of scrolling, until the regional news block below the
- * post. Full and at rest, the arrow turns dark: scrolling on opens the next
- * article. The fills follow the scrolling with a short delay, so the last
- * step visibly closes them.
- */
+/* Ring: text progress. Inner disc: progress to regional news. */
 .zw-staart-next-article .zw-staart-next-article-wheel {
 	position: relative;
 	flex: none;
@@ -197,7 +171,6 @@
 	margin-left: 8px;
 }
 
-/* The ring paints over the edge of the green disc. */
 .zw-staart-next-article .zw-staart-next-article-wheel::before {
 	position: absolute;
 	inset: 4px;
@@ -244,11 +217,6 @@
 	fill: var(--color-gray-900, #101828);
 }
 
-/**
- * The moment it is ready, the wheel swells once and the arrow nudges down
- * twice: noticeable from the corner of the eye, also after a fast scroll,
- * without reading the label.
- */
 .zw-staart-next-article.is-ready .zw-staart-next-article-wheel {
 	animation: zw-staart-next-article-swell 0.4s ease-out;
 }

@@ -2,22 +2,18 @@
 <ruleset name="zw-staart">
     <description>WordPress Coding Standards for ZuidWest Staart.</description>
 
-    <!-- Files to scan -->
     <file>zw-staart.php</file>
     <file>src</file>
 
-    <!-- Tooling -->
     <arg name="extensions" value="php"/>
     <arg name="colors"/>
     <arg value="sp"/>
 
     <ini name="error_reporting" value="E_ALL &amp; ~E_DEPRECATED"/>
 
-    <!-- Versions -->
     <config name="testVersion" value="8.3-8.4"/>
     <config name="minimum_wp_version" value="7.0"/>
 
-    <!-- Per-plugin -->
     <config name="text_domain" value="zw-staart"/>
     <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
         <properties>
@@ -28,7 +24,6 @@
         </properties>
     </rule>
 
-    <!-- Standards -->
     <rule ref="WordPress-Extra">
         <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
     </rule>

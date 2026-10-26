@@ -17,7 +17,6 @@
 
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
-// Plugin version and metadata.
 if ( ! defined( 'ZW_STAART_VERSION' ) ) {
 	define( 'ZW_STAART_VERSION', '0.5.3' );
 }
@@ -31,42 +30,33 @@ if ( ! defined( 'ZW_STAART_PLUGIN_URL' ) ) {
 	define( 'ZW_STAART_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 }
 
-// Plugin configuration constants.
 if ( ! defined( 'ZW_STAART_DEFAULT_DAYS' ) ) {
-	define( 'ZW_STAART_DEFAULT_DAYS', 5 );           // Default lookback days for Plausible.
+	define( 'ZW_STAART_DEFAULT_DAYS', 5 );
 }
 if ( ! defined( 'ZW_STAART_DEFAULT_HEADING' ) ) {
-	/**
-	 * Default heading for the reading tips block.
-	 *
-	 * @since 0.5.0
-	 */
 	define( 'ZW_STAART_DEFAULT_HEADING', 'Leestips voor jou' );
 }
 if ( ! defined( 'ZW_STAART_COOKIE_EXPIRY_DAYS' ) ) {
-	define( 'ZW_STAART_COOKIE_EXPIRY_DAYS', 7 );     // Cookie expiration in days.
+	define( 'ZW_STAART_COOKIE_EXPIRY_DAYS', 7 );
 }
 if ( ! defined( 'ZW_STAART_MAX_TOP_ARTICLES' ) ) {
-	define( 'ZW_STAART_MAX_TOP_ARTICLES', 25 );      // Maximum articles to cache.
+	define( 'ZW_STAART_MAX_TOP_ARTICLES', 25 );
 }
 if ( ! defined( 'ZW_STAART_MAX_VISITED_POSTS' ) ) {
-	define( 'ZW_STAART_MAX_VISITED_POSTS', 100 );    // Maximum visited post IDs to keep in the cookie.
+	define( 'ZW_STAART_MAX_VISITED_POSTS', 100 );
 }
 if ( ! defined( 'ZW_STAART_MIN_POSTS_DISPLAY' ) ) {
-	define( 'ZW_STAART_MIN_POSTS_DISPLAY', 5 );      // Minimum posts to show list.
+	define( 'ZW_STAART_MIN_POSTS_DISPLAY', 5 );
 }
 if ( ! defined( 'ZW_STAART_API_TIMEOUT' ) ) {
-	define( 'ZW_STAART_API_TIMEOUT', 30 );           // HTTP timeout in seconds.
+	define( 'ZW_STAART_API_TIMEOUT', 30 ); // Seconds.
 }
 if ( ! defined( 'ZW_STAART_API_PAGINATION_LIMIT' ) ) {
-	define( 'ZW_STAART_API_PAGINATION_LIMIT', 100 ); // Plausible API pagination.
+	define( 'ZW_STAART_API_PAGINATION_LIMIT', 100 );
 }
 
 require_once ZW_STAART_PLUGIN_DIR . 'src/admin.php';
 require_once ZW_STAART_PLUGIN_DIR . 'src/front-end.php';
-/**
- * Loads the next article bar helpers and asset registration.
- */
 require_once ZW_STAART_PLUGIN_DIR . 'src/next-article.php';
 require_once ZW_STAART_PLUGIN_DIR . 'src/tracker.php';
 

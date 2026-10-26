@@ -2,25 +2,14 @@
 /**
  * Next article bar for ZuidWest Staart plugin
  *
- * Shows a floating bar with the next reading tip. Its wheel fills in two
- * phases: the ring up to the last paragraph, then the inside up to the
- * regional news block below the article, or the end of the article without
- * it. Scrolling on into the full wheel
- * opens the next article as a regular page load; after a fast flick, only
- * once the page has come to rest and the reader scrolls again.
- *
  * @package ZuidWest_Staart
  * @since 0.5.0
  */
 
-// Prevent direct file access.
 defined( 'ABSPATH' ) || die( 'No script kiddies please!' );
 
 /**
- * Returns the featured image URL for the next article bar.
- *
- * Uses the theme's imgproxy helper to request a 160x90 image when available.
- * Otherwise, returns the WordPress 'medium' image URL, whose dimensions vary.
+ * Returns a 160x90 imgproxy thumbnail, falling back to WordPress 'medium'.
  *
  * @since 0.5.0
  *
@@ -33,7 +22,6 @@ function zw_staart_next_article_image( $post_id ) {
 		return '';
 	}
 
-	// Request twice the 80x45 display size when imgproxy is available.
 	return function_exists( 'zw_imgproxy' ) ? zw_imgproxy( $src, 160, 90 ) : (string) get_the_post_thumbnail_url( $post_id, 'medium' );
 }
 
@@ -52,7 +40,7 @@ function zw_staart_next_article_candidates( $current_id ) {
 	$candidates = array();
 	$post_ids   = zw_staart_top_post_ids( $current_id );
 
-	// The featured images too, in one go.
+	// Prime attachments as well as posts to avoid per-image queries.
 	_prime_post_caches( array_filter( array_map( 'get_post_thumbnail_id', $post_ids ) ), false, true );
 
 	foreach ( $post_ids as $post_id ) {
