@@ -565,6 +565,7 @@
 		if (event.key === 'End' || (SCROLL_KEYS.has(event.key) && (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey))) {
 			lastInput = 0;
 			pushedOn = false;
+			swept = false;
 			return;
 		}
 		if (!SCROLL_KEYS.has(event.key)) {
@@ -579,8 +580,11 @@
 			}
 		}
 	});
-	// Returning to a tab requires another settling period.
+	// Returning to a tab requires another settling period and a new push.
 	document.addEventListener('visibilitychange', () => {
+		lastInput = 0;
+		pushedOn = false;
+		swept = false;
 		lastMotion = Date.now();
 		schedule();
 	});
