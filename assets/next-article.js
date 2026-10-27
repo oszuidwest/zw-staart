@@ -468,6 +468,10 @@
 			if (touches === 0 && Date.now() - lastMotion >= SETTLE_MS) {
 				pushedOn = false;
 				swept = false;
+				// Key repeats steer without a new gesture, so only input from before the rest is stale.
+				if (lastInput <= lastMotion) {
+					lastInput = 0;
+				}
 			}
 			lastMotion = Date.now();
 			schedule();
