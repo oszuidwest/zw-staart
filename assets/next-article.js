@@ -21,6 +21,8 @@
 	// End and modified keys jump to the footer or select text, so they never open.
 	const SCROLL_KEYS = new Set(['ArrowDown', 'PageDown', ' ']);
 	const SWIPE_START_PX = 6;
+	// An unclear touch start may still straighten out before the swipe counts as sideways.
+	const SWIPE_LOCK_PX = 24;
 	const VARIANT_KEY = 'zw_staart_ab_variant';
 	const RETURN_KEY = 'zw_staart_ab_return';
 	const QUICK_RETURN_MS = 15000;
@@ -230,6 +232,8 @@
 	let swipeX = 0;
 	let swipeY = 0;
 	let touchFromFull = false;
+	// The last swipe went down, so its coast is the reader's own.
+	let swept = false;
 	let settleTimer = 0;
 	let frame = 0;
 	let prefetchRule = null;
@@ -337,7 +341,9 @@
 
 		// Open on downward steering or a coast from a push begun with the ring full.
 		// A fast flick begun in the text needs a rest and a new gesture.
-		const steered = Date.now() - lastInput < STEER_MS && (touches > 0 || !coasting);
+		// A finger on a downward swipe steers without fresh touchmoves, which browsers throttle while scrolling.
+		const swiping = touches === 1 && touchSteers && heading === 'down';
+		const steered = swiping || (!coasting && (swept || Date.now() - lastInput < STEER_MS));
 		if (down && (steered || pushedOn) && atEnd(phase)) {
 			openNext();
 			return;
@@ -374,6 +380,7 @@
 			coasting = false;
 			pushedOn = false;
 		}
+		swept = false;
 		lastMotion = Date.now();
 		schedule();
 		return ready;
@@ -394,8 +401,9 @@
 		return true;
 	}
 
-	// A gesture's first SWIPE_START_PX lock its direction, like the browser's axis lock.
-	// Only a clearly downward gesture steers, and opens if it began while ready.
+	// A gesture's first pixels lock its direction, like the browser's axis lock.
+	// Only a downward gesture steers, and opens if it began while ready.
+	// A slow thumb arcs and wobbles, so a touch may go up to twice as much sideways.
 	function startSwipe(ready) {
 		armed = ready;
 		heading = '';
@@ -408,19 +416,27 @@
 		heading = 'other';
 	}
 
-	function swipe(dx, dy) {
+	function swipe(dx, dy, thumb = false) {
 		swipeX += dx;
 		swipeY += dy;
-		if (!heading && Math.hypot(swipeX, swipeY) > SWIPE_START_PX) {
-			heading = swipeY > Math.abs(swipeX) ? 'down' : 'other';
-			if (armed && heading === 'down') {
+		const distance = Math.hypot(swipeX, swipeY);
+		if (heading || distance <= SWIPE_START_PX) {
+			return;
+		}
+		if ((thumb ? 2 : 1) * swipeY > Math.abs(swipeX)) {
+			heading = 'down';
+			if (armed) {
 				openNext();
 			}
+			armed = false;
+		} else if (!thumb || distance > SWIPE_LOCK_PX) {
+			heading = 'other';
 			armed = false;
 		}
 	}
 
 	function onTouchEnd(event) {
+		swept = touches === 1 && touchSteers && heading === 'down';
 		endSwipe();
 		touches = event.touches.length;
 		lastMotion = Date.now();
@@ -448,9 +464,14 @@
 			movedDown = movedDown || window.scrollY > lastY;
 			lastY = window.scrollY;
 			lastScrollAt = now;
-			// Layout shifts after a rest must not inherit a previous push.
-			if (Date.now() - lastMotion >= SETTLE_MS) {
+			// Layout shifts after a rest must not inherit a previous push; a finger down keeps its own.
+			if (touches === 0 && Date.now() - lastMotion >= SETTLE_MS) {
 				pushedOn = false;
+				swept = false;
+				// Key repeats steer without a new gesture, so only input from before the rest is stale.
+				if (lastInput <= lastMotion) {
+					lastInput = 0;
+				}
 			}
 			lastMotion = Date.now();
 			schedule();
@@ -473,6 +494,8 @@
 			touchY = event.touches[0].clientY;
 			startSwipe(ready && touchSteers);
 			touchFromFull = ringFull;
+			// A new finger catches the page, so an earlier fast flick no longer counts.
+			coasting = false;
 			touches = event.touches.length;
 		},
 		{ passive: true }
@@ -486,7 +509,7 @@
 			}
 			const { clientX: x, clientY: y } = event.touches[0];
 			if (event.touches.length === 1) {
-				swipe(x - touchX, touchY - y);
+				swipe(x - touchX, touchY - y, true);
 				if (touchSteers && y < touchY && heading === 'down') {
 					lastInput = Date.now();
 					pushedOn = pushedOn || touchFromFull;
@@ -504,6 +527,7 @@
 		(event) => {
 			lastInput = 0;
 			pushedOn = false;
+			touchSteers = false;
 			onTouchEnd(event);
 		},
 		{ passive: true }
@@ -541,6 +565,7 @@
 		if (event.key === 'End' || (SCROLL_KEYS.has(event.key) && (event.shiftKey || event.metaKey || event.ctrlKey || event.altKey))) {
 			lastInput = 0;
 			pushedOn = false;
+			swept = false;
 			return;
 		}
 		if (!SCROLL_KEYS.has(event.key)) {
@@ -555,8 +580,11 @@
 			}
 		}
 	});
-	// Returning to a tab requires another settling period.
+	// Returning to a tab requires another settling period and a new push.
 	document.addEventListener('visibilitychange', () => {
+		lastInput = 0;
+		pushedOn = false;
+		swept = false;
 		lastMotion = Date.now();
 		schedule();
 	});

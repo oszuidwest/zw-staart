@@ -14,6 +14,7 @@
 - Zijwaarts vegen of scrollen, zoals terugvegen met twee vingers op een trackpad, kon het volgende artikel openen.
 - Sluiten tijdens het laden telde als doorscrollen terwijl er niet genavigeerd werd, en een verborgen tab kon nog navigeren.
 - Na terugkomen via de terugknop stond de bol vol met het label "Volgend artikel", terwijl doorscrollen pas weer werkt als de lezer terug omhoog scrollt. Tot dan blijft de bol nu leeg en zegt het label "Lees ook".
+- Wie op mobiel rustig en zonder te stoppen doorscrollde, kwam niet bij het volgende artikel: een schuine duimveeg telde als zijwaarts, het rustige nalopen na een veeg telde maar een kwart seconde, en een snelle veeg eerder in het artikel blokkeerde het nalopen tot de pagina stilstond. De lezer moest stoppen en opnieuw vegen. Nu opent het volgende artikel zodra het wiel vol is, ook als de browser tijdens het scrollen minder vaak doorgeeft waar de vinger is.
 
 ## [0.5.5] - 2026-10-26
 ### Opgelost
