@@ -108,6 +108,6 @@ Het script toont per groep de bezoekers, weergaven, doorlezers en snel-terugkome
 ## Vereisten
 
 - WordPress 7.0 of hoger
-- PHP 8.3 of hoger
+- PHP 8.4 of hoger
 - JavaScript voor het filteren van gelezen artikelen en cookie tracking
 - Plausible Analytics account (voor leestips functionaliteit)
