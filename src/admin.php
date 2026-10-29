@@ -308,7 +308,7 @@ function zw_staart_settings_page() {
 					<th scope="row">Aantal dagen</th>
 					<td>
 						<input type="number" name="zw_staart_settings[plausible][days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
-						<p class="description">Aantal dagen terug voor data-analyse (standaard: 5)</p>
+						<p class="description">Leestips zijn maximaal zoveel dagen oud en worden gerangschikt op weergaven in die periode (standaard: 5)</p>
 					</td>
 				</tr>
 			</table>
@@ -394,9 +394,10 @@ function zw_staart_get_top_posts() {
 
 	usort( $filtered_articles, static fn( $a, $b ) => $b['pageviews'] <=> $a['pageviews'] );
 
-	$top_articles = array_slice( $filtered_articles, 0, ZW_STAART_MAX_TOP_ARTICLES );
-
-	$top_articles = zw_staart_resolve_post_ids( $top_articles );
+	// Resolve before slicing, so articles that are too old leave room for the next ones.
+	$top_articles = zw_staart_resolve_post_ids( $filtered_articles, $days );
+	$top_articles = array_filter( $top_articles, static fn( $article ) => 0 !== $article['post_id'] );
+	$top_articles = array_slice( $top_articles, 0, ZW_STAART_MAX_TOP_ARTICLES );
 
 	zw_staart_save_top_posts( $top_articles );
 }
@@ -404,10 +405,14 @@ function zw_staart_get_top_posts() {
 /**
  * Resolves article paths to post IDs.
  *
+ * Skips articles older than the lookback, which the next article bar would
+ * otherwise keep popular by sending readers to them.
+ *
  * @param array $articles Articles with URL paths in 'page'.
- * @return array Articles with 'post_id' added; 0 if unresolved.
+ * @param int   $days     Maximum article age in days.
+ * @return array Articles with 'post_id' added; 0 if unresolved or too old.
  */
-function zw_staart_resolve_post_ids( $articles ) {
+function zw_staart_resolve_post_ids( $articles, $days ) {
 	if ( empty( $articles ) ) {
 		return array();
 	}
@@ -432,6 +437,12 @@ function zw_staart_resolve_post_ids( $articles ) {
 			'update_post_term_cache' => false,
 			'ignore_sticky_posts'    => true,
 			'orderby'                => 'post_name__in',
+			'date_query'             => array(
+				array(
+					'after'     => wp_date( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS ),
+					'inclusive' => true,
+				),
+			),
 		)
 	);
 

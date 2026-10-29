@@ -43,12 +43,13 @@ Configureer de verbinding met Plausible Analytics:
 - **API-sleutel**: Jouw Plausible Analytics API-sleutel
 - **Site-ID**: bijvoorbeeld `zuidwestupdate.nl`
 - **API Endpoint**: bijvoorbeeld `https://stats.zuidwesttv.nl/api/v2/query`
-- **Aantal dagen terug**: Standaard 5 dagen
+- **Aantal dagen terug**: Standaard 5 dagen. Geldt voor de weergaven én voor de leeftijd van een artikel: oudere artikelen komen niet in de leestips, ook als ze nog veel gelezen worden.
 
 ## Hoe het werkt
 
 ### Data synchronisatie
 - Elk uur haalt de plugin automatisch de top 25 meest gelezen artikelen op via Plausible Analytics
+- Artikelen die ouder zijn dan het aantal dagen tellen niet mee; anders houdt de doorscrollbalk een oud artikel bovenaan door er steeds lezers naartoe te sturen
 - Alleen artikelen uit `/nieuws/` en `/achtergrond/` worden meegenomen (hardcoded voor nu, zou een instelling kunnen worden)
 - Data wordt lokaal gecached voor snelle weergave
 
