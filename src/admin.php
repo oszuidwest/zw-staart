@@ -333,9 +333,9 @@ function zw_staart_get_top_posts() {
 		return;
 	}
 
-	// Include today in the lookback.
+	// Count from the start day of the oldest allowed article, so its first pageviews are included.
 	$end_date   = wp_date( 'Y-m-d' );
-	$start_date = wp_date( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days' ) );
+	$start_date = wp_date( 'Y-m-d', strtotime( '-' . $days . ' days' ) );
 
 	$request_data = array(
 		'site_id'    => $site_id,
@@ -396,13 +396,9 @@ function zw_staart_get_top_posts() {
 	$top_articles = zw_staart_resolve_post_ids( $filtered_articles, $days );
 	$top_articles = array_filter( $top_articles, static fn( $article ) => 0 !== $article['post_id'] );
 
-	$now = time();
-	foreach ( $top_articles as &$article ) {
-		$article['score'] = zw_staart_article_score( $article['pageviews'], $now - (int) get_post_time( 'U', true, $article['post_id'] ) );
-	}
-	unset( $article );
-
-	usort( $top_articles, static fn( $a, $b ) => $b['score'] <=> $a['score'] );
+	$now   = time();
+	$score = static fn( $article ) => zw_staart_article_score( $article['pageviews'], $now - (int) get_post_time( 'U', true, $article['post_id'] ) );
+	usort( $top_articles, static fn( $a, $b ) => $score( $b ) <=> $score( $a ) );
 
 	$top_articles = array_slice( $top_articles, 0, ZW_STAART_MAX_TOP_ARTICLES );
 
@@ -413,7 +409,9 @@ function zw_staart_get_top_posts() {
  * Scores an article by pageviews, discounted by age.
  *
  * The next article bar sends readers to the top article, which keeps it on
- * top; the discount lets newer articles overtake it within about a day.
+ * top; the discount makes it easier for newer articles to overtake it. The
+ * 12-hour offset keeps articles published minutes ago from jumping to the top
+ * on a handful of pageviews.
  *
  * @since 0.5.8
  *
@@ -424,7 +422,7 @@ function zw_staart_get_top_posts() {
 function zw_staart_article_score( $pageviews, $age ) {
 	$hours = max( 0, $age ) / HOUR_IN_SECONDS;
 
-	return $pageviews / ( ( $hours + ZW_STAART_AGE_OFFSET_HOURS ) ** ZW_STAART_AGE_GRAVITY );
+	return $pageviews / ( ( $hours + 12 ) ** 1.5 );
 }
 
 /**

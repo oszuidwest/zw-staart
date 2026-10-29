@@ -42,12 +42,6 @@ if ( ! defined( 'ZW_STAART_COOKIE_EXPIRY_DAYS' ) ) {
 if ( ! defined( 'ZW_STAART_MAX_TOP_ARTICLES' ) ) {
 	define( 'ZW_STAART_MAX_TOP_ARTICLES', 25 );
 }
-if ( ! defined( 'ZW_STAART_AGE_OFFSET_HOURS' ) ) {
-	define( 'ZW_STAART_AGE_OFFSET_HOURS', 12 );
-}
-if ( ! defined( 'ZW_STAART_AGE_GRAVITY' ) ) {
-	define( 'ZW_STAART_AGE_GRAVITY', 1.5 );
-}
 if ( ! defined( 'ZW_STAART_MAX_VISITED_POSTS' ) ) {
 	define( 'ZW_STAART_MAX_VISITED_POSTS', 100 );
 }
@@ -58,7 +52,7 @@ if ( ! defined( 'ZW_STAART_API_TIMEOUT' ) ) {
 	define( 'ZW_STAART_API_TIMEOUT', 30 ); // Seconds.
 }
 if ( ! defined( 'ZW_STAART_API_PAGINATION_LIMIT' ) ) {
-	define( 'ZW_STAART_API_PAGINATION_LIMIT', 100 );
+	define( 'ZW_STAART_API_PAGINATION_LIMIT', 1000 );
 }
 
 require_once ZW_STAART_PLUGIN_DIR . 'src/admin.php';
