@@ -1,3 +1,7 @@
+## [Unreleased]
+### Opgelost
+- Een artikel van een week oud bleef bovenaan de leestips en de doorscrollbalk staan. De instelling van 5 dagen bepaalde alleen over welke periode weergaven geteld worden, niet hoe oud een artikel mag zijn. Omdat de balk lezers naar het populairste artikel stuurt, bleef dat artikel populair. Nu komen alleen artikelen die binnen het aantal dagen gepubliceerd zijn in de lijst, en vult de lijst zich daarna aan tot 25.
+
 ## [0.5.7] - 2026-10-28
 ### Opgelost
 - Wie op mobiel rustig en zonder te stoppen doorscrollde, kwam niet bij het volgende artikel: een schuine duimveeg telde als zijwaarts, het rustige nalopen na een veeg telde maar een kwart seconde, en een snelle veeg eerder in het artikel blokkeerde het nalopen tot de pagina stilstond. De lezer moest stoppen en opnieuw vegen. Nu opent het volgende artikel zodra het wiel vol is, ook als de browser tijdens het scrollen minder vaak doorgeeft waar de vinger is.
