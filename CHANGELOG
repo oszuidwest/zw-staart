@@ -1,4 +1,7 @@
 ## [Unreleased]
+### Veranderd
+- De leestips en de doorscrollbalk rangschikken niet meer puur op weergaven, maar laten de leeftijd van een artikel meewegen. De balk stuurt lezers naar het bovenste artikel, waardoor dat bovenaan bleef tot het 5 dagen oud was (zo'n 1.000 extra weergaven per dag); nu haalt een nieuwer artikel het binnen ongeveer een dag in en blijft vers nieuws vooraan.
+
 ### Opgelost
 - Een artikel van een week oud bleef bovenaan de leestips en de doorscrollbalk staan. De instelling van 5 dagen bepaalde alleen over welke periode weergaven geteld worden, niet hoe oud een artikel mag zijn. Omdat de balk lezers naar het populairste artikel stuurt, bleef dat artikel populair. Nu komen alleen artikelen die binnen het aantal dagen gepubliceerd zijn in de lijst, en vult de lijst zich daarna aan tot 25.
 

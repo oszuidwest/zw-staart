@@ -308,7 +308,7 @@ function zw_staart_settings_page() {
 					<th scope="row">Aantal dagen</th>
 					<td>
 						<input type="number" name="zw_staart_settings[plausible][days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
-						<p class="description">Leestips zijn maximaal zoveel dagen oud en worden gerangschikt op weergaven in die periode (standaard: 5)</p>
+						<p class="description">Leestips zijn maximaal zoveel dagen oud en worden gerangschikt op weergaven in die periode, waarbij nieuwere artikelen zwaarder wegen (standaard: 5)</p>
 					</td>
 				</tr>
 			</table>
@@ -392,14 +392,39 @@ function zw_staart_get_top_posts() {
 								&& strlen( $article['page'] ?? '' ) > strlen( '/nieuws/' )
 	);
 
-	usort( $filtered_articles, static fn( $a, $b ) => $b['pageviews'] <=> $a['pageviews'] );
-
 	// Resolve before slicing, so articles that are too old leave room for the next ones.
 	$top_articles = zw_staart_resolve_post_ids( $filtered_articles, $days );
 	$top_articles = array_filter( $top_articles, static fn( $article ) => 0 !== $article['post_id'] );
+
+	$now = time();
+	foreach ( $top_articles as &$article ) {
+		$article['score'] = zw_staart_article_score( $article['pageviews'], $now - (int) get_post_time( 'U', true, $article['post_id'] ) );
+	}
+	unset( $article );
+
+	usort( $top_articles, static fn( $a, $b ) => $b['score'] <=> $a['score'] );
+
 	$top_articles = array_slice( $top_articles, 0, ZW_STAART_MAX_TOP_ARTICLES );
 
 	zw_staart_save_top_posts( $top_articles );
+}
+
+/**
+ * Scores an article by pageviews, discounted by age.
+ *
+ * The next article bar sends readers to the top article, which keeps it on
+ * top; the discount lets newer articles overtake it within about a day.
+ *
+ * @since 0.5.8
+ *
+ * @param int $pageviews Pageviews in the lookback.
+ * @param int $age       Seconds since publication.
+ * @return float Score; higher ranks first.
+ */
+function zw_staart_article_score( $pageviews, $age ) {
+	$hours = max( 0, $age ) / HOUR_IN_SECONDS;
+
+	return $pageviews / ( ( $hours + ZW_STAART_AGE_OFFSET_HOURS ) ** ZW_STAART_AGE_GRAVITY );
 }
 
 /**

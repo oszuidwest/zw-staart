@@ -50,6 +50,7 @@ Configureer de verbinding met Plausible Analytics:
 ### Data synchronisatie
 - Elk uur haalt de plugin automatisch de top 25 meest gelezen artikelen op via Plausible Analytics
 - Artikelen die ouder zijn dan het aantal dagen tellen niet mee; anders houdt de doorscrollbalk een oud artikel bovenaan door er steeds lezers naartoe te sturen
+- De volgorde is weergaven ÷ (uren sinds publicatie + 12)^1,5. De doorscrollbalk stuurt lezers naar het bovenste artikel en houdt het zo populair; door de leeftijd mee te wegen haalt een nieuwer artikel het binnen ongeveer een dag in. Instelbaar met `ZW_STAART_AGE_OFFSET_HOURS` en `ZW_STAART_AGE_GRAVITY`
 - Alleen artikelen uit `/nieuws/` en `/achtergrond/` worden meegenomen (hardcoded voor nu, zou een instelling kunnen worden)
 - Data wordt lokaal gecached voor snelle weergave
 

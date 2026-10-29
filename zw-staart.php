@@ -42,6 +42,12 @@ if ( ! defined( 'ZW_STAART_COOKIE_EXPIRY_DAYS' ) ) {
 if ( ! defined( 'ZW_STAART_MAX_TOP_ARTICLES' ) ) {
 	define( 'ZW_STAART_MAX_TOP_ARTICLES', 25 );
 }
+if ( ! defined( 'ZW_STAART_AGE_OFFSET_HOURS' ) ) {
+	define( 'ZW_STAART_AGE_OFFSET_HOURS', 12 );
+}
+if ( ! defined( 'ZW_STAART_AGE_GRAVITY' ) ) {
+	define( 'ZW_STAART_AGE_GRAVITY', 1.5 );
+}
 if ( ! defined( 'ZW_STAART_MAX_VISITED_POSTS' ) ) {
 	define( 'ZW_STAART_MAX_VISITED_POSTS', 100 );
 }
