@@ -32,7 +32,7 @@ function zw_staart_next_article_image( $post_id ) {
  *
  * @param int $current_id Current post ID to omit.
  * @return array<int, array{id: int, url: string, title: string, image: string}>
- *     Candidates in descending order of popularity.
+ *     Candidates in ranking order.
  */
 function zw_staart_next_article_candidates( $current_id ) {
 	$candidates = array();

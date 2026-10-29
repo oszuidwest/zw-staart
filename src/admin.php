@@ -308,7 +308,7 @@ function zw_staart_settings_page() {
 					<th scope="row">Aantal dagen</th>
 					<td>
 						<input type="number" name="zw_staart_settings[plausible][days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
-						<p class="description">Leestips zijn maximaal zoveel dagen oud en worden gerangschikt op weergaven in die periode (standaard: 5)</p>
+						<p class="description">Leestips zijn maximaal zoveel dagen oud; nieuwere artikelen wegen zwaarder (standaard: 5)</p>
 					</td>
 				</tr>
 			</table>
@@ -333,9 +333,9 @@ function zw_staart_get_top_posts() {
 		return;
 	}
 
-	// Include today in the lookback.
+	// Start on the day of the age cap in zw_staart_resolve_post_ids(), so an allowed article's first pageviews count.
 	$end_date   = wp_date( 'Y-m-d' );
-	$start_date = wp_date( 'Y-m-d', strtotime( '-' . ( $days - 1 ) . ' days' ) );
+	$start_date = wp_date( 'Y-m-d', time() - $days * DAY_IN_SECONDS );
 
 	$request_data = array(
 		'site_id'    => $site_id,
@@ -392,20 +392,43 @@ function zw_staart_get_top_posts() {
 								&& strlen( $article['page'] ?? '' ) > strlen( '/nieuws/' )
 	);
 
-	usort( $filtered_articles, static fn( $a, $b ) => $b['pageviews'] <=> $a['pageviews'] );
-
 	// Resolve before slicing, so articles that are too old leave room for the next ones.
 	$top_articles = zw_staart_resolve_post_ids( $filtered_articles, $days );
 	$top_articles = array_filter( $top_articles, static fn( $article ) => 0 !== $article['post_id'] );
+
+	$now   = time();
+	$score = static fn( $article ) => zw_staart_article_score( $article['pageviews'], $now - (int) get_post_time( 'U', true, $article['post_id'] ) );
+	usort( $top_articles, static fn( $a, $b ) => $score( $b ) <=> $score( $a ) );
+
 	$top_articles = array_slice( $top_articles, 0, ZW_STAART_MAX_TOP_ARTICLES );
 
 	zw_staart_save_top_posts( $top_articles );
 }
 
 /**
+ * Scores an article by pageviews, discounted by age.
+ *
+ * The next article bar sends readers to the top unread article, which keeps
+ * it on top; the discount lets newer articles overtake it. The 12-hour
+ * offset keeps articles published minutes ago from jumping to the top on a
+ * handful of pageviews.
+ *
+ * @since 0.5.8
+ *
+ * @param int $pageviews Pageviews in the lookback.
+ * @param int $age       Seconds since publication.
+ * @return float Score; higher ranks first.
+ */
+function zw_staart_article_score( $pageviews, $age ) {
+	$hours = max( 0, $age ) / HOUR_IN_SECONDS;
+
+	return $pageviews / ( ( $hours + 12 ) ** 1.5 );
+}
+
+/**
  * Resolves article paths to post IDs.
  *
- * Skips articles older than the lookback, which the next article bar would
+ * Skips articles older than $days days, which the next article bar would
  * otherwise keep popular by sending readers to them.
  *
  * @param array $articles Articles with URL paths in 'page'.
@@ -436,7 +459,6 @@ function zw_staart_resolve_post_ids( $articles, $days ) {
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'ignore_sticky_posts'    => true,
-			'orderby'                => 'post_name__in',
 			'date_query'             => array(
 				array(
 					'after'     => wp_date( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS ),
@@ -445,6 +467,9 @@ function zw_staart_resolve_post_ids( $articles, $days ) {
 			),
 		)
 	);
+
+	// Prime posts to avoid per-post queries.
+	_prime_post_caches( $query->posts, false, false );
 
 	$slug_to_id = array();
 	if ( $query->have_posts() ) {

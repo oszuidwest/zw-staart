@@ -52,7 +52,7 @@ if ( ! defined( 'ZW_STAART_API_TIMEOUT' ) ) {
 	define( 'ZW_STAART_API_TIMEOUT', 30 ); // Seconds.
 }
 if ( ! defined( 'ZW_STAART_API_PAGINATION_LIMIT' ) ) {
-	define( 'ZW_STAART_API_PAGINATION_LIMIT', 100 );
+	define( 'ZW_STAART_API_PAGINATION_LIMIT', 1000 );
 }
 
 require_once ZW_STAART_PLUGIN_DIR . 'src/admin.php';
