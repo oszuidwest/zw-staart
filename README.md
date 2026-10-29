@@ -4,12 +4,12 @@ WordPress-plugin voor het WordPress-thema van Streekomroep ZuidWest die leestips
 
 ## Wat doet deze plugin?
 
-De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartikelen (niet bij dossier-artikelen): de top 5 meest gelezen artikelen die de bezoeker nog niet heeft gelezen.
+De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartikelen (niet bij dossier-artikelen): de 5 hoogst gerangschikte artikelen (weergaven, gewogen naar leeftijd) die de bezoeker nog niet heeft gelezen.
 
 Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hieronder).
 
 ### Doorscrollen
-- Na ongeveer een derde van de tekst schuift onderin een balk in beeld met de eerste leestip: het meest gelezen artikel dat de bezoeker nog niet heeft gelezen
+- Na ongeveer een derde van de tekst schuift onderin een balk in beeld met de eerste leestip: het hoogst gerangschikte artikel dat de bezoeker nog niet heeft gelezen
 - Op desktop staat de uitgelichte afbeelding van de leestip naast de titel; op mobiel alleen de titel
 - Zodra de balk verschijnt, vraagt hij een prefetch van het volgende artikel aan, waar de browser dat ondersteunt. Die draait geen scripts, dus telt niet als paginaweergave of gelezen artikel
 - Het wiel in de balk loopt in twee fases vol. De groene ring loopt vol tijdens het lezen en is vol zodra de laatste alinea van de tekst boven de balk staat (foto's, bijschriften en "Lees ook"-links daarna tellen niet mee). Daarna vult de binnenkant van het wiel zich van boven naar beneden met groen, tot het blok "Laatste nieuws uit ..." onder het artikel voor de helft boven de balk staat; zonder dat blok tot het einde van het artikel. Het label zegt dan "Volgend artikel"
@@ -48,9 +48,9 @@ Configureer de verbinding met Plausible Analytics:
 ## Hoe het werkt
 
 ### Data synchronisatie
-- Elk uur haalt de plugin de weergaven per artikel op via Plausible Analytics en bewaart de 25 hoogst gerangschikte artikelen
+- Elk uur haalt de plugin de weergaven van de 1.000 meest bekeken pagina's op via Plausible Analytics en bewaart hoogstens 25 artikelen
 - Artikelen die ouder zijn dan het aantal dagen tellen niet mee; anders houdt de doorscrollbalk een oud artikel bovenaan door er steeds lezers naartoe te sturen
-- De volgorde is weergaven ÷ (uren sinds publicatie + 12)^1,5. De doorscrollbalk stuurt lezers naar het bovenste artikel en houdt het zo populair; door de leeftijd mee te wegen kan een nieuwer artikel het makkelijker inhalen. De 12 uur voorkomt dat een artikel van een paar minuten oud met een handvol weergaven meteen bovenaan staat
+- De volgorde is weergaven ÷ (uren sinds publicatie + 12)^1,5, zodat een nieuwer artikel het artikel dat de doorscrollbalk bovenaan houdt kan inhalen. De 12 uur voorkomt dat een artikel van een paar minuten oud met een handvol weergaven meteen bovenaan staat
 - Alleen artikelen uit `/nieuws/` en `/achtergrond/` worden meegenomen (hardcoded voor nu, zou een instelling kunnen worden)
 - Data wordt lokaal gecached voor snelle weergave
 

@@ -308,7 +308,7 @@ function zw_staart_settings_page() {
 					<th scope="row">Aantal dagen</th>
 					<td>
 						<input type="number" name="zw_staart_settings[plausible][days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
-						<p class="description">Maximale leeftijd van leestips; nieuwere artikelen wegen zwaarder (standaard: 5)</p>
+						<p class="description">Leestips zijn maximaal zoveel dagen oud; nieuwere artikelen wegen zwaarder (standaard: 5)</p>
 					</td>
 				</tr>
 			</table>
@@ -333,7 +333,7 @@ function zw_staart_get_top_posts() {
 		return;
 	}
 
-	// Count from the start day of the oldest allowed article, so its first pageviews are included.
+	// Start on the day of the age cap in zw_staart_resolve_post_ids(), so an allowed article's first pageviews count.
 	$end_date   = wp_date( 'Y-m-d' );
 	$start_date = wp_date( 'Y-m-d', time() - $days * DAY_IN_SECONDS );
 
@@ -408,10 +408,10 @@ function zw_staart_get_top_posts() {
 /**
  * Scores an article by pageviews, discounted by age.
  *
- * The next article bar sends readers to the top article, which keeps it on
- * top; the discount makes it easier for newer articles to overtake it. The
- * 12-hour offset keeps articles published minutes ago from jumping to the top
- * on a handful of pageviews.
+ * The next article bar sends readers to the top unread article, which keeps
+ * it on top; the discount lets newer articles overtake it. The 12-hour
+ * offset keeps articles published minutes ago from jumping to the top on a
+ * handful of pageviews.
  *
  * @since 0.5.8
  *
@@ -428,7 +428,7 @@ function zw_staart_article_score( $pageviews, $age ) {
 /**
  * Resolves article paths to post IDs.
  *
- * Skips articles older than the lookback, which the next article bar would
+ * Skips articles older than $days days, which the next article bar would
  * otherwise keep popular by sending readers to them.
  *
  * @param array $articles Articles with URL paths in 'page'.

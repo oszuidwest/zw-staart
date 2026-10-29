@@ -1,8 +1,8 @@
 ## [Unreleased]
 ### Veranderd
-- De leestips en de doorscrollbalk rangschikken niet meer puur op weergaven, maar laten de leeftijd van een artikel meewegen. De balk stuurt lezers naar het bovenste artikel, waardoor dat bovenaan bleef tot het 5 dagen oud was (zo'n 1.000 extra weergaven per dag); nu kan een nieuwer artikel het makkelijker inhalen en staat vers nieuws vaker vooraan.
-- De weergaven worden geteld vanaf de publicatiedag van het oudste toegestane artikel, zodat ook de eerste dag van een artikel van bijna 5 dagen oud meetelt.
-- De plugin haalt 1.000 pagina's op bij Plausible in plaats van 100, zodat ook verse artikelen met nog weinig weergaven meedoen.
+- De leestips en de doorscrollbalk rangschikken niet meer puur op weergaven, maar laten de leeftijd van een artikel meewegen. De balk stuurt lezers naar het bovenste artikel en hield dat zo bovenaan (zo'n 1.000 extra weergaven per dag); nu kan een nieuwer artikel het makkelijker inhalen en staat vers nieuws vaker vooraan.
+- De weergaven tellen een dag langer terug, zodat ook de eerste dag van het oudste toegestane artikel meetelt.
+- De plugin vraagt de 1.000 meest bekeken pagina's op bij Plausible in plaats van 100, zodat ook verse artikelen met nog weinig weergaven meedoen.
 
 ### Opgelost
 - Een artikel van een week oud bleef bovenaan de leestips en de doorscrollbalk staan. De instelling van 5 dagen bepaalde alleen over welke periode weergaven geteld worden, niet hoe oud een artikel mag zijn. Omdat de balk lezers naar het populairste artikel stuurt, bleef dat artikel populair. Nu komen alleen artikelen die binnen het aantal dagen gepubliceerd zijn in de lijst, en vult de lijst zich daarna aan tot 25.

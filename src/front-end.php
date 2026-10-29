@@ -17,7 +17,7 @@ function zw_staart_fetch_top_posts() {
 }
 
 /**
- * Returns cached, published post IDs in popularity order.
+ * Returns cached, published post IDs in ranking order.
  *
  * @since 0.5.0
  *
