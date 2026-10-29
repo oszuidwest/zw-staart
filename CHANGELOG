@@ -1,5 +1,6 @@
-## [Unreleased]
+## [0.5.8] - 2026-10-29
 ### Veranderd
+- Minimaal vereiste PHP-versie verhoogd van 8.3 naar 8.4.
 - De leestips en de doorscrollbalk rangschikken niet meer puur op weergaven, maar laten de leeftijd van een artikel meewegen. De balk stuurt lezers naar het bovenste artikel en hield dat zo bovenaan (zo'n 1.000 extra weergaven per dag); nu kan een nieuwer artikel het makkelijker inhalen en staat vers nieuws vaker vooraan.
 - De weergaven tellen een dag langer terug, zodat ook de eerste dag van het oudste toegestane artikel meetelt.
 - De plugin vraagt de 1.000 meest bekeken pagina's op bij Plausible in plaats van 100, zodat ook verse artikelen met nog weinig weergaven meedoen.
