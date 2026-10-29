@@ -308,7 +308,7 @@ function zw_staart_settings_page() {
 					<th scope="row">Aantal dagen</th>
 					<td>
 						<input type="number" name="zw_staart_settings[plausible][days]" value="<?php echo esc_attr( $plausible_days ); ?>" min="1" max="30" class="small-text" />
-						<p class="description">Leestips zijn maximaal zoveel dagen oud en worden gerangschikt op weergaven in die periode, waarbij nieuwere artikelen zwaarder wegen (standaard: 5)</p>
+						<p class="description">Maximale leeftijd van leestips; nieuwere artikelen wegen zwaarder (standaard: 5)</p>
 					</td>
 				</tr>
 			</table>
@@ -335,7 +335,7 @@ function zw_staart_get_top_posts() {
 
 	// Count from the start day of the oldest allowed article, so its first pageviews are included.
 	$end_date   = wp_date( 'Y-m-d' );
-	$start_date = wp_date( 'Y-m-d', strtotime( '-' . $days . ' days' ) );
+	$start_date = wp_date( 'Y-m-d', time() - $days * DAY_IN_SECONDS );
 
 	$request_data = array(
 		'site_id'    => $site_id,
@@ -459,7 +459,6 @@ function zw_staart_resolve_post_ids( $articles, $days ) {
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'ignore_sticky_posts'    => true,
-			'orderby'                => 'post_name__in',
 			'date_query'             => array(
 				array(
 					'after'     => wp_date( 'Y-m-d H:i:s', time() - $days * DAY_IN_SECONDS ),
@@ -468,6 +467,9 @@ function zw_staart_resolve_post_ids( $articles, $days ) {
 			),
 		)
 	);
+
+	// Prime posts to avoid per-post queries.
+	_prime_post_caches( $query->posts, false, false );
 
 	$slug_to_id = array();
 	if ( $query->have_posts() ) {
