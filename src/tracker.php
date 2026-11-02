@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 function zw_staart_add_postid_tracker_script(): void {
 	global $post;
 
-	if ( is_single() && isset( $post->ID ) ) {
+	if ( is_single() && ! is_user_logged_in() && isset( $post->ID ) ) {
 		?>
 		<script type="text/javascript">
 			document.addEventListener('DOMContentLoaded', function() {

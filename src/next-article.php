@@ -97,15 +97,12 @@ function zw_staart_enqueue_next_article() {
 		)
 	);
 
-	// Exclude logged-in users from the test; their pages must bypass the page cache.
-	$in_test = 'test' === $mode && ! is_user_logged_in();
-
 	wp_add_inline_script(
 		handle: 'zw-staart-next-article',
 		data: 'window.zwStaartNextArticle = ' . wp_json_encode(
 			array(
 				'candidates' => $candidates,
-				'test'       => $in_test,
+				'test'       => 'test' === $mode,
 			),
 			JSON_HEX_TAG | JSON_HEX_AMP
 		) . ';',
