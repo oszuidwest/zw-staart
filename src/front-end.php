@@ -37,7 +37,7 @@ function zw_staart_top_post_ids( $exclude_id ) {
 /**
  * Checks whether reading tips belong on a single post outside a dossier.
  *
- * Logged-in users never see them, so previews of drafts stay clean.
+ * Logged-in users are left out; their pages must bypass the page cache.
  *
  * @since 0.5.0
  *
