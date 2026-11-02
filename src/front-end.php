@@ -37,13 +37,15 @@ function zw_staart_top_post_ids( $exclude_id ) {
 /**
  * Checks whether reading tips belong on a single post outside a dossier.
  *
+ * Logged-in users never see them, so previews of drafts stay clean.
+ *
  * @since 0.5.0
  *
  * @param int $post_id ID of the post being displayed.
  * @return bool True if reading tips should be shown.
  */
 function zw_staart_is_eligible_post( $post_id ) {
-	return is_single() && 'post' === get_post_type( $post_id ) && ! has_term( '', 'dossier', $post_id ) && ! wp_is_json_request();
+	return is_single() && ! is_user_logged_in() && 'post' === get_post_type( $post_id ) && ! has_term( '', 'dossier', $post_id ) && ! wp_is_json_request();
 }
 
 /**
