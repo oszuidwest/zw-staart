@@ -272,7 +272,7 @@ function zw_staart_settings_page() {
 							na sluiten komt het terug als er genoeg ongelezen leestips zijn.
 						</p>
 						<p class="description">
-							In de A/B-test wordt elke bezoeker per dag ingedeeld; ingelogde gebruikers zien de balk en tellen niet mee.
+							In de A/B-test wordt elke bezoeker per dag ingedeeld; ingelogde gebruikers doen niet mee.
 							Plausible krijgt bij elke artikelweergave het event Recirculatie Weergave
 							en bij elk recirculatie-event de eigenschap variant.
 						</p>

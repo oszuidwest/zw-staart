@@ -4,7 +4,7 @@ WordPress-plugin voor het WordPress-thema van Streekomroep ZuidWest die leestips
 
 ## Wat doet deze plugin?
 
-De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartikelen (niet bij dossier-artikelen): de 5 hoogst gerangschikte artikelen (weergaven, gewogen naar leeftijd) die de bezoeker nog niet heeft gelezen.
+De plugin voegt automatisch een blok **Leestips voor jou** toe onder nieuwsartikelen (niet bij dossier-artikelen): de 5 hoogst gerangschikte artikelen (weergaven, gewogen naar leeftijd) die de bezoeker nog niet heeft gelezen. Ingelogde gebruikers zien de leestips en de balk niet.
 
 Optioneel kan de bezoeker **doorscrollen** naar de volgende leestip (zie hieronder).
 
@@ -84,7 +84,7 @@ Let op: UTM-parameters op interne links tellen in Plausible niet als bron, want 
 Vooraf vastgelegd, zodat het besluit niet achteraf wordt bijgesteld.
 
 - **Vraag**: levert de doorscroll-balk meer doorlezers op dan het leestipsblok, zonder lezers ongewild weg te sturen?
-- **Groepen**: elke bezoeker wordt in de browser willekeurig ingedeeld, 50/50, en blijft die dag in dezelfde groep; de volgende dag wordt opnieuw geloot. Zo is elke dag een onafhankelijke herhaling en past de indeling bij Plausible, dat bezoekers per dag telt. Groep a krijgt het leestipsblok, groep b de balk (en het leestipsblok na het sluiten van de balk). Bezoekers zonder `localStorage` doen niet mee en zien het leestipsblok. Ingelogde gebruikers (de redactie) doen ook niet mee: zij zien de balk, zonder test-events.
+- **Groepen**: elke bezoeker wordt in de browser willekeurig ingedeeld, 50/50, en blijft die dag in dezelfde groep; de volgende dag wordt opnieuw geloot. Zo is elke dag een onafhankelijke herhaling en past de indeling bij Plausible, dat bezoekers per dag telt. Groep a krijgt het leestipsblok, groep b de balk (en het leestipsblok na het sluiten van de balk). Bezoekers zonder `localStorage` doen niet mee en zien het leestipsblok. Ingelogde gebruikers (de redactie) doen ook niet mee.
 - **Primaire maatstaf**: doorlezers per artikelweergave. Doorlezers zijn klikken op een leestip (`Recirculatie+Artikel`) plus klikken en doorscrollen op de balk (`Recirculatie+Scroll` met `actie` `geklikt` of `doorgescrold`); weergaven zijn `Recirculatie Weergave`. Elke weergave telt, ook als de bezoeker het blok of de balk niet bereikt.
 - **Analyse**: per dag het verschil tussen b en a, met een 95%-interval over de dagen (beide groepen krijgen hetzelfde nieuws, dus de schommelingen per dag vallen weg).
 - **Controle**: het aantal bezoekers per groep, per dag geteld, moet 50/50 zijn (chi-kwadraat, p ≥ 0,001); anders is de test ongeldig.

@@ -1,3 +1,7 @@
+## [Unreleased]
+### Veranderd
+- Ingelogde gebruikers zien geen leestips en geen doorscrollbalk meer, ook niet in de voorbeeldweergave van een concept. Hun bezoeken komen ook niet meer in de cookie met gelezen artikelen.
+
 ## [0.5.8] - 2026-10-29
 ### Veranderd
 - Minimaal vereiste PHP-versie verhoogd van 8.3 naar 8.4.
